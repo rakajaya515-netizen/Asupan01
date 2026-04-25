@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Grid</title>
+
+<style>
+body {
+  margin:0;
+  background:#0b0b0b;
+  font-family:Arial;
+  color:white;
+}
+
+.header {
+  padding:10px;
+}
+
+.search {
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:25px;
+  background:#1c1c1c;
+  color:white;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  padding:10px;
+}
+
+.card {
+  position:relative;
+  border-radius:12px;
+  overflow:hidden;
+  background:#1a1a1a;
+  cursor:pointer;
+}
+
+.card img {
+  width:100%;
+  height:220px;
+  object-fit:cover;
+}
+
+.card::after {
+  content:"";
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:60%;
+  background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+
+.title {
+  position:absolute;
+  bottom:8px;
+  left:8px;
+  right:8px;
+  font-size:13px;
+}
+
+.player {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:black;
+  display:none;
+  flex-direction:column;
+}
+
+iframe {
+  width:100%;
+  height:65%;
+}
+
+.close {
+  padding:12px;
+  background:red;
+  border:none;
+  color:white;
+  margin:10px;
+  border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <input class="search" id="search" placeholder="Search video..." onkeyup="filterVideo()">
+</div>
+
+<div class="grid" id="grid">
+
+  <div class="card" data-title="video 1" onclick="play('https://www.youtube.com/embed/dQw4w9WgXcQ')">
+    <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg">
+    <div class="title">Video 1</div>
+  </div>
+
+  <div class="card" data-title="video 2" onclick="play('https://www.youtube.com/embed/3JZ_D3ELwOQ')">
+    <img src="https://img.youtube.com/vi/3JZ_D3ELwOQ/0.jpg">
+    <div class="title">Video 2</div>
+  </div>
+
+</div>
+
+<div class="player" id="player">
+  <iframe id="frame" frameborder="0" allowfullscreen></iframe>
+  <button class="close" onclick="closePlayer()">Tutup</button>
+</div>
+
+<script>
+function play(url){
+  document.getElementById("player").style.display="flex";
+  document.getElementById("frame").src=url;
+}
+
+function closePlayer(){
+  document.getElementById("player").style.display="none";
+  document.getElementById("frame").src="";
+}
+
+function filterVideo(){
+  let input = document.getElementById("search").value.toLowerCase();
+  let cards = document.querySelectorAll(".card");
+
+  cards.forEach(card => {
+    let title = card.getAttribute("data-title").toLowerCase();
+    card.style.display = title.includes(input) ? "block" : "none";
+  });
+}
+</script>
+
+</body>
+</html>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "API_KEY_KAMU",
+  authDomain: "PROJECT.firebaseapp.com",
+  projectId: "PROJECT_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const grid = document.getElementById("grid");
+
+db.collection("videos").get().then(snapshot => {
+  snapshot.forEach(doc => {
+    let v = doc.data();
+
+    grid.innerHTML += `
+      <div class="card" onclick="play('${v.url}')">
+        <img src="${v.thumbnail}">
+        <div class="title">${v.title}</div>
+      </div>
+    `;
+  });
+});
+</script>
