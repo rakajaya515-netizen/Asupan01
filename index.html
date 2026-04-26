@@ -63,4 +63,22 @@ body {
 </div>
 
 </body>
+  body {
+  margin:0;
+  scroll-snap-type:y mandatory;
+}
+
+.card {
+  height:100vh;
+  scroll-snap-align:start;
+}
 </html>
+<input id="search" onkeyup="searchVideo()">
+<script>
+function searchVideo(){
+  let input = document.getElementById("search").value.toLowerCase();
+  document.querySelectorAll(".card").forEach(card=>{
+    card.style.display = card.innerText.toLowerCase().includes(input) ? "block":"none";
+  });
+}
+</script>
