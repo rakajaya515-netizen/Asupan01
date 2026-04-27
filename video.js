@@ -1,21 +1,26 @@
-function openVideo(url) {
-  window.location.href = "player.html?video=" + url;
+<script>
+async function loadVideos() {
+  const res = await fetch("https://api.vidara.so/v1/file/list?api_key=881b10b3dab39e29f7926a376cba122b965b56d6f8a98b87d2f6ff709211998d");
+  const data = await res.json();
+
+  const container = document.getElementById("videos");
+  container.innerHTML = "";
+
+  data.result.files.forEach(v => {
+    container.innerHTML += `
+      <div class="card" onclick="play('${v.file_code}')">
+        <img src="${v.thumbnail}">
+        <div class="overlay">
+          <p>${v.title || 'No Title'}</p>
+        </div>
+      </div>
+    `;
+  });
 }
-export default async function handler(req, res) {
-  try {
-    const response = await fetch(
-      "https://api.vidara.so/v1/video/list?api_key=" +
-      process.env.API_KEY +
-      "&page=1&limit=100"
-    );
 
-    const data = await response.json();
-
-    res.status(200).json(data);
-
-  } catch (error) {
-    res.status(500).json({
-      error: error.message
-    });
-  }
+function play(code) {
+  window.location.href = "player.html?code=" + code;
 }
+
+loadVideos();
+</script>
