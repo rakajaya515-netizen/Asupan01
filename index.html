@@ -1,208 +1,172 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Streaming</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Streaming</title>
 
-  <style>
-    body {
-      margin:0;
-      background:#000;
-      color:white;
-      font-family:sans-serif;
-    }
+<style>
+body {
+  margin: 0;
+  background: #000;
+  color: white;
+  font-family: sans-serif;
+}
 
-    .search {
-      padding:10px;
-    }
+.search {
+  padding: 10px;
+}
 
-    input {
-      width:100%;
-      padding:12px;
-      border-radius:20px;
-      border:none;
-      outline:none;
-    }
+.search input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+}
 
-    .grid {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-      padding:10px;
-    }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
 
-    .card {
-      position:relative;
-      border-radius:15px;
-      overflow:hidden;
-      cursor:pointer;
-    }
+.card {
+  position: relative;
+  border-radius: 15px;
+  overflow: hidden;
+  cursor: pointer;
+}
 
-    .card img {
-      width:100%;
-      height:200px;
-      object-fit:cover;
-    }
+.card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
 
-    .overlay {
-      position:absolute;
-      bottom:0;
-      left:0;
-      right:0;
-      padding:10px;
-      background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-    }
+.overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
 
-    #modal {
-      display:none;
-      position:fixed;
-      top:0; left:0;
-      width:100%;
-      height:100%;
-      background:black;
-      z-index:999;
-      justify-content:center;
-      align-items:center;
-    }
+.overlay p {
+  font-size: 14px;
+  margin: 0;
+}
 
-    #modal iframe {
-      width:100%;
-      height:100%;
-    }
+/* PLAYER MODAL */
+#modal {
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:black;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
 
-    #close {
-      position:absolute;
-      top:10px;
-      right:20px;
-      font-size:30px;
-      color:white;
-      cursor:pointer;
-    }
+#player {
+  width:100%;
+  height:100%;
+  border:none;
+}
 
-    #loading {
-      text-align:center;
-      padding:20px;
-    }
-  </style>
+.close {
+  position:absolute;
+  top:10px;
+  right:15px;
+  font-size:25px;
+  cursor:pointer;
+}
+</style>
 </head>
 
 <body>
 
 <div class="search">
-  <input type="text" placeholder="Search video...">
+  <input type="text" id="search" placeholder="Search video...">
 </div>
 
 <div class="grid" id="videos"></div>
 
-<div id="loading">Loading...</div>
-
 <!-- PLAYER -->
 <div id="modal">
-  <span id="close">×</span>
+  <div class="close" onclick="closePlayer()">✖</div>
   <iframe id="player" allowfullscreen></iframe>
 </div>
 
 <script>
 let allVideos = [];
-let visible = 0;
-const limit = 12;
 
 async function loadVideos() {
   try {
     const res = await fetch("/api/videos");
     const data = await res.json();
 
+    console.log("DATA:", data);
+
+    if (!data.videos || data.videos.length === 0) {
+      document.getElementById("videos").innerHTML = "<p>No videos</p>";
+      return;
+    }
+
     allVideos = data.videos;
-
-    document.getElementById("loading").style.display = "none";
-
-    renderVideos();
+    renderVideos(allVideos);
 
   } catch (err) {
-    console.log(err);
+    document.getElementById("videos").innerHTML = "<p>Error load video</p>";
   }
 }
 
-function renderVideos() {
+function renderVideos(videos) {
   const container = document.getElementById("videos");
+  container.innerHTML = "";
 
-  const slice = allVideos.slice(visible, visible + limit);
-
-  if (slice.length === 0) return;
-
-  slice.forEach(v => {
-    const div = document.createElement("div");
-    div.className = "card";
-    div.onclick = () => play(v.filecode);
-
-    div.innerHTML = `
-      <img src="${v.thumbnail}">
-      <div class="overlay">
-        <p>${v.title}</p>
+  videos.forEach(v => {
+    container.innerHTML += `
+      <div class="card" onclick="play('${v.filecode}')">
+        <img loading="lazy" src="${v.thumbnail}">
+        <div class="overlay">
+          <p>${v.title}</p>
+        </div>
       </div>
     `;
-
-    container.appendChild(div);
   });
-
-  visible += limit;
 }
 
-// infinite scroll
-window.addEventListener("scroll", () => {
-  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
-    renderVideos();
-  }
-});
-
-// PLAY VIDEO
 function play(code) {
   const modal = document.getElementById("modal");
   const player = document.getElementById("player");
 
   modal.style.display = "flex";
 
-  player.src = "https://vidara.to/e/" + code;
+  // loading ringan dulu
+  player.src = "";
+  setTimeout(() => {
+    player.src = "https://vidara.to/e/" + code;
+  }, 200);
 }
 
-// CLOSE
-document.getElementById("close").onclick = () => {
+function closePlayer() {
   document.getElementById("modal").style.display = "none";
   document.getElementById("player").src = "";
-};
+}
 
-// SEARCH
-document.querySelector("input").addEventListener("input", function() {
-  const keyword = this.value.toLowerCase();
-
-  const container = document.getElementById("videos");
-  container.innerHTML = "";
-
-  visible = 0;
-
-  if (!keyword) {
-    renderVideos();
-    return;
-  }
+/* SEARCH */
+document.getElementById("search").addEventListener("input", function(e) {
+  const q = e.target.value.toLowerCase();
 
   const filtered = allVideos.filter(v =>
-    v.title.toLowerCase().includes(keyword)
+    v.title.toLowerCase().includes(q)
   );
 
-  filtered.slice(0, limit).forEach(v => {
-    const div = document.createElement("div");
-    div.className = "card";
-    div.onclick = () => play(v.filecode);
-
-    div.innerHTML = `
-      <img src="${v.thumbnail}">
-      <div class="overlay">
-        <p>${v.title}</p>
-      </div>
-    `;
-
-    container.appendChild(div);
-  });
+  renderVideos(filtered);
 });
 
 loadVideos();
