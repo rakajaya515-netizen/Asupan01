@@ -1,46 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Streaming Video</title>
+  <title>Streaming</title>
+  <style>
+    body { background: #111; color: white; font-family: sans-serif; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .card { background: #222; padding: 10px; border-radius: 10px; }
+    video { width: 100%; border-radius: 10px; }
+  </style>
 </head>
 <body>
 
-<h1>𝔸𝕤𝕦𝕡𝕒𝕟 𝕋𝕖𝕣𝕖𝕟𝕒𝕜</h1>
-<div id="videos"></div>
+<h2>Video Streaming</h2>
+
+<div class="grid" id="videos"></div>
 
 <script>
-fetch("https://asupan01.vercel.app/api/videos")
-  .then(res => res.json())
-  .then(data => {
-    console.log("DATA API:", data);
-
-    const container = document.getElementById("videos");
-
-    // ambil array video (biasanya di data.data)
-    const videos = data.data || [];
-
-    videos.forEach(video => {
-      const el = document.createElement("video");
-
-      // coba beberapa kemungkinan field
-      el.src =
-        video.url ||
-        video.file ||
-        video.video_url ||
-        video.link ||
-        "";
-
-      el.controls = true;
-      el.width = 300;
-
-      if (el.src) {
-        container.appendChild(el);
-      }
-    });
-  })
-  .catch(err => {
-    console.error("ERROR:", err);
+fetch("videos.json")
+.then(res => res.json())
+.then(data => {
+  let container = document.getElementById("videos");
+  data.forEach(v => {
+    container.innerHTML += `
+      <div class="card">
+        <video controls src="${v.url}"></video>
+        <p>${v.title}</p>
+      </div>
+    `;
   });
+});
 </script>
 
 </body>
