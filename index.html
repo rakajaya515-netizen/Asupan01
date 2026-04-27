@@ -79,22 +79,38 @@
 <div class="grid" id="videos"></div>
 
 <script>
-fetch("videos.json")
-.then(res => res.json())
-.then(data => {
-  let container = document.getElementById("videos");
+async function loadVideos() {
+  try {
+    const res = await fetch(
+      "https://api.allorigins.win/raw?url=https://api.vidara.so/v1/file/list?api_key=API_KEY_KAMU"
+    );
 
-  data.forEach(v => {
-    container.innerHTML += `
-      <div class="card">
-        <img src="${v.thumbnail}">
-        <div class="overlay">
-          <p>${v.title}</p>
+    const data = await res.json();
+
+    const container = document.getElementById("videos");
+    container.innerHTML = "";
+
+    data.result.files.forEach(v => {
+      container.innerHTML += `
+        <div class="card" onclick="play('${v.file_code}')">
+          <img src="${v.thumbnail}">
+          <div class="overlay">
+            <p>${v.title || 'No Title'}</p>
+          </div>
         </div>
-      </div>
-    `;
-  });
-});
+      `;
+    });
+
+  } catch (err) {
+    console.log("Error:", err);
+  }
+}
+
+function play(code) {
+  window.location.href = "player.html?code=" + code;
+}
+
+loadVideos();
 </script>
 
 </body>
