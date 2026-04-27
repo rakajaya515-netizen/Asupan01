@@ -1,5 +1,37 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <title>Streaming Video</title>
+</head>
+<body>
+
+<h1>Video Saya</h1>
+<div id="videos"></div>
+
+<script>
+fetch("https://api.vidara.com/videos", {
+  headers: {
+    "Authorization": "Bearer API_KEY_KAMU"
+  }
+})
+.then(res => res.json())
+.then(data => {
+  const container = document.getElementById("videos");
+
+  data.forEach(video => {
+    const el = document.createElement("video");
+    el.src = video.url;
+    el.controls = true;
+    el.width = 300;
+    container.appendChild(el);
+  });
+});
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html>
 <h1>𝔄𝔰𝔲𝔭𝔞𝔫 𝔗𝔢𝔯𝔢𝔫𝔞𝔨</h1>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Video Grid</title>
@@ -49,16 +81,6 @@ body {
 <input class="search" placeholder="Search video...">
 
 <div class="grid">
-
-  <div class="card">
-    <video src="https://www.w3schools.com/html/mov_bbb.mp4" controls></video>
-    <div class="title">Sample Video 1</div>
-  </div>
-
-  <div class="card">
-    <video src="https://www.w3schools.com/html/movie.mp4" controls></video>
-    <div class="title">Sample Video 2</div>
-  </div>
 
 </div>
 
