@@ -9,12 +9,19 @@
 <div id="videos"></div>
 
 <script>
-fetch("https://api.vidara.com/videos", {
-  headers: {
-    "Authorization": "Bearer API_KEY_KAMU"
-  }
-})
-.then(res => res.json())
+fetch("https://asupan01-dpbn.vercel.app/api/videos")
+  .then(res => res.json())
+  .then(data => {
+    const container = document.getElementById("videos");
+
+    data.forEach(video => {
+      const el = document.createElement("video");
+      el.src = video.url;
+      el.controls = true;
+      el.width = 300;
+      container.appendChild(el);
+    });
+  });then(res => res.json())
 .then(data => {
   const container = document.getElementById("videos");
 
