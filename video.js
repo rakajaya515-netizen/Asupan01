@@ -1,6 +1,6 @@
 <script>
 async function loadVideos() {
-  const res = await fetch("https://api.vidara.so/v1/file/list?api_key=881b10b3dab39e29f7926a376cba122b965b56d6f8a98b87d2f6ff709211998d");
+  const res = await fetch("/api/videos");
   const data = await res.json();
 
   const container = document.getElementById("videos");
@@ -17,10 +17,3 @@ async function loadVideos() {
     `;
   });
 }
-
-function play(code) {
-  window.location.href = "player.html?code=" + code;
-}
-
-loadVideos();
-</script>
