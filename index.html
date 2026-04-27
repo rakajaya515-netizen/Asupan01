@@ -83,6 +83,7 @@ let page = 1;
 let loading = false;
 let allLoaded = false;
 let allVideos = [];
+const limit = 20;
 
 /* LOAD VIDEOS */
 async function loadVideos() {
@@ -104,7 +105,14 @@ async function loadVideos() {
     allVideos = allVideos.concat(data.videos);
     render(data.videos);
 
+    // 🔥 cek total biar akurat
+    if ((page * limit) >= data.total) {
+      allLoaded = true;
+      document.getElementById("loading").innerText = "All videos loaded";
+    }
+
     page++;
+
   } catch (err) {
     console.log(err);
   }
@@ -133,7 +141,7 @@ window.addEventListener("scroll", () => {
   }
 });
 
-/* PLAY VIDEO */
+/* PLAY */
 function play(code) {
   window.open("https://vidara.to/v/" + code, "_blank");
 }
