@@ -5,7 +5,7 @@
 </head>
 <body>
 
-<h1>Video Saya</h1>
+<h1>_𝘼𝙨𝙪𝙥𝙖𝙣 𝙏𝙚𝙧𝙚𝙣𝙖𝙠_</h1>
 <div id="videos"></div>
 
 <script>
@@ -32,75 +32,33 @@ fetch("https://api.vidara.com/videos", {
 </html>
 <!DOCTYPE html>
 <html>
-<h1>𝔄𝔰𝔲𝔭𝔞𝔫 𝔗𝔢𝔯𝔢𝔫𝔞𝔨</h1>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Video Grid</title>
-
-<style>
-body {
-  background:#0f0f0f;
-  color:white;
-  font-family:sans-serif;
-}
-
-.search {
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  margin:15px 0;
-}
-
-.grid {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
-}
-
-.card {
-  background:#1c1c1c;
-  border-radius:12px;
-  overflow:hidden;
-}
-
-.card video {
-  width:100%;
-  height:200px;
-  object-fit:cover;
-}
-
-.title {
-  padding:8px;
-  font-size:13px;
-}
-</style>
+<head>
+  <title>Streaming Video</title>
 </head>
-
 <body>
 
-<input class="search" placeholder="Search video...">
+<h1>Video Saya</h1>
+<div id="videos"></div>
 
-<div class="grid">
+<script>
+fetch("https://api.vidara.com/videos", {
+  headers: {
+    "Authorization": "Bearer API_KEY_KAMU"
+  }
+})
+.then(res => res.json())
+.then(data => {
+  const container = document.getElementById("videos");
 
-</div>
+  data.forEach(video => {
+    const el = document.createElement("video");
+    el.src = video.url;
+    el.controls = true;
+    el.width = 300;
+    container.appendChild(el);
+  });
+});
+</script>
 
 </body>
-  body {
-  margin:0;
-  scroll-snap-type:y mandatory;
-}
-
-.card {
-  height:100vh;
-  scroll-snap-align:start;
-}
-</html>
-<input id="search" onkeyup="searchVideo()">
-<script>
-function searchVideo(){
-  let input = document.getElementById("search").value.toLowerCase();
-  document.querySelectorAll(".card").forEach(card=>{
-    card.style.display = card.innerText.toLowerCase().includes(input) ? "block":"none";
-  });
-}
-</script>
+</html
