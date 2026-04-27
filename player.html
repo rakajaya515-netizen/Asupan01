@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Player</title>
+  <style>
+    body { margin:0; background:black; }
+    video { width:100%; height:100vh; }
+  </style>
+</head>
+<body>
+
+<video controls autoplay id="player"></video>
+
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const code = urlParams.get('code');
+
+document.getElementById("player").src =
+  "https://vidara.so/e/" + code;
+</script>
+
+</body>
+</html>
