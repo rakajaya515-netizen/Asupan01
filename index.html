@@ -31,16 +31,22 @@ fetch("https://asupan01.vercel.app/api/videos")
     el.controls = true;
     el.width = 300;
     container.appendChild(el);
+  })
+fetch("https://asupan01.vercel.app/api/videos")
+  .then(res => res.json())
+  .then(data => {
+    console.log(data); // penting!
+    
+    const container = document.getElementById("videos");
+
+    data.forEach(video => {
+      const el = document.createElement("video");
+      el.src = video.url;
+      el.controls = true;
+      el.width = 300;
+      container.appendChild(el);
+    });
+  })
+  .catch(err => {
+    console.error("ERROR:", err);
   });
-});
-</script>
-const container = document.getElementById("videos");
-
-const el = document.createElement("video");
-el.src = "https://www.w3schools.com/html/mov_bbb.mp4";
-el.controls = true;
-el.width = 300;
-
-container.appendChild(el);
-</body>
-</html>
