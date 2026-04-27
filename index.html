@@ -6,13 +6,13 @@
 <body>
 
     <h1>_Asupan Terenak_</h1>
-    <div id="videos"></div>
+    <div id="video"></div>
 
     <script>
-        const container = document.getElementById("videos");
+        const container = document.getElementById("video");
 
         // Mengambil data dari API
-        fetch("https://asupan01.vercel.app/api/videos")
+        fetch("https://asupan01.vercel.app/api/video")
             .then(res => res.json())
             .then(data => {
                 // Melakukan perulangan untuk setiap data video yang diterima
