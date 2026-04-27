@@ -1,35 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Streaming Video</title>
+  <title>Streaming Video</title>
 </head>
 <body>
 
-    <h1>_Asupan Terenak_</h1>
-    <div id="video"></div>
+<h1>𝔸𝕤𝕦𝕡𝕒𝕟 𝕋𝕖𝕣𝕖𝕟𝕒𝕜</h1>
+<div id="videos"></div>
 
-    <script>
-        const container = document.getElementById("video");
+<script>
+fetch("https://asupan01.vercel.app/api/videos")
+  .then(res => res.json())
+  .then(data => {
+    console.log("DATA API:", data);
 
-        // Mengambil data dari API
-        fetch("https://asupan01.vercel.app/api/video")
-            .then(res => res.json())
-            .then(data => {
-                // Melakukan perulangan untuk setiap data video yang diterima
-                data.forEach(video => {
-                    const el = document.createElement("video");
-                    el.src = video.url; // Pastikan API mengembalikan objek dengan properti "url"
-                    el.controls = true;
-                    el.width = 300;
-                    el.style.margin = "10px"; // Memberi jarak antar video
-                    container.appendChild(el);
-                });
-            })
-            .catch(err => {
-                console.error("Gagal memuat video:", err);
-            });
-    </script>
+    const container = document.getElementById("videos");
+
+    // ambil array video (biasanya di data.data)
+    const videos = data.data || [];
+
+    videos.forEach(video => {
+      const el = document.createElement("video");
+
+      // coba beberapa kemungkinan field
+      el.src =
+        video.url ||
+        video.file ||
+        video.video_url ||
+        video.link ||
+        "";
+
+      el.controls = true;
+      el.width = 300;
+
+      if (el.src) {
+        container.appendChild(el);
+      }
+    });
+  })
+  .catch(err => {
+    console.error("ERROR:", err);
+  });
+</script>
 
 </body>
 </html>
-
