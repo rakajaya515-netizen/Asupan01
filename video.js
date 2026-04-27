@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   try {
-    const response = await fetch("https://api.vidara.com/videos", {
+    const response = await fetch("https://api.vidara.com/video", {
       headers: {
         Authorization: "Bearer " + process.env.API_KEY
       }
