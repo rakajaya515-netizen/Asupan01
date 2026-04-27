@@ -1,52 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Streaming Video</title>
+    <title>Streaming Video</title>
 </head>
 <body>
 
-<h1>_𝘼𝙨𝙪𝙥𝙖𝙣 𝙏𝙚𝙧𝙚𝙣𝙖𝙠_</h1>
-<div id="videos"></div>
+    <h1>_Asupan Terenak_</h1>
+    <div id="videos"></div>
 
-<script>
-fetch("https://asupan01.vercel.app/api/videos")
-  .then(res => res.json())
-  .then(data => {
-    const container = document.getElementById("videos");
+    <script>
+        const container = document.getElementById("videos");
 
-    data.forEach(video => {
-      const el = document.createElement("video");
-      el.src = video.url;
-      el.controls = true;
-      el.width = 300;
-      container.appendChild(el);
-    });
-  });then(res => res.json())
-.then(data => {
-  const container = document.getElementById("videos");
+        // Mengambil data dari API
+        fetch("https://asupan01.vercel.app/api/videos")
+            .then(res => res.json())
+            .then(data => {
+                // Melakukan perulangan untuk setiap data video yang diterima
+                data.forEach(video => {
+                    const el = document.createElement("video");
+                    el.src = video.url; // Pastikan API mengembalikan objek dengan properti "url"
+                    el.controls = true;
+                    el.width = 300;
+                    el.style.margin = "10px"; // Memberi jarak antar video
+                    container.appendChild(el);
+                });
+            })
+            .catch(err => {
+                console.error("Gagal memuat video:", err);
+            });
+    </script>
 
-  data.forEach(video => {
-    const el = document.createElement("video");
-    el.src = video.url;
-    el.controls = true;
-    el.width = 300;
-    container.appendChild(el);
-  })
-fetch("https://asupan01.vercel.app/api/videos")
-  .then(res => res.json())
-  .then(data => {
-    console.log(data); // penting!
-    
-    const container = document.getElementById("videos");
+</body>
+</html>
 
-    data.forEach(video => {
-      const el = document.createElement("video");
-      el.src = video.url;
-      el.controls = true;
-      el.width = 300;
-      container.appendChild(el);
-    });
-  })
-  .catch(err => {
-    console.error("ERROR:", err);
-  });
