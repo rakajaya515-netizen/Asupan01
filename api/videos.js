@@ -1,4 +1,4 @@
-exportexport default async function handler(req, res) {
+export default async function handler(req, res) {
   try {
     const API_KEY = process.env.VIDARA_API_KEY;
 
