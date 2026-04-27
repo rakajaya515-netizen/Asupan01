@@ -34,6 +34,13 @@ fetch("https://asupan01.vercel.app/api/videos")
   });
 });
 </script>
+const container = document.getElementById("videos");
 
+const el = document.createElement("video");
+el.src = "https://www.w3schools.com/html/mov_bbb.mp4";
+el.controls = true;
+el.width = 300;
+
+container.appendChild(el);
 </body>
 </html>
