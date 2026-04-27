@@ -37,35 +37,3 @@ fetch("https://asupan01.vercel.app/api/videos")
 
 </body>
 </html>
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Streaming Video</title>
-</head>
-<body>
-
-<h1>Video Saya</h1>
-<div id="videos"></div>
-
-<script>
-fetch("https://api.vidara.com/videos", {
-  headers: {
-    "Authorization": "Bearer API_KEY_KAMU"
-  }
-})
-.then(res => res.json())
-.then(data => {
-  const container = document.getElementById("videos");
-
-  data.forEach(video => {
-    const el = document.createElement("video");
-    el.src = video.url;
-    el.controls = true;
-    el.width = 300;
-    container.appendChild(el);
-  });
-});
-</script>
-
-</body>
-</html
