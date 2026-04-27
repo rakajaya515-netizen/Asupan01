@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Streaming Fast</title>
+<title>Streaming Pro</title>
 
 <style>
 body {
@@ -12,9 +12,8 @@ body {
   color: white;
 }
 
-/* SEARCH */
 .search {
-  padding: 10px;
+  padding: 15px;
 }
 
 .search input {
@@ -26,44 +25,68 @@ body {
   color: white;
 }
 
-/* GRID */
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
   padding: 10px;
 }
 
 .card {
   position: relative;
-  border-radius: 15px;
+  border-radius: 18px;
   overflow: hidden;
   cursor: pointer;
-  background: #222;
 }
 
 .card img {
   width: 100%;
-  height: 200px;
+  height: 220px;
   object-fit: cover;
 }
 
-/* TITLE */
 .overlay {
   position: absolute;
   bottom: 0;
-  padding: 8px;
-  font-size: 14px;
+  padding: 10px;
   width: 100%;
-  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+
+/* MODAL */
+#modal {
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:black;
+  display:none;
+  z-index:999;
+}
+
+#player {
+  width:100%;
+  height:100%;
+  border:none;
+}
+
+#close {
+  position:absolute;
+  top:15px;
+  right:20px;
+  font-size:25px;
+  cursor:pointer;
+  z-index:1000;
 }
 
 /* LOADING */
-.loading {
-  text-align: center;
-  padding: 20px;
-  font-size: 14px;
-  opacity: 0.7;
+#loading {
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  font-size:20px;
 }
 </style>
 </head>
@@ -71,94 +94,83 @@ body {
 <body>
 
 <div class="search">
-  <input type="text" id="search" placeholder="Search video...">
+  <input type="text" id="searchInput" placeholder="Search...">
 </div>
 
 <div class="grid" id="videos"></div>
 
-<div class="loading" id="loading">Loading...</div>
+<!-- MODAL -->
+<div id="modal">
+  <div id="close" onclick="closePlayer()">✕</div>
+  <div id="loading">Loading...</div>
+  <iframe id="player"></iframe>
+</div>
 
 <script>
-let page = 1;
-let loading = false;
-let allLoaded = false;
 let allVideos = [];
-const limit = 20;
 
-/* LOAD VIDEOS */
 async function loadVideos() {
-  if (loading || allLoaded) return;
+  const res = await fetch("/api/videos");
+  const data = await res.json();
 
-  loading = true;
-  document.getElementById("loading").innerText = "Loading...";
-
-  try {
-    const res = await fetch(`/api/videos?page=${page}`);
-    const data = await res.json();
-
-    if (!data.videos || data.videos.length === 0) {
-      allLoaded = true;
-      document.getElementById("loading").innerText = "No more videos";
-      return;
-    }
-
-    allVideos = allVideos.concat(data.videos);
-    render(data.videos);
-
-    // 🔥 cek total biar akurat
-    if ((page * limit) >= data.total) {
-      allLoaded = true;
-      document.getElementById("loading").innerText = "All videos loaded";
-    }
-
-    page++;
-
-  } catch (err) {
-    console.log(err);
-  }
-
-  loading = false;
+  allVideos = data.result.videos;
+  renderVideos(allVideos);
 }
 
-/* RENDER */
-function render(videos) {
+function renderVideos(videos) {
   const container = document.getElementById("videos");
+  container.innerHTML = "";
 
   videos.forEach(v => {
     container.innerHTML += `
       <div class="card" onclick="play('${v.filecode}')">
-        <img src="${v.thumbnail}" loading="lazy">
-        <div class="overlay">${v.title || 'No Title'}</div>
+        <img src="${v.thumbnail}">
+        <div class="overlay">
+          ${v.title || 'No Title'}
+        </div>
       </div>
     `;
   });
 }
 
-/* INFINITE SCROLL */
-window.addEventListener("scroll", () => {
-  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
-    loadVideos();
-  }
-});
-
-/* PLAY */
 function play(code) {
-  window.open("https://vidara.to/v/" + code, "_blank");
+  const modal = document.getElementById("modal");
+  const player = document.getElementById("player");
+  const loading = document.getElementById("loading");
+
+  modal.style.display = "block";
+  loading.style.display = "block";
+
+  // coba embed ringan
+  player.src = "https://vidara.to/v/" + code;
+
+  player.onload = () => {
+    loading.style.display = "none";
+  };
+
+  // fallback kalau gagal
+  setTimeout(() => {
+    if (loading.style.display === "block") {
+      window.open("https://vidara.to/v/" + code, "_blank");
+    }
+  }, 5000);
 }
 
-/* SEARCH */
-document.getElementById("search").addEventListener("input", function() {
+function closePlayer() {
+  document.getElementById("modal").style.display = "none";
+  document.getElementById("player").src = "";
+}
+
+document.getElementById("searchInput").addEventListener("input", function() {
   const keyword = this.value.toLowerCase();
 
   const filtered = allVideos.filter(v =>
     (v.title || "").toLowerCase().includes(keyword)
   );
 
-  document.getElementById("videos").innerHTML = "";
-  render(filtered);
+  renderVideos(filtered);
 });
 
-/* INIT */
 loadVideos();
 </script>
 
