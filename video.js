@@ -1,3 +1,6 @@
+function openVideo(url) {
+  window.location.href = "player.html?video=" + url;
+}
 export default async function handler(req, res) {
   try {
     const response = await fetch(
