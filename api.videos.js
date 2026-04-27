@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     const API_KEY = process.env.VIDARA_API_KEY;
 
     const response = await fetch(
-      `https://api.vidara.so/v1/file/list?api_key=${API_KEY}`
+      `https://api.vidara.so/v1/video/list?api_key=${API_KEY}`
     );
 
     const data = await response.json();
@@ -12,4 +12,8 @@ export default async function handler(req, res) {
   } catch (err) {
     res.status(500).json({ error: "Gagal ambil data video" });
   }
+}
+catch (err) {
+  console.log(err);
+  res.status(500).json({ error: "Gagal ambil data video" });
 }
