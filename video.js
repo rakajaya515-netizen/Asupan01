@@ -1,17 +1,14 @@
 export default async function handler(req, res) {
   try {
-    const response = await fetch("https://api.vidara.com/video", {
-      headers: {
-        Authorization: "Bearer " + process.env.API_KEY
-      }
-    });
+    const response = await fetch(
+      "https://api.vidara.so/v1/video/list?api_key=" +
+      process.env.API_KEY +
+      "&page=1&limit=100"
+    );
 
-    const text = await response.text();
+    const data = await response.json();
 
-    res.status(200).send({
-      status: response.status,
-      data: text
-    });
+    res.status(200).json(data);
 
   } catch (error) {
     res.status(500).json({
