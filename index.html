@@ -1,18 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Streaming</title>
+
   <style>
-    body { background: #111; color: white; font-family: sans-serif; }
-    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .card { background: #222; padding: 10px; border-radius: 10px; }
-    video { width: 100%; border-radius: 10px; }
+    body {
+      margin: 0;
+      background: #0f0f0f;
+      font-family: sans-serif;
+      color: white;
+    }
+
+    /* SEARCH */
+    .search {
+      padding: 15px;
+    }
+
+    .search input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 25px;
+      border: none;
+      background: #1c1c1c;
+      color: white;
+      outline: none;
+    }
+
+    /* GRID */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 10px;
+    }
+
+    /* CARD */
+    .card {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .card img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* OVERLAY */
+    .overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    }
+
+    .overlay p {
+      font-size: 14px;
+      margin: 0;
+      font-weight: bold;
+    }
+
   </style>
 </head>
+
 <body>
 
-<h2>Video Streaming</h2>
+<!-- SEARCH -->
+<div class="search">
+  <input type="text" placeholder="Search...">
+</div>
 
+<!-- GRID -->
 <div class="grid" id="videos"></div>
 
 <script>
@@ -20,11 +83,14 @@ fetch("videos.json")
 .then(res => res.json())
 .then(data => {
   let container = document.getElementById("videos");
+
   data.forEach(v => {
     container.innerHTML += `
       <div class="card">
-        <video controls src="${v.url}"></video>
-        <p>${v.title}</p>
+        <img src="${v.thumbnail}">
+        <div class="overlay">
+          <p>${v.title}</p>
+        </div>
       </div>
     `;
   });
