@@ -8,7 +8,11 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    const videos = data.result.files.map(v => ({
+    console.log("API RESPONSE:", data); // DEBUG
+
+    const files = data?.result?.files || [];
+
+    const videos = files.map(v => ({
       title: v.title || "No Title",
       filecode: v.file_code,
       thumbnail: v.thumbnail || `https://img.vidara.so/${v.file_code}.jpg`
@@ -17,6 +21,7 @@ export default async function handler(req, res) {
     res.status(200).json({ videos });
 
   } catch (err) {
+    console.log("ERROR API:", err);
     res.status(500).json({ error: "Gagal ambil video" });
   }
 }
