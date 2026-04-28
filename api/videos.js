@@ -1,23 +1,22 @@
-async function loadVideos() {
+export default async function handler(req, res) {
   try {
-    const res = await fetch("/api/videos");
-    const data = await res.json();
+    const API_KEY = process.env.VIDARA_API_KEY;
 
-    const container = document.getElementById("videos");
-    container.innerHTML = "";
+    const response = await fetch(
+      `https://api.vidara.so/v1/file/list?api_key=${API_KEY}`
+    );
 
-    data.result.videos.forEach(v => {
-      container.innerHTML += `
-        <div class="card" onclick="play('${v.filecode}')">
-          <img src="${v.thumbnail}">
-          <div class="overlay">
-            <p>${v.title || 'No Title'}</p>
-          </div>
-        </div>
-      `;
-    });
+    const data = await response.json();
+
+    const videos = data.result.files.map(v => ({
+      title: v.title || "No Title",
+      filecode: v.file_code,
+      thumbnail: v.thumbnail || `https://img.vidara.so/${v.file_code}.jpg`
+    }));
+
+    res.status(200).json({ videos });
 
   } catch (err) {
-    console.log("Error:", err);
+    res.status(500).json({ error: "Gagal ambil video" });
   }
 }
