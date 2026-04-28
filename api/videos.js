@@ -1,25 +1,23 @@
-export default async function handler(req, res) {
+async function loadVideos() {
   try {
-    const API_KEY = process.env.VIDARA_API_KEY;
+    const res = await fetch("/api/videos");
+    const data = await res.json();
 
-    if (!API_KEY) {
-      return res.status(500).json({ error: "API KEY KOSONG" });
-    }
+    const container = document.getElementById("videos");
+    container.innerHTML = "";
 
-    const response = await fetch(
-      `https://api.vidara.so/v1/file/list?api_key=${API_KEY}`
-    );
-
-    const data = await response.json();
-
-    // 🔥 FIX DI SINI
-    const videos = data?.result?.files || [];
-
-    return res.status(200).json({ videos });
+    data.result.videos.forEach(v => {
+      container.innerHTML += `
+        <div class="card" onclick="play('${v.filecode}')">
+          <img src="${v.thumbnail}">
+          <div class="overlay">
+            <p>${v.title || 'No Title'}</p>
+          </div>
+        </div>
+      `;
+    });
 
   } catch (err) {
-    return res.status(500).json({
-      error: err.message
-    });
+    console.log("Error:", err);
   }
 }
