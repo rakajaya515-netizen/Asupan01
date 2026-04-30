@@ -1,35 +1,28 @@
 "use client";
-
 import { useEffect, useState } from "react";
+
+const AD_LINK = "https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1";
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
   const [search, setSearch] = useState("");
 
-  const AD_LINK =
-    "https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1";
-
   useEffect(() => {
     fetch("/api/videos")
-      .then((res) => res.json())
-      .then((data) => setVideos(data || []));
+      .then(res => res.json())
+      .then(setVideos);
   }, []);
 
-  const filtered = videos.filter((v) =>
-    (v.title || "").toLowerCase().includes(search.toLowerCase())
+  const filtered = videos.filter(v =>
+    v.title?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div
-      style={{
-        background: "#0b0b0b",
-        minHeight: "100vh",
-        color: "#fff"
-      }}
-    >
+    <div style={{ background: "#000", minHeight: "100vh", color: "#fff" }}>
+
       {/* NAVBAR */}
       <div style={{ padding: "15px" }}>
-        <h1 style={{ fontSize: "22px", fontWeight: "700" }}>
+        <h1 style={{ fontSize: "26px", fontWeight: "700" }}>
           Asupanmu
         </h1>
 
@@ -48,59 +41,68 @@ export default function Home() {
         />
       </div>
 
-      {/* GRID 2 KOLOM */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gap: "12px",
-          padding: "12px"
-        }}
-      >
-        {filtered.map((v, i) => (
-          <div
-            key={i}
-            onClick={() => {
-              window.open(AD_LINK, "_blank");
-              setTimeout(() => {
-                window.location.href = v.video_url;
-              }, 800);
-            }}
-            style={{
-              position: "relative",
-              borderRadius: "16px",
-              overflow: "hidden",
-              cursor: "pointer",
-              background: "#111"
-            }}
-          >
-            <img
-              src={v.thumbnail || "https://via.placeholder.com/300x200"}
-              style={{
-                width: "100%",
-                height: "220px",
-                objectFit: "cover"
-              }}
-            />
+      {/* WRAPPER (INI PENTING) */}
+      <div style={{ maxWidth: "500px", margin: "0 auto" }}>
 
+        {/* GRID 2 KOLOM FIX */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "12px",
+            padding: "12px"
+          }}
+        >
+          {filtered.map((v, i) => (
             <div
+              key={i}
+              onClick={() => {
+                window.open(AD_LINK, "_blank");
+                setTimeout(() => {
+                  window.location.href = v.video_url;
+                }, 800);
+              }}
               style={{
-                position: "absolute",
-                bottom: 0,
-                width: "100%",
-                padding: "10px",
-                background:
-                  "linear-gradient(to top, rgba(0,0,0,0.85), transparent)",
-                color: "#fff",
-                fontSize: "13px",
-                fontWeight: "600"
+                position: "relative",
+                borderRadius: "16px",
+                overflow: "hidden",
+                cursor: "pointer",
+                background: "#111"
               }}
             >
-              {v.title || "No Title"}
+
+              {/* THUMB */}
+              <img
+                src={v.thumbnail || "https://via.placeholder.com/300x200"}
+                style={{
+                  width: "100%",
+                  height: "220px",
+                  objectFit: "cover"
+                }}
+              />
+
+              {/* TITLE */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  width: "100%",
+                  padding: "10px",
+                  background:
+                    "linear-gradient(to top, rgba(0,0,0,0.9), transparent)",
+                  color: "#fff",
+                  fontSize: "13px",
+                  fontWeight: "600"
+                }}
+              >
+                {v.title || "No Title"}
+              </div>
+
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
       </div>
     </div>
   );
-               }
+}
