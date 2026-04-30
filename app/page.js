@@ -1,23 +1,54 @@
 "use client";
+
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetch("/api/videos")
       .then((res) => res.json())
-      .then(setVideos);
+      .then((data) => setVideos(data));
   }, []);
 
-  return (
-    <div>
-      <h1>Asupanmu</h1>
+  const filtered = videos.filter((v) =>
+    v.title.toLowerCase().includes(search.toLowerCase())
+  );
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-        {videos.map((v, i) => (
+  return (
+    <div style={{ padding: "20px", background: "#000", color: "#fff" }}>
+      <h1 style={{ fontSize: "28px", marginBottom: "10px" }}>
+        Asupanmu01
+      </h1>
+
+      <input
+        type="text"
+        placeholder="Search video..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{
+          width: "100%",
+          padding: "10px",
+          borderRadius: "10px",
+          marginBottom: "20px",
+          border: "none"
+        }}
+      />
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: "20px"
+        }}
+      >
+        {filtered.map((v, i) => (
           <div key={i}>
-            <img src={v.thumbnail} width="100%" />
+            <img
+              src={v.thumbnail}
+              style={{ width: "100%", borderRadius: "10px" }}
+            />
             <p>{v.title}</p>
 
             <iframe
