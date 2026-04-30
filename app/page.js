@@ -6,22 +6,28 @@ export default function Home() {
   const [videos, setVideos] = useState([]);
   const [search, setSearch] = useState("");
 
-  // 🔥 LINK MONETISASI KAMU
-  const AD_LINK = "https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1";
+  // 🔥 LINK MONETISASI
+  const AD_LINK =
+    "https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1";
 
   useEffect(() => {
     fetch("/api/videos")
       .then((res) => res.json())
-      .then((data) => setVideos(data));
+      .then((data) => setVideos(data || []));
   }, []);
 
   const filtered = videos.filter((v) =>
-    v.title.toLowerCase().includes(search.toLowerCase())
+    (v.title || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div style={{ background: "#0b0b0b", minHeight: "100vh", color: "#fff" }}>
-      
+    <div
+      style={{
+        background: "#0b0b0b",
+        minHeight: "100vh",
+        color: "#fff"
+      }}
+    >
       {/* NAVBAR */}
       <div style={{ padding: "15px" }}>
         <h1 style={{ fontSize: "22px", fontWeight: "700" }}>
@@ -43,11 +49,11 @@ export default function Home() {
         />
       </div>
 
-      {/* GRID */}
+      {/* GRID 2 KOLOM FIX */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
+          gridTemplateColumns: "repeat(2, 1fr)", // 🔥 FIX 2 KOLOM
           gap: "12px",
           padding: "12px"
         }}
@@ -55,31 +61,34 @@ export default function Home() {
         {filtered.map((v, i) => (
           <div
             key={i}
-            style={{
-              position: "relative",
-              borderRadius: "16px",
-              overflow: "hidden",
-              cursor: "pointer"
-            }}
             onClick={() => {
-              // 🔥 buka iklan dulu
+              // buka iklan dulu
               window.open(AD_LINK, "_blank");
 
-              // 🔥 lalu buka video asli
+              // lanjut ke video
               setTimeout(() => {
                 window.location.href = v.video_url;
               }, 800);
             }}
+            style={{
+              position: "relative",
+              borderRadius: "16px",
+              overflow: "hidden",
+              cursor: "pointer",
+              background: "#111"
+            }}
           >
+            {/* THUMBNAIL */}
             <img
-              src={v.thumbnail}
+              src={v.thumbnail || "https://via.placeholder.com/300x200"}
               style={{
                 width: "100%",
-                height: "230px",
+                height: "220px",
                 objectFit: "cover"
               }}
             />
 
+            {/* TITLE OVERLAY */}
             <div
               style={{
                 position: "absolute",
@@ -89,15 +98,15 @@ export default function Home() {
                 background:
                   "linear-gradient(to top, rgba(0,0,0,0.85), transparent)",
                 color: "#fff",
-                fontSize: "14px",
+                fontSize: "13px",
                 fontWeight: "600"
               }}
             >
-              {v.title}
+              {v.title || "No Title"}
             </div>
           </div>
         ))}
       </div>
     </div>
   );
-}
+                      }
