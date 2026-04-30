@@ -18,8 +18,8 @@ export async function GET() {
       if (doodData?.result?.files) {
         doodVideos = doodData.result.files.map((v) => ({
           title: v.title,
-          url: `https://dood.so/e/${v.file_code}`,
-          thumbnail: v.single_img || "",
+          url: `https://dood.so/e/${v.file_code}`, // embed
+          thumbnail: v.splash_img || "",
           source: "doodstream",
         }));
       }
@@ -28,18 +28,18 @@ export async function GET() {
     }
 
     // ======================
-    // VIDARA (contoh generic)
+    // VIDARA (FIXED)
     // ======================
     try {
       const vidaraRes = await fetch(
-        `https://vidsrc.xyz/api/videos?key=${VIDARA_API_KEY}`
+        `https://api.vidara.so/v1/video/list?api_key=${VIDARA_API_KEY}&page=1&limit=50`
       );
       const vidaraData = await vidaraRes.json();
 
-      if (Array.isArray(vidaraData)) {
-        vidaraVideos = vidaraData.map((v) => ({
+      if (vidaraData?.result?.videos) {
+        vidaraVideos = vidaraData.result.videos.map((v) => ({
           title: v.title,
-          url: v.video_url,
+          url: v.link, // embed langsung
           thumbnail: v.thumbnail,
           source: "vidara",
         }));
@@ -51,10 +51,7 @@ export async function GET() {
     const allVideos = [...doodVideos, ...vidaraVideos];
 
     return Response.json(allVideos);
-  } catch (error) {
-    return Response.json(
-      { error: "Failed to fetch videos" },
-      { status: 500 }
-    );
+  } catch (err) {
+    return Response.json({ error: "Failed" }, { status: 500 });
   }
 }
