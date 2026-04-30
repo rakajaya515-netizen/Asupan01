@@ -11,48 +11,43 @@ export default function Watch() {
   const [title, setTitle] = useState("");
 
   useEffect(() => {
-    async function load() {
-      if (source === "vidara") {
-        const res = await fetch(
-          `/api/player?source=vidara&id=${id}`
-        );
-        const data = await res.json();
+    fetch(`/api/player?source=${source}&id=${id}`)
+      .then(res => res.json())
+      .then(data => {
         setVideoUrl(data.url);
         setTitle(data.title);
-      }
-
-      if (source === "dood") {
-        setVideoUrl(`https://dood.so/e/${id}`);
-      }
-    }
-
-    load();
+      });
   }, [source, id]);
 
   return (
     <div style={{ background: "#000", color: "#fff", minHeight: "100vh" }}>
       
+      <button onClick={() => history.back()}>
+        ⬅ Kembali
+      </button>
+
       <h2 style={{ padding: "10px" }}>{title}</h2>
 
-      {/* PLAYER BERSIH */}
-      <video
-        src={videoUrl}
-        controls
-        autoPlay
-        style={{
-          width: "100%",
-          maxHeight: "400px",
-          background: "#000"
-        }}
-      />
+      {/* PLAYER */}
+      <div>
+        <iframe
+          src={videoUrl}
+          width="100%"
+          height="400"
+          frameBorder="0"
+          allowFullScreen
+        />
+      </div>
 
       {/* IKLAN */}
       <div style={{ padding: "10px" }}>
-        <a href="https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1">
+        <a
+          href="https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1"
+          target="_blank"
+        >
           🔥 Tonton Video Premium
         </a>
       </div>
-
     </div>
   );
 }
