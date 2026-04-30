@@ -10,7 +10,8 @@ export default function Home() {
   useEffect(() => {
     fetch("/api/videos")
       .then(res => res.json())
-      .then(setVideos);
+      .then(setVideos)
+      .catch(() => setVideos([]));
   }, []);
 
   const filtered = videos.filter(v =>
@@ -41,14 +42,14 @@ export default function Home() {
         />
       </div>
 
-      {/* WRAPPER (INI PENTING) */}
+      {/* WRAPPER BIAR MOBILE RAPI */}
       <div style={{ maxWidth: "500px", margin: "0 auto" }}>
 
         {/* GRID 2 KOLOM FIX */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
             gap: "12px",
             padding: "12px"
           }}
@@ -57,21 +58,24 @@ export default function Home() {
             <div
               key={i}
               onClick={() => {
+                // buka iklan dulu
                 window.open(AD_LINK, "_blank");
+
+                // lanjut ke video asli
                 setTimeout(() => {
                   window.location.href = v.video_url;
                 }, 800);
               }}
               style={{
                 position: "relative",
-                borderRadius: "16px",
+                borderRadius: "18px",
                 overflow: "hidden",
                 cursor: "pointer",
                 background: "#111"
               }}
             >
 
-              {/* THUMB */}
+              {/* THUMBNAIL */}
               <img
                 src={v.thumbnail || "https://via.placeholder.com/300x200"}
                 style={{
@@ -81,7 +85,7 @@ export default function Home() {
                 }}
               />
 
-              {/* TITLE */}
+              {/* TITLE OVERLAY */}
               <div
                 style={{
                   position: "absolute",
@@ -105,4 +109,4 @@ export default function Home() {
       </div>
     </div>
   );
-}
+                    }
