@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
+
   async headers() {
     return [
       {
@@ -7,9 +9,7 @@ const nextConfig = {
         headers: [
           {
             key: "Content-Security-Policy",
-            value: `
-              default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
-            `.replace(/\n/g, "")
+            value: "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
           }
         ]
       }
