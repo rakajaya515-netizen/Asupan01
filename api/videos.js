@@ -1,27 +1,14 @@
-export default async function handler(req, res) {
-  try {
-    const API_KEY = process.env.VIDARA_API_KEY;
-
-    const response = await fetch(
-      `https://api.vidara.so/v1/file/list?api_key=${API_KEY}`
-    );
-
-    const data = await response.json();
-
-    console.log("API RESPONSE:", data); // DEBUG
-
-    const files = data?.result?.files || [];
-
-    const videos = files.map(v => ({
-      title: v.title || "No Title",
-      filecode: v.file_code,
-      thumbnail: v.thumbnail || `https://img.vidara.so/${v.file_code}.jpg`
-    }));
-
-    res.status(200).json({ videos });
-
-  } catch (err) {
-    console.log("ERROR API:", err);
-    res.status(500).json({ error: "Gagal ambil video" });
-  }
+export default function handler(req, res) {
+  res.status(200).json([
+    {
+      title: "Sample Video 1",
+      thumbnail: "https://picsum.photos/300/200",
+      video_url: "https://www.w3schools.com/html/mov_bbb.mp4"
+    },
+    {
+      title: "Sample Video 2",
+      thumbnail: "https://picsum.photos/300/201",
+      video_url: "https://www.w3schools.com/html/movie.mp4"
+    }
+  ]);
 }
