@@ -1,6 +1,5 @@
 export const metadata = {
-  title: "Asupanmu",
-  description: "Streaming Video"
+  title: "Asupanmu"
 };
 
 export default function RootLayout({ children }) {
