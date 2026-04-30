@@ -1,4 +1,4 @@
-   "use client";
+"use client";
 
 import { useEffect, useState } from "react";
 
@@ -6,7 +6,6 @@ export default function Home() {
   const [videos, setVideos] = useState([]);
   const [search, setSearch] = useState("");
 
-  // 🔥 LINK MONETISASI
   const AD_LINK =
     "https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1";
 
@@ -49,11 +48,11 @@ export default function Home() {
         />
       </div>
 
-      {/* GRID 2 KOLOM FIX */}
+      {/* GRID 2 KOLOM */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)", // 🔥 FIX 2 KOLOM
+          gridTemplateColumns: "repeat(2, 1fr)",
           gap: "12px",
           padding: "12px"
         }}
@@ -62,10 +61,7 @@ export default function Home() {
           <div
             key={i}
             onClick={() => {
-              // buka iklan dulu
               window.open(AD_LINK, "_blank");
-
-              // lanjut ke video
               setTimeout(() => {
                 window.location.href = v.video_url;
               }, 800);
@@ -78,7 +74,6 @@ export default function Home() {
               background: "#111"
             }}
           >
-            {/* THUMBNAIL */}
             <img
               src={v.thumbnail || "https://via.placeholder.com/300x200"}
               style={{
@@ -88,7 +83,6 @@ export default function Home() {
               }}
             />
 
-            {/* TITLE OVERLAY */}
             <div
               style={{
                 position: "absolute",
@@ -109,4 +103,4 @@ export default function Home() {
       </div>
     </div>
   );
-                      }
+               }
