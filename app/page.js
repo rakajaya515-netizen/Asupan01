@@ -1,56 +1,34 @@
 "use client";
-
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
-  const [selected, setSelected] = useState(null);
 
   useEffect(() => {
     fetch("/api/videos")
       .then((res) => res.json())
-      .then((data) => setVideos(data));
+      .then(setVideos);
   }, []);
 
   return (
-    <div style={{ padding: 20, background: "#000", color: "#fff" }}>
+    <div>
       <h1>Asupanmu</h1>
 
-      {/* PLAYER */}
-      {selected && (
-        <div style={{ marginBottom: 20 }}>
-          <iframe
-            src={selected.video_url}
-            width="100%"
-            height="250"
-            allowFullScreen
-          />
-          <h3>{selected.title}</h3>
-        </div>
-      )}
-
-      {/* GRID VIDEO */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
         {videos.map((v, i) => (
-          <div
-            key={i}
-            onClick={() => setSelected(v)}
-            style={{
-              cursor: "pointer",
-              background: "#111",
-              padding: 10,
-              borderRadius: 10,
-            }}
-          >
-            <img
-              src={v.thumbnail}
-              style={{ width: "100%", borderRadius: 10 }}
-            />
-            <p style={{ fontSize: 12 }}>{v.title}</p>
-            <small>{v.source}</small>
+          <div key={i}>
+            <img src={v.thumbnail} width="100%" />
+            <p>{v.title}</p>
+
+            <iframe
+              src={v.video_url}
+              width="100%"
+              height="200"
+              allowFullScreen
+            ></iframe>
           </div>
         ))}
       </div>
     </div>
   );
-            }
+}
