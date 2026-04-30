@@ -1,4 +1,4 @@
-"use client";
+   "use client";
 
 import { useEffect, useState } from "react";
 
@@ -9,7 +9,7 @@ export default function Home() {
   useEffect(() => {
     fetch("/api/videos")
       .then((res) => res.json())
-      .then((data) => setVideos(data));
+      .then(setVideos);
   }, []);
 
   const filtered = videos.filter((v) =>
@@ -17,68 +17,36 @@ export default function Home() {
   );
 
   return (
-    <div style={{ padding: "10px", background: "#000", minHeight: "100vh" }}>
-      <h1 style={{ color: "#fff" }}>Asupanmu</h1>
+    <>
+      {/* NAVBAR */}
+      <div className="navbar">
+        <div className="title">Asupanmu</div>
 
-      <input
-        placeholder="Search..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "10px",
-          borderRadius: "20px",
-          margin: "10px 0"
-        }}
-      />
+        <div className="search">
+          <input
+            placeholder="Search..."
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "12px"
-        }}
-      >
+      {/* GRID */}
+      <div className="grid">
         {filtered.map((v, i) => (
           <a
-            key={i}
             href={v.video_url}
             target="_blank"
-            rel="noopener noreferrer"
-            style={{ textDecoration: "none", color: "white" }}
+            key={i}
+            className="card"
           >
-            <div
-              style={{
-                position: "relative",
-                borderRadius: "16px",
-                overflow: "hidden"
-              }}
-            >
-              <img
-                src={v.thumbnail}
-                style={{
-                  width: "100%",
-                  height: "220px",
-                  objectFit: "cover"
-                }}
-              />
+            <img src={v.thumbnail} alt="" />
 
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  width: "100%",
-                  padding: "10px",
-                  background:
-                    "linear-gradient(to top, rgba(0,0,0,0.8), transparent)"
-                }}
-              >
-                <p style={{ fontSize: "13px" }}>{v.title}</p>
-              </div>
+            <div className="overlay">
+              {v.title}
             </div>
           </a>
         ))}
       </div>
-    </div>
+    </>
   );
-}
+}             
