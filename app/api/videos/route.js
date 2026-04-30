@@ -1,42 +1,42 @@
 export async function GET() {
   try {
-    const vidaraKey = process.env.VIDARA_API_KEY;
-    const doodKey = process.env.DOOD_API_KEY;
-
-    // 🔴 FETCH VIDARA
+    // =========================
+    // VIDARA
+    // =========================
     const vidaraRes = await fetch(
-      `https://api.vidara.so/v1/video/list?api_key=${vidaraKey}&limit=20`
+      `https://api.vidara.so/v1/video/list?api_key=${process.env.VIDARA_KEY}&limit=20`
     );
-    const vidaraData = await vidaraRes.json();
+    const vidaraJson = await vidaraRes.json();
 
     const vidaraVideos =
-      vidaraData?.result?.videos?.map((v) => ({
+      vidaraJson?.result?.videos?.map((v) => ({
         title: v.title,
         thumbnail: v.thumbnail,
-        video_url: `https://vidara.so/embed-${v.filecode}.html`,
-        source: "vidara",
+        video_url: v.link, // embed page
       })) || [];
 
-    // 🔵 FETCH DOODSTREAM
+    // =========================
+    // DOODSTREAM
+    // =========================
     const doodRes = await fetch(
-      `https://doodapi.co/api/file/list?key=${doodKey}`
+      `https://doodapi.co/api/file/list?key=${process.env.DOOD_KEY}`
     );
-    const doodData = await doodRes.json();
+    const doodJson = await doodRes.json();
 
     const doodVideos =
-      doodData?.result?.files?.map((v) => ({
+      doodJson?.result?.files?.map((v) => ({
         title: v.title,
-        thumbnail: v.splash_img || v.single_img,
+        thumbnail: v.single_img,
         video_url: `https://dood.stream/e/${v.file_code}`,
-        source: "dood",
       })) || [];
 
-    // 🔀 GABUNG
+    // =========================
+    // GABUNG
+    // =========================
     const allVideos = [...vidaraVideos, ...doodVideos];
 
     return Response.json(allVideos);
   } catch (err) {
-    console.error(err);
-    return Response.json({ error: "Gagal load semua video" });
+    return Response.json({ error: "failed fetch" }, { status: 500 });
   }
 }
