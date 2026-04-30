@@ -12,13 +12,17 @@ export async function GET() {
     const data = await res.json();
 
     if (data?.result?.files) {
-      videos = data.result.files.map(v => ({
+      const dood = data.result.files.map(v => ({
         title: v.title,
         thumbnail: v.single_img,
         url: `/watch?source=dood&id=${v.file_code}`
       }));
+
+      videos = [...videos, ...dood];
     }
-  } catch {}
+  } catch (e) {
+    console.log("Dood error:", e);
+  }
 
   // VIDARA
   try {
@@ -36,7 +40,9 @@ export async function GET() {
 
       videos = [...videos, ...vidara];
     }
-  } catch {}
+  } catch (e) {
+    console.log("Vidara error:", e);
+  }
 
   return Response.json(videos);
 }
