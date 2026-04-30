@@ -1,6 +1,6 @@
 export async function GET() {
   try {
-    // ================= VIDARA =================
+    // ===== VIDARA =====
     const vidaraRes = await fetch(
       `https://api.vidara.so/v1/video/list?api_key=${process.env.VIDARA_KEY}`
     );
@@ -10,10 +10,10 @@ export async function GET() {
       vidaraJson.result?.videos?.map((v) => ({
         title: v.title,
         thumbnail: v.thumbnail,
-        video_url: v.link // embed
+        video_url: v.link // link asli
       })) || [];
 
-    // ================= DOODSTREAM =================
+    // ===== DOODSTREAM =====
     const doodRes = await fetch(
       `https://doodapi.co/api/file/list?key=${process.env.DOOD_KEY}`
     );
@@ -23,17 +23,11 @@ export async function GET() {
       doodJson.result?.files?.map((v) => ({
         title: v.title,
         thumbnail: v.single_img,
-        video_url: `https://dood.stream/e/${v.file_code}`
+        video_url: `https://dood.stream/d/${v.file_code}` // 🔥 halaman asli (bukan embed)
       })) || [];
 
-    // ================= GABUNG =================
-    const allVideos = [...vidaraVideos, ...doodVideos];
-
-    return Response.json(allVideos);
+    return Response.json([...vidaraVideos, ...doodVideos]);
   } catch (err) {
-    return Response.json(
-      { error: "failed fetch", detail: err.message },
-      { status: 500 }
-    );
+    return Response.json({ error: err.message }, { status: 500 });
   }
 }
