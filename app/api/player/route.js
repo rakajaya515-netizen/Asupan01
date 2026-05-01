@@ -3,19 +3,15 @@ export async function GET(req) {
   const source = searchParams.get("source");
   const id = searchParams.get("id");
 
-  if (!id) return Response.json({ url: "" });
-
-  if (source === "vidara") {
-    return Response.json({
-      url: `https://vidara.so/embed-${id}.html`
-    });
-  }
+  let url = "";
 
   if (source === "dood") {
-    return Response.json({
-      url: `https://dood.so/e/${id}`
-    });
+    url = `https://doodstream.com/e/${id}`;
   }
 
-  return Response.json({ url: "" });
+  if (source === "vidara") {
+    url = `https://vidara.so/embed/${id}`;
+  }
+
+  return Response.json({ url });
 }
