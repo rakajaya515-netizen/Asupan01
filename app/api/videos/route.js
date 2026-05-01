@@ -15,7 +15,8 @@ export async function GET() {
       const dood = data.result.files.map(v => ({
         title: v.title,
         thumbnail: v.single_img,
-        url: `/watch?source=dood&id=${v.file_code}`
+        source: "dood",
+        id: v.file_code
       }));
 
       videos.push(...dood);
@@ -35,7 +36,8 @@ export async function GET() {
       const vidara = data.result.videos.map(v => ({
         title: v.title,
         thumbnail: v.thumbnail,
-        url: `/watch?source=vidara&id=${v.filecode}`
+        source: "vidara",
+        id: v.filecode
       }));
 
       videos.push(...vidara);
