@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -7,47 +8,50 @@ export default function Home() {
 
   useEffect(() => {
     fetch("/api/videos")
-      .then(res => res.json())
-      .then(data => setVideos(data));
+      .then((res) => res.json())
+      .then((data) => setVideos(data));
   }, []);
 
   return (
-    <div style={{ background: "#000", color: "#fff", padding: "10px" }}>
-      
-      <h1>Asupanmu</h1>
+    <main style={{ padding: 10, background: "#000", minHeight: "100vh" }}>
+      <h1 style={{ color: "#fff" }}>Asupanmu</h1>
 
-      {/* IKLAN */}
-      <a
-        href="https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1"
-        target="_blank"
-      >
-        🔥 Tonton Video Premium
-      </a>
-
-      {/* GRID 2 KOLOM */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: "10px",
-          marginTop: "10px"
+          gap: 10,
         }}
       >
         {videos.map((v, i) => (
-          <Link key={i} href={v.url}>
-            <div style={{ cursor: "pointer" }}>
+          <Link
+            key={i}
+            href={`/player?id=${encodeURIComponent(v.url)}&source=${v.source}`}
+            style={{ textDecoration: "none" }}
+          >
+            <div
+              style={{
+                background: "#111",
+                borderRadius: 10,
+                overflow: "hidden",
+              }}
+            >
               <img
                 src={v.thumbnail}
                 style={{
                   width: "100%",
-                  borderRadius: "10px"
+                  height: 200,
+                  objectFit: "cover",
                 }}
               />
-              <p>{v.title}</p>
+
+              <p style={{ color: "#fff", padding: 5 }}>
+                {v.title}
+              </p>
             </div>
           </Link>
         ))}
       </div>
-    </div>
+    </main>
   );
 }
