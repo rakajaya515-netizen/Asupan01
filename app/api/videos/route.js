@@ -4,45 +4,37 @@ export async function GET() {
 
   let videos = [];
 
-  // DOODSTREAM
+  // DOOD
   try {
-    const res = await fetch(
-      `https://doodapi.com/api/file/list?key=${DOOD_API_KEY}`
-    );
+    const res = await fetch(`https://doodapi.com/api/file/list?key=${DOOD_API_KEY}`);
     const data = await res.json();
 
     if (data?.result?.files) {
-      const dood = data.result.files.map(v => ({
-        title: v.title,
-        thumbnail: v.single_img,
-        url: `/watch?source=dood&id=${v.file_code}`
-      }));
-
-      videos = [...videos, ...dood];
+      videos.push(
+        ...data.result.files.map(v => ({
+          title: v.title,
+          thumbnail: v.single_img,
+          link: `/watch?source=dood&id=${v.file_code}`
+        }))
+      );
     }
-  } catch (e) {
-    console.log("Dood error:", e);
-  }
+  } catch (e) {}
 
   // VIDARA
   try {
-    const res = await fetch(
-      `https://api.vidara.so/v1/video/list?api_key=${VIDARA_API_KEY}&limit=20`
-    );
+    const res = await fetch(`https://api.vidara.so/v1/video/list?api_key=${VIDARA_API_KEY}`);
     const data = await res.json();
 
     if (data?.result?.videos) {
-      const vidara = data.result.videos.map(v => ({
-        title: v.title,
-        thumbnail: v.thumbnail,
-        url: `/watch?source=vidara&id=${v.filecode}`
-      }));
-
-      videos = [...videos, ...vidara];
+      videos.push(
+        ...data.result.videos.map(v => ({
+          title: v.title,
+          thumbnail: v.thumbnail,
+          link: `/watch?source=vidara&id=${v.filecode}`
+        }))
+      );
     }
-  } catch (e) {
-    console.log("Vidara error:", e);
-  }
+  } catch (e) {}
 
   return Response.json(videos);
 }
