@@ -1,33 +1,33 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export default function Player() {
   const params = useSearchParams();
   const id = params.get("id");
   const source = params.get("source");
 
-  const [video, setVideo] = useState(null);
+  if (!id) return <p>Loading...</p>;
 
-  useEffect(() => {
-    if (!id) return;
+  let videoUrl = "";
 
-    fetch(`/api/player?id=${encodeURIComponent(id)}&source=${source}`)
-      .then((res) => res.json())
-      .then((data) => setVideo(data));
-  }, [id]);
+  // ===== VIDARA =====
+  if (source === "vidara") {
+    const filecode = id.split("/").pop();
+    videoUrl = `https://vidara.so/embed-${filecode}.html`;
+  }
 
-  if (!video) return <p style={{ color: "#fff" }}>Loading...</p>;
+  // ===== DOOD =====
+  if (source === "doodstream") {
+    videoUrl = id;
+  }
 
   return (
-    <div style={{ background: "#000", minHeight: "100vh", padding: 10 }}>
-      <h2 style={{ color: "#fff" }}>{video.title}</h2>
-
+    <div style={{ background: "#000", minHeight: "100vh" }}>
       <iframe
-        src={video.url}
+        src={videoUrl}
         width="100%"
-        height="300"
+        height="400"
         allowFullScreen
         style={{ border: "none" }}
       />
