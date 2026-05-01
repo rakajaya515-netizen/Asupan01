@@ -11,29 +11,22 @@ export default function Watch() {
   const [url, setUrl] = useState("");
 
   useEffect(() => {
-    // ✅ FIX: hanya stop kalau id TIDAK ADA
     if (!id) return;
 
     fetch(`/api/player?source=${source}&id=${id}`)
       .then(res => res.json())
-      .then(data => {
-        console.log("PLAYER:", data); // debug
-        setUrl(data.url);
-      });
+      .then(data => setUrl(data.url));
   }, [id, source]);
 
   return (
-    <div style={{ padding: 10 }}>
+    <div className="player">
       {!url ? (
         <p>Loading...</p>
       ) : (
         <iframe
           src={url}
-          width="100%"
-          height="500"
           allow="autoplay; fullscreen"
           allowFullScreen
-          style={{ border: "none" }}
         />
       )}
     </div>
