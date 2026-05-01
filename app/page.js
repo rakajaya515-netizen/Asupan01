@@ -16,42 +16,45 @@ export default function Home() {
     <main style={{ padding: 10, background: "#000", minHeight: "100vh" }}>
       <h1 style={{ color: "#fff" }}>Asupanmu</h1>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 10,
-        }}
-      >
+      <div className="grid">
         {videos.map((v, i) => (
           <Link
             key={i}
             href={`/player?id=${encodeURIComponent(v.url)}&source=${v.source}`}
-            style={{ textDecoration: "none" }}
+            className="card"
           >
-            <div
-              style={{
-                background: "#111",
-                borderRadius: 10,
-                overflow: "hidden",
-              }}
-            >
-              <img
-                src={v.thumbnail}
-                style={{
-                  width: "100%",
-                  height: 200,
-                  objectFit: "cover",
-                }}
-              />
-
-              <p style={{ color: "#fff", padding: 5 }}>
-                {v.title}
-              </p>
-            </div>
+            <img src={v.thumbnail} />
+            <p>{v.title}</p>
           </Link>
         ))}
       </div>
+
+      <style jsx>{`
+        .grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+
+        .card {
+          background: #111;
+          border-radius: 12px;
+          overflow: hidden;
+          text-decoration: none;
+        }
+
+        .card img {
+          width: 100%;
+          aspect-ratio: 9/12;
+          object-fit: cover;
+        }
+
+        .card p {
+          color: white;
+          font-size: 14px;
+          padding: 6px;
+        }
+      `}</style>
     </main>
   );
 }
