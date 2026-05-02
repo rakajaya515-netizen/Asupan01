@@ -14,17 +14,11 @@ export default function Watch() {
   }
 
   if (src === "vidara") {
-    videoUrl = `https://vidara.io/e/${id}`; // sesuaikan jika beda
+    videoUrl = `https://vidara.so/${id}`;
   }
 
   return (
-    <div style={{
-      background: "#000",
-      minHeight: "100vh",
-      padding: 16
-    }}>
-      <h2 style={{ color: "white" }}>Watch</h2>
-
+    <div style={{ background: "#000", minHeight: "100vh", padding: 16 }}>
       <iframe
         src={videoUrl}
         width="100%"
