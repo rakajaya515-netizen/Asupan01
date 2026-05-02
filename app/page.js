@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
@@ -8,63 +9,52 @@ export default function Home() {
   useEffect(() => {
     fetch("/api/videos")
       .then(res => res.json())
-      .then(data => setVideos(data));
+      .then(setVideos);
   }, []);
 
   return (
-    <div style={{ background: "#000", minHeight: "100vh", padding: 16 }}>
-      
-      <h1 style={{ color: "white", fontSize: 32 }}>
-        Asupanmu
-      </h1>
+    <main style={{ padding: 16, background: "#000", minHeight: "100vh" }}>
+      <h1 style={{ color: "white" }}>Asupanmu</h1>
 
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(2, 1fr)",
+        gridTemplateColumns: "repeat(auto-fill, minmax(150px,1fr))",
         gap: 10
       }}>
-        
-        {videos.map((v, i) => (
-          <div
-            key={i}
-            onClick={() => {
-              window.location.href = `/watch?source=dood&id=${v.id}`;
-            }}
-            style={{
-              cursor: "pointer",
-              background: "#111",
-              borderRadius: 8,
-              overflow: "hidden"
-            }}
+        {videos.map(v => (
+          <Link
+            key={v.id}
+            href={`/watch?id=${v.id}&src=${v.source}`}
+            style={{ textDecoration: "none" }}
           >
-            
-            <div style={{
-              width: "100%",
-              aspectRatio: "1/1"
-            }}>
-              <img
-                src={v.thumbnail}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover"
-                }}
-              />
+            <div>
+              <div style={{
+                width: "100%",
+                aspectRatio: "1/1",
+                overflow: "hidden",
+                borderRadius: 8
+              }}>
+                <img
+                  src={v.thumbnail}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover"
+                  }}
+                />
+              </div>
+
+              <p style={{
+                color: "white",
+                fontSize: 12,
+                marginTop: 5
+              }}>
+                {v.title}
+              </p>
             </div>
-
-            <p style={{
-              color: "white",
-              fontSize: 12,
-              padding: 6
-            }}>
-              {v.title}
-            </p>
-
-          </div>
+          </Link>
         ))}
-
       </div>
-
-    </div>
+    </main>
   );
 }
