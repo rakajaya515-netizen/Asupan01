@@ -5,8 +5,13 @@ export async function GET(req) {
 
   let url = "";
 
+  if (!id || !source) {
+    return Response.json({ url: "" });
+  }
+
   if (source === "dood") {
-    url = `https://doodstream.com/e/${id}`;
+    // domain cepat & stabil
+    url = `https://dood.cx/e/${id}`;
   }
 
   if (source === "vidara") {
