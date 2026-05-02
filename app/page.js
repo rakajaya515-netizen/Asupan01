@@ -1,25 +1,35 @@
 import Link from "next/link";
 
 async function getVideos() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/videos`, {
-    cache: "no-store",
-  });
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/videos`, {
+      cache: "no-store",
+    });
 
-  return res.json();
+    return res.json();
+  } catch {
+    return [];
+  }
 }
 
 export default async function Home() {
   const videos = await getVideos();
 
   return (
-    <main style={{ padding: 20 }}>
+    <main style={{ padding: 10 }}>
       <h1>Asupanmu</h1>
 
-      <div className="grid">
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(2,1fr)",
+        gap: "10px"
+      }}>
         {videos.map((v, i) => (
-          <Link key={i} href={v.url} className="card">
-            <img src={v.thumbnail} />
-            <p>{v.title}</p>
+          <Link key={i} href={v.url}>
+            <div>
+              <img src={v.thumbnail} width="100%" />
+              <p>{v.title}</p>
+            </div>
           </Link>
         ))}
       </div>
