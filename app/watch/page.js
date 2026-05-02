@@ -4,33 +4,31 @@ import { useSearchParams } from "next/navigation";
 
 export default function Watch() {
   const params = useSearchParams();
-
   const id = params.get("id");
-  const source = params.get("source");
+  const src = params.get("src");
 
-  let url = "";
+  let videoUrl = "";
 
-  if (source === "dood") {
-    url = `https://doodstream.com/e/${id}`;
+  if (src === "dood") {
+    videoUrl = `https://doodstream.com/e/${id}`;
   }
 
-  if (!id) {
-    return (
-      <h1 style={{ color: "white", background: "#000", height: "100vh" }}>
-        ID tidak ada
-      </h1>
-    );
+  if (src === "vidara") {
+    videoUrl = `https://vidara.io/e/${id}`; // sesuaikan jika beda
   }
 
   return (
     <div style={{
       background: "#000",
-      height: "100vh"
+      minHeight: "100vh",
+      padding: 16
     }}>
+      <h2 style={{ color: "white" }}>Watch</h2>
+
       <iframe
-        src={url}
+        src={videoUrl}
         width="100%"
-        height="100%"
+        height="500"
         allowFullScreen
         style={{ border: "none" }}
       />
