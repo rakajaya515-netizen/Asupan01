@@ -17,6 +17,10 @@ export default function Watch({ params }) {
     embed = `https://vidara.so/${id}`;
   }
 
+  if (!id || !source) {
+  return <div>Video tidak ditemukan</div>;
+  }
+  
   return (
     <main style={{ padding: 20 }}>
       <h1>Watch Video</h1>
