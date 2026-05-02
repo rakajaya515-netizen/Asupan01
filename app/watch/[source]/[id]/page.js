@@ -1,11 +1,5 @@
-export async function generateMetadata({ params }) {
-  return {
-    title: `Watch ${params.id} - Asupanmu`,
-  };
-}
-
 export default function Watch({ params }) {
-  const { id, source } = params;
+  const { source, id } = params;
 
   let embed = "";
 
@@ -17,12 +11,8 @@ export default function Watch({ params }) {
     embed = `https://vidara.so/${id}`;
   }
 
-  if (!id || !source) {
-  return <div>Video tidak ditemukan</div>;
-  }
-  
   return (
-    <main style={{ padding: 20 }}>
+    <div style={{ padding: 20 }}>
       <h1>Watch Video</h1>
 
       <iframe
@@ -30,7 +20,7 @@ export default function Watch({ params }) {
         width="100%"
         height="500"
         allowFullScreen
-      ></iframe>
-    </main>
+      />
+    </div>
   );
 }
