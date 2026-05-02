@@ -12,10 +12,10 @@ export async function GET() {
       return Response.json([]);
     }
 
-    const videos = data.result.files.map(v => ({
+    const videos = data.result.files.map((v) => ({
       title: v.title,
-      thumbnail: v.splash_img,
-      url: `https://doodstream.com/d/${v.file_code}`,
+      thumbnail: v.single_img, // fix thumbnail
+      url: `/watch?id=${v.file_code}`, // arah ke player
     }));
 
     return Response.json(videos);
