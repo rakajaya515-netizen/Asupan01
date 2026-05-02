@@ -9,42 +9,39 @@ export default function Watch() {
   const id = params.get("id");
 
   const [url, setUrl] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!id || !source) return;
+    if (!source || !id) {
+      setError("Video tidak valid");
+      return;
+    }
 
     fetch(`/api/player?source=${source}&id=${id}`)
-      .then((res) => res.json())
-      .then((data) => {
+      .then(res => res.json())
+      .then(data => {
         if (data.url) {
           setUrl(data.url);
         } else {
-          setUrl("error");
+          setError("Gagal load video");
         }
       })
-      .catch(() => setUrl("error"));
-  }, [id, source]);
+      .catch(() => setError("Server error"));
+  }, [source, id]);
 
-  if (!id || !source) {
-    return <p style={{ color: "white" }}>Video tidak valid</p>;
-  }
+  if (error) return <p>{error}</p>;
 
   return (
     <div style={{ padding: 10 }}>
-      {!url && <p style={{ color: "white" }}>Loading...</p>}
-
-      {url === "error" && (
-        <p style={{ color: "red" }}>Gagal load video</p>
-      )}
-
-      {url && url !== "error" && (
+      {!url ? (
+        <p>Loading...</p>
+      ) : (
         <iframe
           src={url}
           width="100%"
           height="500"
           allow="autoplay; fullscreen"
           allowFullScreen
-          loading="lazy"
           style={{ border: "none" }}
         />
       )}
