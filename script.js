@@ -9,16 +9,19 @@ async function loadVideos() {
     const res = await fetch(API_URL);
     const data = await res.json();
 
-    console.log(data);
+    console.log("DATA:", data);
 
-    if (!data.result || !data.result.videos) {
+    // 🔥 FIX DI SINI
+    const videos = data.result?.videos;
+
+    if (!videos || videos.length === 0) {
       container.innerHTML = "<p style='padding:10px'>Data kosong</p>";
       return;
     }
 
     container.innerHTML = "";
 
-    data.result.videos.forEach(video => {
+    videos.forEach(video => {
       const card = document.createElement("div");
       card.className = "card";
 
@@ -28,7 +31,7 @@ async function loadVideos() {
       `;
 
       card.onclick = () => {
-        window.location.href = `https://vidara.so/${video.filecode}`;
+        window.location.href = video.link; // 🔥 pakai link langsung dari API
       };
 
       container.appendChild(card);
