@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function VideoCard({ video }) {
   return (
-    <Link href={`/watch/${video.source}/${video.id}`}>
+    <Link href={`/watch?id=${video.id}&source=${video.source}`}>
       <div className="card">
         <img src={video.thumbnail} alt={video.title} />
       </div>
