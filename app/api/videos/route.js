@@ -1,5 +1,5 @@
 export async function GET() {
-  const DOOD_API_KEY = process.env.NEXT_PUBLIC_DOOD_KEY;
+  const DOOD_API_KEY = process.env.DOOD_API_KEY;
 
   console.log("API KEY:", DOOD_API_KEY);
 
