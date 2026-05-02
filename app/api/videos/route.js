@@ -1,37 +1,47 @@
 export async function GET() {
-  const DOOD_API_KEY = process.env.DOOD_API_KEY;
+  const DOOD = process.env.DOOD_API_KEY;
+  const VIDARA = process.env.VIDARA_API_KEY;
 
-  if (!DOOD_API_KEY) {
-    return Response.json({ error: "API KEY kosong" });
-  }
+  let results = [];
 
   try {
-    const res = await fetch(
-      `https://doodapi.co/api/file/list?key=${DOOD_API_KEY}`
-    );
+    // 🔥 DOODSTREAM
+    if (DOOD) {
+      const res = await fetch(`https://doodapi.co/api/file/list?key=${DOOD}`);
+      const data = await res.json();
 
-    const text = await res.text();
+      if (data?.result?.files) {
+        const doodVideos = data.result.files.map(v => ({
+          id: v.file_code,
+          title: v.title,
+          thumbnail: v.splash_img,
+          source: "dood"
+        }));
 
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return Response.json({ error: "Bukan JSON", raw: text });
+        results.push(...doodVideos);
+      }
     }
 
-    if (!data?.result?.files) {
-      return Response.json([]);
+    // 🔥 VIDARA (contoh endpoint, sesuaikan jika beda)
+    if (VIDARA) {
+      const res = await fetch(`https://vidara.api/list?key=${VIDARA}`);
+      const data = await res.json();
+
+      if (data?.result) {
+        const vidaraVideos = data.result.map(v => ({
+          id: v.id,
+          title: v.title,
+          thumbnail: v.thumbnail,
+          source: "vidara"
+        }));
+
+        results.push(...vidaraVideos);
+      }
     }
 
-    const videos = data.result.files.map(v => ({
-      title: v.title,
-      thumbnail: v.splash_img,
-      id: v.file_code
-    }));
-
-    return Response.json(videos);
-
-  } catch (e) {
-    return Response.json({ error: "Server error" });
+    return Response.json(results);
+  } catch (err) {
+    console.log("ERROR:", err);
+    return Response.json([]);
   }
 }
