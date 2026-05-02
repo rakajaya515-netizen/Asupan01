@@ -1,19 +1,18 @@
-const API_KEY = 2b411a6b899373e60acb55c96a682f6506946723cdeaa537512c47c50a2dbac7;
-const API_URL = `https://api.vidara.so/v1/video/list?api_key=${API_KEY}&limit=20`;
+const API_URL = "/api/videos";
 
 async function loadVideos() {
   const container = document.getElementById("videoList");
 
-  container.innerHTML = "<p>Loading...</p>";
+  container.innerHTML = "<p style='padding:10px'>Loading...</p>";
 
   try {
     const res = await fetch(API_URL);
     const data = await res.json();
 
-    console.log("API RESPONSE:", data);
+    console.log(data);
 
     if (!data.result || !data.result.videos) {
-      container.innerHTML = "<p>Gagal ambil data</p>";
+      container.innerHTML = "<p style='padding:10px'>Data kosong</p>";
       return;
     }
 
@@ -37,7 +36,7 @@ async function loadVideos() {
 
   } catch (err) {
     console.error(err);
-    container.innerHTML = "<p>Error load API</p>";
+    container.innerHTML = "<p style='padding:10px'>Error load</p>";
   }
 }
 
