@@ -1,5 +1,5 @@
 export async function GET() {
-  const DOOD_API_KEY = process.env.DOOD_API_KEY;
+  const DOOD_API_KEY = process.env.NEXT_PUBLIC_DOOD_KEY;
 
   try {
     const res = await fetch(
@@ -12,13 +12,14 @@ export async function GET() {
       return Response.json([]);
     }
 
-    const videos = data.result.files.map((v) => ({
+    const videos = data.result.files.map(v => ({
       title: v.title,
-      thumbnail: v.single_img, // fix thumbnail
-      url: `/watch?id=${v.file_code}`, // arah ke player
+      thumbnail: v.splash_img,
+      id: v.file_code // 🔥 WAJIB ADA
     }));
 
     return Response.json(videos);
+
   } catch (e) {
     console.log("ERROR:", e);
     return Response.json([]);
