@@ -1,38 +1,35 @@
-import Link from "next/link";
+"use client";
 
-async function getVideos() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/videos`, {
-      cache: "no-store",
-    });
+import { useEffect, useState } from "react";
 
-    return res.json();
-  } catch {
-    return [];
-  }
-}
+export default function Home() {
+  const [videos, setVideos] = useState([]);
 
-export default async function Home() {
-  const videos = await getVideos();
+  useEffect(() => {
+    fetch("/api/videos")
+      .then(res => res.json())
+      .then(data => {
+        console.log("DATA:", data);
+        setVideos(data);
+      });
+  }, []);
 
   return (
-    <main style={{ padding: 10 }}>
-      <h1>Asupanmu</h1>
+    <div style={{ padding: 16 }}>
+      <h1 style={{ color: "white" }}>Asupanmu</h1>
 
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(2,1fr)",
-        gap: "10px"
+        gridTemplateColumns: "repeat(2, 1fr)",
+        gap: 10
       }}>
         {videos.map((v, i) => (
-          <Link key={i} href={v.url}>
-            <div>
-              <img src={v.thumbnail} width="100%" />
-              <p>{v.title}</p>
-            </div>
-          </Link>
+          <div key={i}>
+            <img src={v.thumbnail} style={{ width: "100%" }} />
+            <p style={{ color: "white" }}>{v.title}</p>
+          </div>
         ))}
       </div>
-    </main>
+    </div>
   );
 }
