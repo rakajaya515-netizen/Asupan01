@@ -5,9 +5,14 @@ export async function GET() {
   let results = [];
 
   try {
+    // ======================
     // 🔥 DOODSTREAM
+    // ======================
     if (DOOD) {
-      const res = await fetch(`https://doodapi.co/api/file/list?key=${DOOD}`);
+      const res = await fetch(
+        `https://doodapi.co/api/file/list?key=${DOOD}`
+      );
+
       const data = await res.json();
 
       if (data?.result?.files) {
@@ -22,14 +27,19 @@ export async function GET() {
       }
     }
 
-    // 🔥 VIDARA (contoh endpoint, sesuaikan jika beda)
+    // ======================
+    // 🔥 VIDARA (FIXED)
+    // ======================
     if (VIDARA) {
-      const res = await fetch(`https://vidara.api/list?key=${VIDARA}`);
+      const res = await fetch(
+        `https://api.vidara.so/v1/video/list?api_key=${VIDARA}&limit=50`
+      );
+
       const data = await res.json();
 
-      if (data?.result) {
-        const vidaraVideos = data.result.map(v => ({
-          id: v.id,
+      if (data?.result?.videos) {
+        const vidaraVideos = data.result.videos.map(v => ({
+          id: v.filecode,
           title: v.title,
           thumbnail: v.thumbnail,
           source: "vidara"
@@ -39,7 +49,13 @@ export async function GET() {
       }
     }
 
-    return Response.json(results);
+    // 🔀 RANDOM SHUFFLE
+results.sort(() => Math.random() - 0.5);
+
+// 🔥 OPTIONAL: BATASI JUMLAH (biar ringan)
+results = results.slice(0, 50);
+
+return Response.json(results);
   } catch (err) {
     console.log("ERROR:", err);
     return Response.json([]);
