@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
@@ -13,9 +12,9 @@ export default function Home() {
   }, []);
 
   return (
-    <div style={{ padding: 16, background: "#000", minHeight: "100vh" }}>
+    <div style={{ background: "#000", minHeight: "100vh", padding: 16 }}>
       
-      <h1 style={{ color: "white", fontSize: 32, marginBottom: 20 }}>
+      <h1 style={{ color: "white", fontSize: 32 }}>
         Asupanmu
       </h1>
 
@@ -26,44 +25,46 @@ export default function Home() {
       }}>
         
         {videos.map((v, i) => (
-          <Link key={i} href={`/watch?source=dood&id=${v.id}`}>
-            
-            <div style={{
+          <div
+            key={i}
+            onClick={() => {
+              window.location.href = `/watch?source=dood&id=${v.id}`;
+            }}
+            style={{
               cursor: "pointer",
               background: "#111",
               borderRadius: 8,
               overflow: "hidden"
+            }}
+          >
+            
+            <div style={{
+              width: "100%",
+              aspectRatio: "1/1"
             }}>
-              
-              <div style={{
-                width: "100%",
-                aspectRatio: "1/1", // 🔥 bikin semua kotak sama
-                overflow: "hidden"
-              }}>
-                <img 
-                  src={v.thumbnail}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover"
-                  }}
-                />
-              </div>
-
-              <p style={{
-                color: "white",
-                fontSize: 12,
-                padding: 6
-              }}>
-                {v.title}
-              </p>
-
+              <img
+                src={v.thumbnail}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover"
+                }}
+              />
             </div>
 
-          </Link>
+            <p style={{
+              color: "white",
+              fontSize: 12,
+              padding: 6
+            }}>
+              {v.title}
+            </p>
+
+          </div>
         ))}
 
       </div>
+
     </div>
   );
 }
