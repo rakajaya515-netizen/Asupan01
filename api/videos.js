@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  const API_KEY = 2b411a6b899373e60acb55c96a682f6506946723cdeaa537512c47c50a2dbac7;
+  const API_KEY = "2b411a6b899373e60acb55c96a682f6506946723cdeaa537512c47c50a2dbac7";
 
   if (!API_KEY) {
     return res.status(500).json({ error: "API KEY kosong" });
