@@ -14,19 +14,19 @@ export default function Watch() {
     url = `https://doodstream.com/e/${id}`;
   }
 
-  if (!url) {
-    return <h1 style={{ color: "white" }}>Video tidak ditemukan</h1>;
+  if (!id) {
+    return (
+      <h1 style={{ color: "white", background: "#000", height: "100vh" }}>
+        ID tidak ada
+      </h1>
+    );
   }
 
   return (
     <div style={{
       background: "#000",
-      height: "100vh",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center"
+      height: "100vh"
     }}>
-      
       <iframe
         src={url}
         width="100%"
@@ -34,7 +34,6 @@ export default function Watch() {
         allowFullScreen
         style={{ border: "none" }}
       />
-
     </div>
   );
 }
