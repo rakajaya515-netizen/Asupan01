@@ -1,33 +1,20 @@
-import { fetchVideos } from "@/lib/fetchVideos";
+import { getVideos } from "@/lib/fetchVideos";
 import VideoCard from "@/components/VideoCard";
 
-export const metadata = {
-  title: "Asupanmu - Video Streaming",
-  description: "Streaming video terbaru",
-};
+export const revalidate = 60;
 
 export default async function Home() {
-  const videos = await fetchVideos();
+  const videos = await getVideos();
 
   return (
-    <main style={{ padding: 20 }}>
-      <h1 style={{ fontSize: 32, marginBottom: 20 }}>
-        Asupanmu
-      </h1>
+    <main className="container">
+      <h1>Asupanmu</h1>
 
       <div className="grid">
-        {videos.map((v) => (
-          <VideoCard key={v.id} video={v} />
+        {videos.map((video, i) => (
+          <VideoCard key={i} video={video} />
         ))}
       </div>
-
-      <style jsx>{`
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-          gap: 10px;
-        }
-      `}</style>
     </main>
   );
 }
