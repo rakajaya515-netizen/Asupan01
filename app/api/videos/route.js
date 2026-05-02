@@ -12,11 +12,10 @@ export async function GET() {
     const data = await res.json();
 
     if (data?.result?.files) {
-      const dood = data.result.files.map(v => ({
+      const dood = data.result.files.map((v) => ({
         title: v.title,
         thumbnail: v.single_img,
-        source: "dood",
-        id: v.file_code
+        url: `/watch?source=dood&id=${v.file_code}`,
       }));
 
       videos.push(...dood);
@@ -33,11 +32,10 @@ export async function GET() {
     const data = await res.json();
 
     if (data?.result?.videos) {
-      const vidara = data.result.videos.map(v => ({
+      const vidara = data.result.videos.map((v) => ({
         title: v.title,
         thumbnail: v.thumbnail,
-        source: "vidara",
-        id: v.filecode
+        url: `/watch?source=vidara&id=${v.filecode}`,
       }));
 
       videos.push(...vidara);
