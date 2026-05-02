@@ -31,7 +31,7 @@ async function loadVideos() {
       `;
 
       card.onclick = () => {
-        window.location.href = video.link; // 🔥 pakai link langsung dari API
+        window.location.href = `https://vidara.so/v/${video.filecode}`; // 🔥 pakai link langsung dari API
       };
 
       container.appendChild(card);
