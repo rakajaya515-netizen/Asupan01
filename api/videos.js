@@ -1,34 +1,14 @@
 export default async function handler(req, res) {
-  const API_KEY = process.env.API_KEY;
-  const { code } = req.query;
-
-  if (!API_KEY) {
-    return res.status(500).json({ error: "API KEY kosong" });
-  }
-
-  if (!code) {
-    return res.status(400).json({ error: "Code kosong" });
-  }
+  const API_KEY = process.env.API_KEY
 
   try {
-    const url = `https://api.vidara.so/v1/video/info?api_key=${API_KEY}&filecode=${code}`;
+    const url = `https://api.vidara.so/v1/video/list?api_key=${API_KEY}&limit=20`
 
-    const response = await fetch(url);
+    const response = await fetch(url)
+    const data = await response.json()
 
-    if (!response.ok) {
-      return res.status(500).json({
-        error: "Fetch gagal",
-        status: response.status,
-      });
-    }
-
-    const data = await response.json();
-
-    return res.status(200).json(data);
-  } catch (error) {
-    return res.status(500).json({
-      error: "Server error",
-      message: error.message,
-    });
+    return res.status(200).json(data)
+  } catch (err) {
+    return res.status(500).json({ error: err.message })
   }
 }
