@@ -1,46 +1,47 @@
-const API_URL = "/api/videos";
+let allVideos = []
 
 async function loadVideos() {
-  const container = document.getElementById("videoList");
-
-  container.innerHTML = "<p style='padding:10px'>Loading...</p>";
-
   try {
-    const res = await fetch(API_URL);
-    const data = await res.json();
+    const res = await fetch('/api/videos')
+    const data = await res.json()
 
-    console.log("DATA:", data);
+    // sesuaikan struktur API kamu
+    allVideos = data.data || data
 
-    // 🔥 FIX DI SINI
-    const videos = data.result?.videos;
-
-    if (!videos || videos.length === 0) {
-      container.innerHTML = "<p style='padding:10px'>Data kosong</p>";
-      return;
-    }
-
-    container.innerHTML = "";
-
-    videos.forEach(video => {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      card.innerHTML = `
-        <img src="${video.thumbnail}" />
-        <div class="title">${video.title || "No Title"}</div>
-      `;
-
-      card.onclick = () => {
-        window.location.href = `https://vidara.so/v/${video.filecode}`; // 🔥 pakai link langsung dari API
-      };
-
-      container.appendChild(card);
-    });
+    renderVideos(allVideos)
 
   } catch (err) {
-    console.error(err);
-    container.innerHTML = "<p style='padding:10px'>Error load</p>";
+    document.getElementById("videoList").innerHTML = "Error load"
   }
 }
 
-loadVideos();
+function renderVideos(videos) {
+  const container = document.getElementById("videoList")
+  container.innerHTML = ""
+
+  videos.forEach(v => {
+    const div = document.createElement("div")
+    div.style.marginBottom = "20px"
+
+    div.innerHTML = `
+      <p>${v.title || 'No Title'}</p>
+      <video src="${v.url}" controls width="300"></video>
+    `
+
+    container.appendChild(div)
+  })
+}
+
+// 🔍 SEARCH FUNCTION
+document.getElementById("search").addEventListener("input", function(e) {
+  const keyword = e.target.value.toLowerCase()
+
+  const filtered = allVideos.filter(v => {
+    return (v.title || "").toLowerCase().includes(keyword)
+  })
+
+  renderVideos(filtered)
+})
+
+// 🚀 load awal
+loadVideos()
