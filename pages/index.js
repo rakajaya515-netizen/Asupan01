@@ -6,12 +6,16 @@ export default function Home() {
 
   useEffect(() => {
     fetch('/api/videos')
-      .then(res => res.json())
-      .then(data => {
-        console.log(data)
+  .then(res => res.json())
+  .then(data => {
+    console.log("DATA:", data)
 
-        setVideos(data?.result?.videos ?? [])
-      })
+    if (data.error) {
+      console.log("ERROR:", data.error)
+    }
+
+    setVideos(data?.result?.videos ?? [])
+   })
   }, [])
 
   return (
