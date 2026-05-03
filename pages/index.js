@@ -3,28 +3,35 @@ import Link from "next/link"
 
 export default function Home() {
   const [videos, setVideos] = useState([])
+  const [error, setError] = useState("")
 
   useEffect(() => {
-    fetch('/api/videos')
-  .then(res => res.json())
-  .then(data => {
-    console.log("DATA:", data)
-
-    if (data.error) {
-      console.log("ERROR:", data.error)
-    }
-
-    setVideos(data?.result?.videos ?? [])
-   })
+    fetch("/api/videos")
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          setError(data.error)
+        } else {
+          setVideos(data?.result?.videos || [])
+        }
+      })
+      .catch(() => setError("Gagal load"))
   }, [])
 
   return (
-    <div style={{ padding: 20, background: "#000", minHeight: "100vh", color: "#fff" }}>
+    <div style={{
+      padding: 20,
+      background: "#000",
+      color: "#fff",
+      minHeight: "100vh"
+    }}>
       <h1>Asupanmu</h1>
 
-      {videos.length === 0 && <p>Data kosong</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {videos.map((v) => (
+      {videos.length === 0 && !error && <p>Loading...</p>}
+
+      {videos.map(v => (
         <Link key={v.filecode} href={`/watch?filecode=${v.filecode}`}>
           <div style={{
             marginBottom: 20,
@@ -45,4 +52,4 @@ export default function Home() {
       ))}
     </div>
   )
-              }
+}
