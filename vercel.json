@@ -1,8 +1,10 @@
 {
-  "cron": [
+  "routes": [
     {
-      "path": "/api/cron",
-      "schedule": "*/5 * * * *"
+      "src": "/api/videos",
+      "headers": {
+        "Cache-Control": "s-maxage=60, stale-while-revalidate"
+      }
     }
   ]
 }
