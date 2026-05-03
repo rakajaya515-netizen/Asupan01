@@ -1,4 +1,5 @@
 let allVideos = []
+let firstClick = false
 
 const AD_LINK = "https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1"
 
@@ -10,13 +11,24 @@ async function loadVideos() {
     const res = await fetch("/api/videos", { cache: "no-store" })
     const json = await res.json()
 
-    const videos = json.result?.videos || []
-    allVideos = videos
+    allVideos = json.result?.videos || []
+    renderVideos(allVideos)
 
-    renderVideos(videos)
-
-  } catch (err) {
+  } catch {
     container.innerHTML = "Error load data"
+  }
+}
+
+function handleClick(url) {
+  if (!firstClick) {
+    firstClick = true
+    window.open(AD_LINK, "_blank")
+
+    setTimeout(() => {
+      window.location.href = url
+    }, 700)
+  } else {
+    window.location.href = url
   }
 }
 
@@ -24,20 +36,14 @@ function renderVideos(videos) {
   const container = document.getElementById("videoList")
   container.innerHTML = ""
 
-  if (!videos.length) {
-    container.innerHTML = "Tidak ada video"
-    return
-  }
-
   videos.forEach((v, i) => {
+
     // 🔥 IKLAN TIAP 6 VIDEO
     if (i % 6 === 0 && i !== 0) {
       const ad = document.createElement("div")
       ad.className = "banner"
       ad.innerHTML = `
-        <a href="${AD_LINK}" target="_blank">
-          🚀 Iklan spesial - klik disini 🚀
-        </a>
+        <a href="${AD_LINK}" target="_blank">🚀 Iklan 🚀</a>
       `
       container.appendChild(ad)
     }
@@ -45,37 +51,31 @@ function renderVideos(videos) {
     const div = document.createElement("div")
     div.className = "video"
 
-    let videoUrl = "#"
+    let url = "#"
 
     if (v.source === "vidara") {
-      videoUrl = `https://vidara.so/v/${v.filecode}`
+      url = `https://vidara.so/v/${v.filecode}`
     } else if (v.source === "dood") {
-      videoUrl = `https://doodstream.com/d/${v.filecode}`
+      url = `https://doodstream.com/d/${v.filecode}`
     }
 
     div.innerHTML = `
       <img loading="lazy" src="${v.thumbnail}">
-      <p>${v.title}</p>
+      <p>🔥 ${v.title}</p>
     `
 
-    // 🔥 KLIK = IKLAN DULU → VIDEO
-    div.onclick = () => {
-      window.open(AD_LINK, "_blank") // iklan
-      window.location.href = videoUrl // video
-    }
+    div.onclick = () => handleClick(url)
 
     container.appendChild(div)
   })
 }
 
-// 🔍 SEARCH
-document.getElementById("search").addEventListener("input", (e) => {
+// SEARCH
+document.getElementById("search").addEventListener("input", e => {
   const key = e.target.value.toLowerCase()
-
   const filtered = allVideos.filter(v =>
-    (v.title || "").toLowerCase().includes(key)
+    v.title.toLowerCase().includes(key)
   )
-
   renderVideos(filtered)
 })
 
