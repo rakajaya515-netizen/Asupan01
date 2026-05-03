@@ -1,44 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Asupanmu</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asupanmu</title>
 
-  <style>
-    body {
-      background: black;
-      color: white;
-      font-family: sans-serif;
-      padding: 15px;
-    }
+<style>
+body {
+  margin: 0;
+  background: black;
+  color: white;
+  font-family: Arial;
+  padding: 15px;
+}
 
-    input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 10px;
-      border: 2px solid orange;
-      margin-bottom: 15px;
-    }
+h1 {
+  margin-bottom: 10px;
+}
 
-    #videoList {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
+input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid orange;
+  margin-bottom: 15px;
+}
 
-    .video img {
-      width: 100%;
-      border-radius: 10px;
-    }
-  </style>
+/* GRID */
+#videoList {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.video img {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.video p {
+  font-size: 14px;
+}
+
+/* LOADING */
+.loading {
+  text-align: center;
+}
+</style>
 </head>
+
 <body>
 
 <h1>Asupanmu</h1>
 
 <input id="search" placeholder="Cari video...">
 
-<div id="videoList"></div>
+<div id="videoList" class="loading">Loading...</div>
 
 <script src="script.js"></script>
 
