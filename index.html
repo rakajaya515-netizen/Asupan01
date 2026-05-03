@@ -3,152 +3,164 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Asupanmu</title>
 
 <style>
 body {
-  background: #000;
-  color: white;
-  font-family: sans-serif;
-  margin: 0;
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:sans-serif;
 }
 
 h1 {
-  padding: 20px;
+  padding:15px;
 }
 
 #search {
-  width: 90%;
-  margin: 10px;
-  padding: 12px;
-  border-radius: 10px;
-  border: 2px solid orange;
-  font-size: 16px;
+  width:90%;
+  margin:10px;
+  padding:12px;
+  border-radius:10px;
+  border:2px solid orange;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  padding:10px;
 }
 
 .video {
-  margin: 15px;
-  cursor: pointer;
+  cursor:pointer;
 }
 
 .video img {
-  width: 100%;
-  border-radius: 10px;
+  width:100%;
+  border-radius:10px;
 }
 
 .video p {
-  margin: 5px 0;
+  font-size:12px;
 }
 
 .ads {
-  text-align: center;
-  margin: 15px;
-}
-
-button {
-  background: black;
-  color: blue;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
+  text-align:center;
 }
 </style>
-
 </head>
+
 <body>
 
 <h1>Asupanmu</h1>
 
-<!-- IKLAN (1x klik saja) -->
 <div class="ads">
   <button onclick="bukaIklan()">🔥 Klik di sini 🔥</button>
 </div>
 
 <input id="search" placeholder="Cari video...">
 
-<div id="videoList"></div>
+<div class="grid" id="videoList"></div>
 
 <script>
-let semuaVideo = []
+let allVideos = []
+let page = 0
+let limit = 10
+let loading = false
 let iklanSudah = false
 
 // ======================
-// IKLAN (1x saja)
+// IKLAN 1x
 // ======================
-function bukaIklan() {
-  if (!iklanSudah) {
-    window.open("https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1", "_blank")
+function bukaIklan(){
+  if(!iklanSudah){
+    window.open("https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1","_blank")
     iklanSudah = true
   }
 }
 
 // ======================
-// LOAD API
+// FETCH API
 // ======================
-async function loadVideos() {
-  try {
-    const res = await fetch("/api/videos")
-    const data = await res.json()
+async function loadVideos(){
+  if(loading) return
+  loading = true
 
-    semuaVideo = data.videos || []
-    tampilkanVideo(semuaVideo)
+  const res = await fetch("/api/videos")
+  const data = await res.json()
 
-  } catch (err) {
-    document.getElementById("videoList").innerHTML =
-      "<p style='color:red'>Gagal load video</p>"
-  }
+  allVideos = data.videos || []
+
+  renderNext()
+
+  loading = false
 }
 
 // ======================
-// RENDER VIDEO
+// RENDER NEXT (INFINITE)
 // ======================
-function tampilkanVideo(videos) {
+function renderNext(){
   const list = document.getElementById("videoList")
-  list.innerHTML = ""
 
-  if (videos.length === 0) {
-    list.innerHTML = "<p>Tidak ada video</p>"
-    return
-  }
+  const start = page * limit
+  const end = start + limit
 
-  videos.forEach(v => {
+  const slice = allVideos.slice(start, end)
+
+  slice.forEach(v=>{
     const div = document.createElement("div")
     div.className = "video"
 
     div.innerHTML = `
-      <img src="${v.thumbnail}">
+      <img loading="lazy" src="${v.thumbnail}">
       <p>${v.title}</p>
     `
 
-    div.onclick = () => playVideo(v.filecode, v.source)
+    div.onclick = ()=>play(v.filecode, v.source)
 
     list.appendChild(div)
   })
+
+  page++
 }
 
 // ======================
 // PLAY VIDEO
 // ======================
-function playVideo(id, source) {
-  if (source === "vidara") {
-    window.location.href = `https://vidara.so/v/${id}`
-  } else {
-    window.location.href = `https://doodstream.com/d/${id}`
+function play(id, source){
+  if(source==="vidara"){
+    location.href = `https://vidara.so/v/${id}`
+  }else if(source==="dood"){
+    location.href = `https://doodstream.com/d/${id}`
+  }else{
+    location.href = `https://vizey.com/d/${id}`
   }
 }
 
 // ======================
+// SCROLL LOAD
+// ======================
+window.addEventListener("scroll", ()=>{
+  if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 200){
+    renderNext()
+  }
+})
+
+// ======================
 // SEARCH
 // ======================
-document.getElementById("search").addEventListener("input", e => {
-  const keyword = e.target.value.toLowerCase()
+document.getElementById("search").addEventListener("input", e=>{
+  const val = e.target.value.toLowerCase()
 
-  const hasil = semuaVideo.filter(v =>
-    v.title.toLowerCase().includes(keyword)
+  const filtered = allVideos.filter(v =>
+    v.title.toLowerCase().includes(val)
   )
 
-  tampilkanVideo(hasil)
+  document.getElementById("videoList").innerHTML = ""
+  page = 0
+  allVideos = filtered
+  renderNext()
 })
 
 // ======================
