@@ -1,94 +1,79 @@
+let cache = null
+let lastFetch = 0
+
+const CACHE_TIME = 60 * 1000 // 60 detik
+
 export default async function handler(req, res) {
-  const VIDARA_KEY = process.env.VIDARA_API_KEY
-  const DOOD_KEY = process.env.DOOD_API_KEY
+  const now = Date.now()
+
+  // 🚀 RETURN CACHE (SUPER CEPAT)
+  if (cache && (now - lastFetch < CACHE_TIME)) {
+    return res.status(200).json(cache)
+  }
 
   try {
-    // ========================
-    // 🔥 VIDARA
-    // ========================
+    const VIDARA_KEY = process.env.VIDARA_API_KEY
+    const DOOD_KEY = process.env.DOOD_API_KEY
+
     let vidaraVideos = []
-
-    if (VIDARA_KEY) {
-      try {
-        const vidaraRes = await fetch(
-          `https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`
-        )
-
-        const vidaraJson = await vidaraRes.json()
-
-        console.log("VIDARA:", vidaraJson)
-
-        vidaraVideos = Array.isArray(vidaraJson.result?.videos)
-          ? vidaraJson.result.videos
-          : []
-
-      } catch (e) {
-        console.log("VIDARA ERROR:", e.message)
-      }
-    }
-
-    // ========================
-    // 🔥 DOODSTREAM
-    // ========================
     let doodVideos = []
 
-    if (DOOD_KEY) {
-      try {
-        const doodRes = await fetch(
-          `https://doodapi.co/api/file/list?key=${DOOD_KEY}`
-        )
+    // =====================
+    // 🔥 FETCH VIDARA
+    // =====================
+    if (VIDARA_KEY) {
+      const vidaraRes = await fetch(
+        `https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`
+      )
+      const vidaraJson = await vidaraRes.json()
 
-        const doodJson = await doodRes.json()
-
-        console.log("DOOD:", doodJson)
-
-        // 🔥 HANDLE SEMUA FORMAT
-        if (Array.isArray(doodJson.result)) {
-          doodVideos = doodJson.result
-        } else if (Array.isArray(doodJson.result?.files)) {
-          doodVideos = doodJson.result.files
-        } else {
-          doodVideos = []
-        }
-
-      } catch (e) {
-        console.log("DOOD ERROR:", e.message)
-      }
+      vidaraVideos = vidaraJson.result?.videos?.map(v => ({
+        title: v.title,
+        thumbnail: v.thumbnail,
+        filecode: v.filecode,
+        source: "vidara"
+      })) || []
     }
 
-    // ========================
-    // 🔥 FORMAT VIDARA
-    // ========================
-    const formattedVidara = vidaraVideos.map(v => ({
-      title: v.title || "No title",
-      thumbnail: v.thumbnail || "",
-      filecode: v.filecode,
-      source: "vidara"
-    }))
+    // =====================
+    // 🔥 FETCH DOOD
+    // =====================
+    if (DOOD_KEY) {
+      const doodRes = await fetch(
+        `https://doodapi.co/api/file/list?key=${DOOD_KEY}`
+      )
+      const doodJson = await doodRes.json()
 
-    // ========================
-    // 🔥 FORMAT DOOD
-    // ========================
-    const formattedDood = doodVideos.map(v => ({
-      title: v.title || "No title",
-      thumbnail: v.splash_img || v.thumbnail || "",
-      filecode: v.file_code,
-      source: "dood"
-    }))
+      doodVideos = doodJson.result?.map(v => ({
+        title: v.title,
+        thumbnail: v.splash_img || v.thumbnail || "",
+        filecode: v.file_code,
+        source: "dood"
+      })) || []
+    }
 
-    // ========================
-    // 🔥 GABUNG
-    // ========================
-    const allVideos = [
-      ...formattedVidara,
-      ...formattedDood
-    ]
+    // =====================
+    // 🔥 GABUNG + SORT
+    // =====================
+    const allVideos = [...vidaraVideos, ...doodVideos].reverse()
 
-    return res.status(200).json({
+    const response = {
       result: {
         videos: allVideos
       }
-    })
+    }
+
+    // 💾 SIMPAN CACHE
+    cache = response
+    lastFetch = now
+
+    // 🚀 CDN CACHE
+    res.setHeader(
+      "Cache-Control",
+      "s-maxage=60, stale-while-revalidate"
+    )
+
+    return res.status(200).json(response)
 
   } catch (err) {
     return res.status(500).json({
