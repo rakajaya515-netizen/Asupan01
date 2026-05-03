@@ -2,7 +2,6 @@ let cache = null
 let lastFetch = 0
 
 const CACHE_TIME = 60 * 1000
-
 export default async function handler(req, res) {
   const VIDARA_KEY = process.env.VIDARA_API_KEY
   const DOOD_KEY = process.env.DOOD_API_KEY
@@ -11,7 +10,9 @@ export default async function handler(req, res) {
     let vidaraVideos = []
     let doodVideos = []
 
+    // =========================
     // VIDARA
+    // =========================
     if (VIDARA_KEY) {
       try {
         const r = await fetch(`https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`)
@@ -22,7 +23,9 @@ export default async function handler(req, res) {
       }
     }
 
-    // DOOD
+    // =========================
+    // DOODSTREAM
+    // =========================
     if (DOOD_KEY) {
       try {
         const r = await fetch(`https://doodapi.co/api/file/list?key=${DOOD_KEY}`)
@@ -33,7 +36,10 @@ export default async function handler(req, res) {
       }
     }
 
-    const formatted = [
+    // =========================
+    // FORMAT DATA
+    // =========================
+    const videos = [
       ...vidaraVideos.map(v => ({
         title: v.title,
         thumbnail: v.thumbnail,
@@ -48,7 +54,7 @@ export default async function handler(req, res) {
       }))
     ]
 
-    res.status(200).json({ videos: formatted })
+    res.status(200).json({ videos })
 
   } catch (err) {
     res.status(500).json({ error: err.message })
