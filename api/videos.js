@@ -1,12 +1,11 @@
 let cache = null
 let lastFetch = 0
 
-const CACHE_TIME = 60 * 1000 // 60 detik
+const CACHE_TIME = 60 * 1000
 
 export default async function handler(req, res) {
   const now = Date.now()
 
-  // 🚀 RETURN CACHE (SUPER CEPAT)
   if (cache && (now - lastFetch < CACHE_TIME)) {
     return res.status(200).json(cache)
   }
@@ -18,16 +17,12 @@ export default async function handler(req, res) {
     let vidaraVideos = []
     let doodVideos = []
 
-    // =====================
-    // 🔥 FETCH VIDARA
-    // =====================
+    // VIDARA
     if (VIDARA_KEY) {
-      const vidaraRes = await fetch(
-        `https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`
-      )
-      const vidaraJson = await vidaraRes.json()
+      const r = await fetch(`https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`)
+      const j = await r.json()
 
-      vidaraVideos = vidaraJson.result?.videos?.map(v => ({
+      vidaraVideos = j.result?.videos?.map(v => ({
         title: v.title,
         thumbnail: v.thumbnail,
         filecode: v.filecode,
@@ -35,16 +30,12 @@ export default async function handler(req, res) {
       })) || []
     }
 
-    // =====================
-    // 🔥 FETCH DOOD
-    // =====================
+    // DOOD
     if (DOOD_KEY) {
-      const doodRes = await fetch(
-        `https://doodapi.co/api/file/list?key=${DOOD_KEY}`
-      )
-      const doodJson = await doodRes.json()
+      const r = await fetch(`https://doodapi.co/api/file/list?key=${DOOD_KEY}`)
+      const j = await r.json()
 
-      doodVideos = doodJson.result?.map(v => ({
+      doodVideos = j.result?.map(v => ({
         title: v.title,
         thumbnail: v.splash_img || v.thumbnail || "",
         filecode: v.file_code,
@@ -52,32 +43,23 @@ export default async function handler(req, res) {
       })) || []
     }
 
-    // =====================
-    // 🔥 GABUNG + SORT
-    // =====================
-    const allVideos = [...vidaraVideos, ...doodVideos].reverse()
+    let allVideos = [...vidaraVideos, ...doodVideos]
 
-    const response = {
-      result: {
-        videos: allVideos
-      }
-    }
+    // 🔥 FILTER + RANDOM (CTR BOOST)
+    allVideos = allVideos
+      .filter(v => v.thumbnail && v.title)
+      .sort(() => Math.random() - 0.5)
 
-    // 💾 SIMPAN CACHE
+    const response = { result: { videos: allVideos } }
+
     cache = response
     lastFetch = now
 
-    // 🚀 CDN CACHE
-    res.setHeader(
-      "Cache-Control",
-      "s-maxage=60, stale-while-revalidate"
-    )
+    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate")
 
     return res.status(200).json(response)
 
   } catch (err) {
-    return res.status(500).json({
-      error: err.message
-    })
+    return res.status(500).json({ error: err.message })
   }
 }
