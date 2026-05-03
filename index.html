@@ -1,94 +1,59 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asupanmu</title>
+  <meta charset="UTF-8">
+  <title>Asupanmu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body {
-  margin: 0;
-  background: #000;
-  color: #fff;
-  font-family: Arial;
-}
+  <style>
+    body {
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 15px;
+    }
 
-.container {
-  padding: 15px;
-}
+    h1 {
+      font-size: 32px;
+    }
 
-h1 {
-  margin-bottom: 15px;
-}
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid orange;
+      margin-bottom: 15px;
+    }
 
-input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  border: none;
-  margin-bottom: 15px;
-}
+    #videoList {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
+    .video {
+      cursor: pointer;
+    }
 
-.video {
-  cursor: pointer;
-}
+    .video img {
+      width: 100%;
+      border-radius: 10px;
+    }
 
-.video img {
-  width: 100%;
-  border-radius: 12px;
-}
-
-.video p {
-  font-size: 14px;
-  margin-top: 5px;
-}
-
-/* MODAL */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: black;
-  z-index: 999;
-}
-
-.modal iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-.close {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  font-size: 30px;
-  color: white;
-  cursor: pointer;
-  z-index: 1000;
-}
-</style>
+    .video p {
+      font-size: 14px;
+      margin: 5px 0;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="container">
-  <h1>Asupanmu</h1>
-  <input type="text" id="search" placeholder="Cari video...">
-  <div id="videoList" class="grid"></div>
-</div>
+<h1>Asupanmu</h1>
 
-<!-- MODAL PLAYER -->
-<div id="modal" class="modal">
-  <span class="close" onclick="closeVideo()">×</span>
-  <iframe id="player"></iframe>
-</div>
+<input type="text" id="search" placeholder="Cari video...">
+
+<div id="videoList"></div>
 
 <script src="script.js"></script>
 </body>
