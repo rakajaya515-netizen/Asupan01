@@ -1,18 +1,18 @@
 let allVideos = []
 
+const AD_LINK = "https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1"
+
 async function loadVideos() {
   const container = document.getElementById("videoList")
   container.innerHTML = "Loading..."
 
   try {
-    const res = await fetch("/api/videos", {
-      cache: "no-store"
-    })
-
+    const res = await fetch("/api/videos", { cache: "no-store" })
     const json = await res.json()
-    const videos = json.result?.videos || []
 
+    const videos = json.result?.videos || []
     allVideos = videos
+
     renderVideos(videos)
 
   } catch (err) {
@@ -22,24 +22,35 @@ async function loadVideos() {
 
 function renderVideos(videos) {
   const container = document.getElementById("videoList")
+  container.innerHTML = ""
 
   if (!videos.length) {
     container.innerHTML = "Tidak ada video"
     return
   }
 
-  container.innerHTML = ""
+  videos.forEach((v, i) => {
+    // 🔥 IKLAN TIAP 6 VIDEO
+    if (i % 6 === 0 && i !== 0) {
+      const ad = document.createElement("div")
+      ad.className = "banner"
+      ad.innerHTML = `
+        <a href="${AD_LINK}" target="_blank">
+          🚀 Iklan spesial - klik disini 🚀
+        </a>
+      `
+      container.appendChild(ad)
+    }
 
-  videos.forEach(v => {
     const div = document.createElement("div")
     div.className = "video"
 
-    let url = "#"
+    let videoUrl = "#"
 
     if (v.source === "vidara") {
-      url = `https://vidara.so/v/${v.filecode}`
+      videoUrl = `https://vidara.so/v/${v.filecode}`
     } else if (v.source === "dood") {
-      url = `https://doodstream.com/d/${v.filecode}`
+      videoUrl = `https://doodstream.com/d/${v.filecode}`
     }
 
     div.innerHTML = `
@@ -47,8 +58,10 @@ function renderVideos(videos) {
       <p>${v.title}</p>
     `
 
+    // 🔥 KLIK = IKLAN DULU → VIDEO
     div.onclick = () => {
-      window.location.href = url
+      window.open(AD_LINK, "_blank") // iklan
+      window.location.href = videoUrl // video
     }
 
     container.appendChild(div)
