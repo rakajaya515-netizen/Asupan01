@@ -1,9 +1,9 @@
 export default async function handler(req, res) {
-  const API_KEY = process.env.API_KEY;
+  const VIDARA_API_KEY = process.env.VIDARA_API_KEY;
 
   if (!API_KEY) {
     return res.status(500).json({
-      error: "API_KEY belum diset"
+      error: "VIDARA_API_KEY belum diset"
     });
   }
 
