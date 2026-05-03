@@ -5,22 +5,10 @@ async function loadVideos() {
 
   try {
     const res = await fetch("/api/videos")
-    const data = await res.json()
+    const json = await res.json()
 
-    console.log("JSON:", data)
-
-    // ✅ FIX UTAMA
-    if (data.result && Array.isArray(data.result.videos)) {
-      allVideos = data.result.videos
-    } else if (Array.isArray(data)) {
-      allVideos = data
-    } else {
-      container.innerHTML = `
-        Format tidak dikenali:
-        <pre>${JSON.stringify(data, null, 2)}</pre>
-      `
-      return
-    }
+    // ambil videos dari result
+    allVideos = json.result.videos || []
 
     renderVideos(allVideos)
 
@@ -43,30 +31,40 @@ function renderVideos(videos) {
     const div = document.createElement("div")
     div.className = "video"
 
-    const title = v.title || "No Title"
-    const thumb = v.thumbnail
-    const link = v.link
-
     div.innerHTML = `
-      <a href="${link}" target="_blank">
-        <img src="${thumb}" />
-      </a>
-      <p>${title}</p>
+      <img src="${v.thumbnail}">
+      <p>${v.title}</p>
     `
+
+    // 🔥 klik buka halaman asli via iframe
+    div.onclick = () => {
+      openVideo(v.link)
+    }
 
     container.appendChild(div)
   })
 }
 
-// 🔍 SEARCH
-document.getElementById("search").addEventListener("input", function (e) {
+function openVideo(url) {
+  document.getElementById("modal").style.display = "block"
+  document.getElementById("player").src = url
+}
+
+function closeVideo() {
+  document.getElementById("modal").style.display = "none"
+  document.getElementById("player").src = ""
+}
+
+// SEARCH
+document.getElementById("search").addEventListener("input", e => {
   const keyword = e.target.value.toLowerCase()
 
   const filtered = allVideos.filter(v =>
-    (v.title || "").toLowerCase().includes(keyword)
+    v.title.toLowerCase().includes(keyword)
   )
 
   renderVideos(filtered)
 })
 
+// load pertama
 loadVideos()
