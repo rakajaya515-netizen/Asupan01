@@ -37,9 +37,10 @@ function renderVideos(videos) {
     `
 
     // 🔥 klik buka halaman asli via iframe
-    div.onclick = () => {
-      openVideo(v.link)
-    }
+  
+      div.onclick = () => {
+  window.location.href = v.link
+      }
 
     container.appendChild(div)
   })
