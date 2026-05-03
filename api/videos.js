@@ -6,7 +6,7 @@ const CACHE_TIME = 60 * 1000
 export default async function handler(req, res) {
   const now = Date.now()
 
-  if (cache && (now - lastFetch < CACHE_TIME)) {
+  if (cache && now - lastFetch < CACHE_TIME) {
     return res.status(200).json(cache)
   }
 
@@ -14,15 +14,15 @@ export default async function handler(req, res) {
     const VIDARA_KEY = process.env.VIDARA_API_KEY
     const DOOD_KEY = process.env.DOOD_API_KEY
 
-    let vidaraVideos = []
-    let doodVideos = []
+    let vidara = []
+    let dood = []
 
     // VIDARA
     if (VIDARA_KEY) {
       const r = await fetch(`https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`)
       const j = await r.json()
 
-      vidaraVideos = j.result?.videos?.map(v => ({
+      vidara = j.result?.videos?.map(v => ({
         title: v.title,
         thumbnail: v.thumbnail,
         filecode: v.filecode,
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
       const r = await fetch(`https://doodapi.co/api/file/list?key=${DOOD_KEY}`)
       const j = await r.json()
 
-      doodVideos = j.result?.map(v => ({
+      dood = j.result?.map(v => ({
         title: v.title,
         thumbnail: v.splash_img || v.thumbnail || "",
         filecode: v.file_code,
@@ -43,23 +43,23 @@ export default async function handler(req, res) {
       })) || []
     }
 
-    let allVideos = [...vidaraVideos, ...doodVideos]
+    let all = [...vidara, ...dood]
 
     // 🔥 FILTER + RANDOM (CTR BOOST)
-    allVideos = allVideos
+    all = all
       .filter(v => v.thumbnail && v.title)
       .sort(() => Math.random() - 0.5)
 
-    const response = { result: { videos: allVideos } }
+    const result = { result: { videos: all } }
 
-    cache = response
+    cache = result
     lastFetch = now
 
     res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate")
 
-    return res.status(200).json(response)
+    return res.status(200).json(result)
 
-  } catch (err) {
-    return res.status(500).json({ error: err.message })
+  } catch (e) {
+    return res.status(500).json({ error: e.message })
   }
 }
