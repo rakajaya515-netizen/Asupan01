@@ -1,23 +1,13 @@
 let allVideos = []
 
 async function loadVideos() {
-  const container = document.getElementById("videoList")
+  const res = await fetch('/api/videos')
+  const json = await res.json()
 
-  try {
-    const res = await fetch('/api/videos')
-    const json = await res.json()
+  const videos = json.result?.videos || []
+  allVideos = videos
 
-    // ambil array video
-    let videos = []
-    if (Array.isArray(json)) videos = json
-    else if (json.result?.videos) videos = json.result.videos
-
-    allVideos = videos
-    renderVideos(videos)
-
-  } catch (err) {
-    container.innerHTML = "Error load data"
-  }
+  renderVideos(videos)
 }
 
 function renderVideos(videos) {
@@ -28,25 +18,20 @@ function renderVideos(videos) {
     const div = document.createElement("div")
     div.className = "video"
 
-    const title = v.title || "No title"
-    const thumb = v.thumbnail || ""
-    const filecode = v.filecode || ""
-
-    // 🔥 DETEKSI LINK
     let finalLink = "#"
 
-    if (v.link?.includes("vidara")) {
-      finalLink = `https://vidara.so/v/${filecode}`
-    } else if (v.link?.includes("dood")) {
-      finalLink = `https://doodstream.com/d/${filecode}`
+    // 🔥 LOGIC PENTING
+    if (v.source === "vidara") {
+      finalLink = `https://vidara.so/v/${v.filecode}`
+    } else if (v.source === "dood") {
+      finalLink = `https://doodstream.com/d/${v.filecode}`
     }
 
     div.innerHTML = `
-      <img src="${thumb}">
-      <p>${title}</p>
+      <img src="${v.thumbnail}">
+      <p>${v.title}</p>
     `
 
-    // 🔥 CLICK = REDIRECT
     div.onclick = () => {
       window.location.href = finalLink
     }
@@ -55,13 +40,13 @@ function renderVideos(videos) {
   })
 }
 
-// 🔍 SEARCH
+// SEARCH
 document.getElementById("search").addEventListener("input", (e) => {
   const key = e.target.value.toLowerCase()
 
-  const filtered = allVideos.filter(v => {
-    return (v.title || "").toLowerCase().includes(key)
-  })
+  const filtered = allVideos.filter(v =>
+    (v.title || "").toLowerCase().includes(key)
+  )
 
   renderVideos(filtered)
 })
