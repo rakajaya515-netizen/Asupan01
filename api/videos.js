@@ -4,39 +4,64 @@ export default async function handler(req, res) {
 
   try {
     // ========================
-    // 🔥 FETCH VIDARA
+    // 🔥 VIDARA
     // ========================
     let vidaraVideos = []
 
     if (VIDARA_KEY) {
-      const vidaraRes = await fetch(
-        `https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`
-      )
+      try {
+        const vidaraRes = await fetch(
+          `https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`
+        )
 
-      const vidaraJson = await vidaraRes.json()
-      vidaraVideos = vidaraJson.result?.videos || []
+        const vidaraJson = await vidaraRes.json()
+
+        console.log("VIDARA:", vidaraJson)
+
+        vidaraVideos = Array.isArray(vidaraJson.result?.videos)
+          ? vidaraJson.result.videos
+          : []
+
+      } catch (e) {
+        console.log("VIDARA ERROR:", e.message)
+      }
     }
 
     // ========================
-    // 🔥 FETCH DOODSTREAM
+    // 🔥 DOODSTREAM
     // ========================
     let doodVideos = []
 
     if (DOOD_KEY) {
-      const doodRes = await fetch(
-        `https://doodapi.co/api/file/list?key=${DOOD_KEY}`
-      )
+      try {
+        const doodRes = await fetch(
+          `https://doodapi.co/api/file/list?key=${DOOD_KEY}`
+        )
 
-      const doodJson = await doodRes.json()
-      doodVideos = doodJson.result || []
+        const doodJson = await doodRes.json()
+
+        console.log("DOOD:", doodJson)
+
+        // 🔥 HANDLE SEMUA FORMAT
+        if (Array.isArray(doodJson.result)) {
+          doodVideos = doodJson.result
+        } else if (Array.isArray(doodJson.result?.files)) {
+          doodVideos = doodJson.result.files
+        } else {
+          doodVideos = []
+        }
+
+      } catch (e) {
+        console.log("DOOD ERROR:", e.message)
+      }
     }
 
     // ========================
     // 🔥 FORMAT VIDARA
     // ========================
     const formattedVidara = vidaraVideos.map(v => ({
-      title: v.title,
-      thumbnail: v.thumbnail,
+      title: v.title || "No title",
+      thumbnail: v.thumbnail || "",
       filecode: v.filecode,
       source: "vidara"
     }))
@@ -45,7 +70,7 @@ export default async function handler(req, res) {
     // 🔥 FORMAT DOOD
     // ========================
     const formattedDood = doodVideos.map(v => ({
-      title: v.title,
+      title: v.title || "No title",
       thumbnail: v.splash_img || v.thumbnail || "",
       filecode: v.file_code,
       source: "dood"
