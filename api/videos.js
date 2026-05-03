@@ -1,58 +1,91 @@
-let cache = null
-let lastFetch = 0
+let cache = {
+  data: null,
+  time: 0
+}
 
-const CACHE_TIME = 60 * 1000
 export default async function handler(req, res) {
+  const now = Date.now()
+
+  // ======================
+  // CACHE 60 DETIK
+  // ======================
+  if (cache.data && now - cache.time < 60000) {
+    return res.status(200).json(cache.data)
+  }
+
   const VIDARA_KEY = process.env.VIDARA_API_KEY
   const DOOD_KEY = process.env.DOOD_API_KEY
+  const VIZEY_KEY = process.env.VIZEY_API_KEY
 
   try {
-    let vidaraVideos = []
-    let doodVideos = []
+    let vidara = []
+    let dood = []
+    let vizey = []
 
-    // =========================
+    // ======================
     // VIDARA
-    // =========================
+    // ======================
     if (VIDARA_KEY) {
       try {
         const r = await fetch(`https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`)
         const j = await r.json()
-        vidaraVideos = j?.result?.videos || []
-      } catch (e) {
-        console.log("Vidara error:", e.message)
-      }
+        vidara = j?.result?.videos || []
+      } catch {}
     }
 
-    // =========================
-    // DOODSTREAM
-    // =========================
+    // ======================
+    // DOOD
+    // ======================
     if (DOOD_KEY) {
       try {
         const r = await fetch(`https://doodapi.co/api/file/list?key=${DOOD_KEY}`)
         const j = await r.json()
-        doodVideos = j?.result?.files || []
-      } catch (e) {
-        console.log("Dood error:", e.message)
-      }
+        dood = j?.result?.files || []
+      } catch {}
     }
 
-    // =========================
-    // FORMAT DATA
-    // =========================
+    // ======================
+    // VIZEY (mirip dood biasanya)
+    // ======================
+    if (VIZEY_KEY) {
+      try {
+        const r = await fetch(`https://vizey.com/api/file/list?key=${VIZEY_KEY}`)
+        const j = await r.json()
+        vizey = j?.result?.files || []
+      } catch {}
+    }
+
+    // ======================
+    // FORMAT SEMUA
+    // ======================
     const videos = [
-      ...vidaraVideos.map(v => ({
+      ...vidara.map(v => ({
         title: v.title,
         thumbnail: v.thumbnail,
         filecode: v.filecode,
         source: "vidara"
       })),
-      ...doodVideos.map(v => ({
+      ...dood.map(v => ({
         title: v.title,
         thumbnail: v.splash_img || "",
         filecode: v.file_code,
         source: "dood"
+      })),
+      ...vizey.map(v => ({
+        title: v.title,
+        thumbnail: v.splash_img || "",
+        filecode: v.file_code,
+        source: "vizey"
       }))
     ]
+
+    // ======================
+    // SIMPAN CACHE
+    // ======================
+    cache = {
+      data: { videos },
+      time: now
+    }
 
     res.status(200).json({ videos })
 
