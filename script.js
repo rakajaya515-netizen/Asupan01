@@ -1,47 +1,77 @@
 let allVideos = []
 
 async function loadVideos() {
+  const container = document.getElementById("videoList")
+
   try {
     const res = await fetch('/api/videos')
+
+    // ❗ kalau API error
+    if (!res.ok) {
+      const text = await res.text()
+      container.innerHTML = "Error API: " + text
+      return
+    }
+
     const data = await res.json()
 
-    // sesuaikan struktur API kamu
-    allVideos = data.data || data
+    console.log("DATA:", data)
+
+    // 🔥 fleksibel (biar gak error lagi)
+    if (Array.isArray(data)) {
+      allVideos = data
+    } else if (Array.isArray(data.data)) {
+      allVideos = data.data
+    } else {
+      container.innerHTML = "Format data tidak dikenali"
+      return
+    }
 
     renderVideos(allVideos)
 
   } catch (err) {
-    document.getElementById("videoList").innerHTML = "Error load"
+    container.innerHTML = "Error load: " + err.message
   }
 }
 
 function renderVideos(videos) {
   const container = document.getElementById("videoList")
+
+  if (videos.length === 0) {
+    container.innerHTML = "Tidak ada video"
+    return
+  }
+
   container.innerHTML = ""
 
   videos.forEach(v => {
     const div = document.createElement("div")
-    div.style.marginBottom = "20px"
+    div.className = "video"
+
+    // 🔥 fallback aman
+    const title = v.title || v.name || "No Title"
+    const url = v.url || v.video || v.link || ""
 
     div.innerHTML = `
-      <p>${v.title || 'No Title'}</p>
-      <video src="${v.url}" controls width="300"></video>
+      <p>${title}</p>
+      <video src="${url}" controls></video>
     `
 
     container.appendChild(div)
   })
 }
 
-// 🔍 SEARCH FUNCTION
+// 🔍 SEARCH
 document.getElementById("search").addEventListener("input", function(e) {
   const keyword = e.target.value.toLowerCase()
 
   const filtered = allVideos.filter(v => {
-    return (v.title || "").toLowerCase().includes(keyword)
+    const text = (v.title || v.name || "").toLowerCase()
+    return text.includes(keyword)
   })
 
   renderVideos(filtered)
 })
 
-// 🚀 load awal
+// 🚀 START
 loadVideos()
