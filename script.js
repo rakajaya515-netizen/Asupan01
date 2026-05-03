@@ -6,24 +6,33 @@ async function loadVideos() {
   try {
     const res = await fetch('/api/videos')
 
-    // ❗ kalau API error
-    if (!res.ok) {
-      const text = await res.text()
-      container.innerHTML = "Error API: " + text
+    const text = await res.text()
+    console.log("RAW RESPONSE:", text)
+
+    let json
+    try {
+      json = JSON.parse(text)
+    } catch {
+      container.innerHTML = "Response bukan JSON:<br>" + text
       return
     }
 
-    const data = await res.json()
+    console.log("JSON:", json)
 
-    console.log("DATA:", data)
-
-    // 🔥 fleksibel (biar gak error lagi)
-    if (Array.isArray(data)) {
-      allVideos = data
-    } else if (Array.isArray(data.data)) {
-      allVideos = data.data
+    // 🔥 HANDLE SEMUA FORMAT
+    if (Array.isArray(json)) {
+      allVideos = json
+    } else if (Array.isArray(json.data)) {
+      allVideos = json.data
+    } else if (Array.isArray(json.result)) {
+      allVideos = json.result
+    } else if (Array.isArray(json.videos)) {
+      allVideos = json.videos
     } else {
-      container.innerHTML = "Format data tidak dikenali"
+      // ❗ tampilkan isi biar kita tahu struktur asli
+      container.innerHTML = `
+        Format tidak dikenali:<br><pre>${JSON.stringify(json, null, 2)}</pre>
+      `
       return
     }
 
@@ -37,7 +46,7 @@ async function loadVideos() {
 function renderVideos(videos) {
   const container = document.getElementById("videoList")
 
-  if (videos.length === 0) {
+  if (!videos.length) {
     container.innerHTML = "Tidak ada video"
     return
   }
@@ -48,9 +57,9 @@ function renderVideos(videos) {
     const div = document.createElement("div")
     div.className = "video"
 
-    // 🔥 fallback aman
-    const title = v.title || v.name || "No Title"
-    const url = v.url || v.video || v.link || ""
+    // 🔥 coba semua kemungkinan field
+    const title = v.title || v.name || v.caption || "No Title"
+    const url = v.url || v.video || v.play || v.link || ""
 
     div.innerHTML = `
       <p>${title}</p>
@@ -66,7 +75,7 @@ document.getElementById("search").addEventListener("input", function(e) {
   const keyword = e.target.value.toLowerCase()
 
   const filtered = allVideos.filter(v => {
-    const text = (v.title || v.name || "").toLowerCase()
+    const text = (v.title || v.name || v.caption || "").toLowerCase()
     return text.includes(keyword)
   })
 
