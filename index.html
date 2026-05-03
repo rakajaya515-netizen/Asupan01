@@ -3,87 +3,157 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asupanmu</title>
 
-<!-- 🔥 PREVIEW SHARE -->
-<meta property="og:title" content="🔥 Video Viral Terbaru">
-<meta property="og:description" content="Kumpulan video viral terbaru 😱">
-<meta property="og:image" content="https://asupan01.vercel.app/cover.jpg">
-<meta property="og:url" content="https://asupan01.vercel.app/">
-<meta name="twitter:card" content="summary_large_image">
+<title>Asupanmu</title>
 
 <style>
 body {
-  margin: 0;
-  background: black;
+  background: #000;
   color: white;
-  font-family: Arial;
-  padding: 15px;
+  font-family: sans-serif;
+  margin: 0;
 }
 
-h1 { margin-bottom: 10px; }
+h1 {
+  padding: 20px;
+}
 
-input {
-  width: 100%;
+#search {
+  width: 90%;
+  margin: 10px;
   padding: 12px;
   border-radius: 10px;
   border: 2px solid orange;
-  margin-bottom: 15px;
-}
-
-#videoList {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  font-size: 16px;
 }
 
 .video {
-  position: relative;
+  margin: 15px;
   cursor: pointer;
 }
 
 .video img {
   width: 100%;
-  height: 160px;
-  object-fit: cover;
   border-radius: 10px;
 }
 
-/* ▶ play icon */
-.video::after {
-  content: "▶";
-  position: absolute;
-  top: 40%;
-  left: 45%;
-  font-size: 28px;
+.video p {
+  margin: 5px 0;
 }
 
-/* banner */
-.banner {
-  grid-column: span 2;
+.ads {
   text-align: center;
+  margin: 15px;
+}
+
+button {
+  background: black;
+  color: blue;
   padding: 10px;
-  background: #111;
   border-radius: 10px;
+  border: none;
 }
 </style>
-</head>
 
+</head>
 <body>
 
 <h1>Asupanmu</h1>
 
-<!-- 🔥 IKLAN RINGAN -->
-<div class="banner">
-  <a href="https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1" target="_blank">
-    🔥 Klik promo 🔥
-  </a>
+<!-- IKLAN (1x klik saja) -->
+<div class="ads">
+  <button onclick="bukaIklan()">🔥 Klik di sini 🔥</button>
 </div>
 
 <input id="search" placeholder="Cari video...">
 
-<div id="videoList">Loading...</div>
+<div id="videoList"></div>
 
-<script src="script.js"></script>
+<script>
+let semuaVideo = []
+let iklanSudah = false
+
+// ======================
+// IKLAN (1x saja)
+// ======================
+function bukaIklan() {
+  if (!iklanSudah) {
+    window.open("https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1", "_blank")
+    iklanSudah = true
+  }
+}
+
+// ======================
+// LOAD API
+// ======================
+async function loadVideos() {
+  try {
+    const res = await fetch("/api/videos")
+    const data = await res.json()
+
+    semuaVideo = data.videos || []
+    tampilkanVideo(semuaVideo)
+
+  } catch (err) {
+    document.getElementById("videoList").innerHTML =
+      "<p style='color:red'>Gagal load video</p>"
+  }
+}
+
+// ======================
+// RENDER VIDEO
+// ======================
+function tampilkanVideo(videos) {
+  const list = document.getElementById("videoList")
+  list.innerHTML = ""
+
+  if (videos.length === 0) {
+    list.innerHTML = "<p>Tidak ada video</p>"
+    return
+  }
+
+  videos.forEach(v => {
+    const div = document.createElement("div")
+    div.className = "video"
+
+    div.innerHTML = `
+      <img src="${v.thumbnail}">
+      <p>${v.title}</p>
+    `
+
+    div.onclick = () => playVideo(v.filecode, v.source)
+
+    list.appendChild(div)
+  })
+}
+
+// ======================
+// PLAY VIDEO
+// ======================
+function playVideo(id, source) {
+  if (source === "vidara") {
+    window.location.href = `https://vidara.so/v/${id}`
+  } else {
+    window.location.href = `https://doodstream.com/d/${id}`
+  }
+}
+
+// ======================
+// SEARCH
+// ======================
+document.getElementById("search").addEventListener("input", e => {
+  const keyword = e.target.value.toLowerCase()
+
+  const hasil = semuaVideo.filter(v =>
+    v.title.toLowerCase().includes(keyword)
+  )
+
+  tampilkanVideo(hasil)
+})
+
+// ======================
+loadVideos()
+</script>
+
 </body>
 </html>
