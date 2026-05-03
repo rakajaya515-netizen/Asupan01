@@ -6,17 +6,21 @@ export default function Home() {
   const [error, setError] = useState("")
 
   useEffect(() => {
-    fetch("/api/videos")
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          setError(data.error)
-        } else {
-          setVideos(data?.result?.videos || [])
-        }
-      })
-      .catch(() => setError("Gagal load"))
-  }, [])
+  fetch('/api/videos')
+    .then(res => res.json())
+    .then(data => {
+      console.log(data)
+
+      // fallback aman
+      const vids = data?.result?.videos || []
+
+      setVideos(vids)
+    })
+    .catch(() => {
+      console.log("error fetch")
+      setVideos([])
+    })
+}, [])
 
   return (
     <div style={{
