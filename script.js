@@ -39,7 +39,15 @@ function renderVideos(videos) {
     // 🔥 klik buka halaman asli via iframe
   
       div.onclick = () => {
-  window.open(v.link, "_blank")
+  let url
+
+  if (v.filecode) {
+    url = `https://vidara.so/v/${v.filecode}`
+  } else {
+    url = v.link
+  }
+
+  window.open(url, "_blank")
       }
 
     container.appendChild(div)
