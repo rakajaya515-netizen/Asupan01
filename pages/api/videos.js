@@ -12,12 +12,18 @@ export default async function handler(req, res) {
 
     const response = await fetch(url)
 
-    const text = await response.text()
+    if (!response.ok) {
+      const text = await response.text()
+      return res.status(500).json({
+        error: "Fetch gagal",
+        status: response.status,
+        detail: text
+      })
+    }
 
-    return res.status(200).json({
-      status: response.status,
-      raw: text
-    })
+    const data = await response.json()
+
+    return res.status(200).json(data)
 
   } catch (err) {
     return res.status(500).json({
