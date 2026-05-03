@@ -11,14 +11,15 @@ export default function Home() {
     .then(data => {
       console.log(data)
 
-      // fallback aman
-      const vids = data?.result?.videos || []
+      if (data.error) {
+        console.error(data.error)
+        return
+      }
 
-      setVideos(vids)
+      setVideos(data?.result?.videos || [])
     })
-    .catch(() => {
-      console.log("error fetch")
-      setVideos([])
+    .catch(err => {
+      console.error("Fetch error:", err)
     })
 }, [])
 
