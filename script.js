@@ -4,34 +4,20 @@ async function loadVideos() {
   const container = document.getElementById("videoList")
 
   try {
-    const res = await fetch('/api/videos')
+    const res = await fetch("/api/videos")
+    const data = await res.json()
 
-    const text = await res.text()
-    console.log("RAW RESPONSE:", text)
+    console.log("JSON:", data)
 
-    let json
-    try {
-      json = JSON.parse(text)
-    } catch {
-      container.innerHTML = "Response bukan JSON:<br>" + text
-      return
-    }
-
-    console.log("JSON:", json)
-
-    // 🔥 HANDLE SEMUA FORMAT
-    if (Array.isArray(json)) {
-      allVideos = json
-    } else if (Array.isArray(json.data)) {
-      allVideos = json.data
-    } else if (Array.isArray(json.result)) {
-      allVideos = json.result
-    } else if (Array.isArray(json.videos)) {
-      allVideos = json.videos
+    // ✅ FIX UTAMA
+    if (data.result && Array.isArray(data.result.videos)) {
+      allVideos = data.result.videos
+    } else if (Array.isArray(data)) {
+      allVideos = data
     } else {
-      // ❗ tampilkan isi biar kita tahu struktur asli
       container.innerHTML = `
-        Format tidak dikenali:<br><pre>${JSON.stringify(json, null, 2)}</pre>
+        Format tidak dikenali:
+        <pre>${JSON.stringify(data, null, 2)}</pre>
       `
       return
     }
@@ -57,13 +43,15 @@ function renderVideos(videos) {
     const div = document.createElement("div")
     div.className = "video"
 
-    // 🔥 coba semua kemungkinan field
-    const title = v.title || v.name || v.caption || "No Title"
-    const url = v.url || v.video || v.play || v.link || ""
+    const title = v.title || "No Title"
+    const thumb = v.thumbnail
+    const link = v.link
 
     div.innerHTML = `
+      <a href="${link}" target="_blank">
+        <img src="${thumb}" />
+      </a>
       <p>${title}</p>
-      <video src="${url}" controls></video>
     `
 
     container.appendChild(div)
@@ -71,16 +59,14 @@ function renderVideos(videos) {
 }
 
 // 🔍 SEARCH
-document.getElementById("search").addEventListener("input", function(e) {
+document.getElementById("search").addEventListener("input", function (e) {
   const keyword = e.target.value.toLowerCase()
 
-  const filtered = allVideos.filter(v => {
-    const text = (v.title || v.name || v.caption || "").toLowerCase()
-    return text.includes(keyword)
-  })
+  const filtered = allVideos.filter(v =>
+    (v.title || "").toLowerCase().includes(keyword)
+  )
 
   renderVideos(filtered)
 })
 
-// 🚀 START
 loadVideos()
