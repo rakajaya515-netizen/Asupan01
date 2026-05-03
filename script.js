@@ -39,7 +39,7 @@ function renderVideos(videos) {
     // 🔥 klik buka halaman asli via iframe
   
       div.onclick = () => {
-  window.location.href = v.link
+  window.open(v.link, "_blank")
       }
 
     container.appendChild(div)
