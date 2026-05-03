@@ -7,9 +7,9 @@
 
   <style>
     body {
-      background: black;
-      color: white;
-      font-family: sans-serif;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
       margin: 0;
       padding: 20px;
     }
@@ -21,38 +21,98 @@
     input {
       width: 100%;
       padding: 12px;
-      margin-bottom: 20px;
-      border-radius: 6px;
+      border-radius: 8px;
       border: none;
+      margin-bottom: 20px;
+      font-size: 16px;
     }
 
     .video {
-      margin-bottom: 25px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
     }
 
-    video {
+    img {
       width: 100%;
       border-radius: 10px;
     }
+
+    .title {
+      font-size: 16px;
+      margin-top: 5px;
+    }
+
+    .error {
+      color: red;
+    }
   </style>
 </head>
-
 <body>
 
-  <!-- ✅ 1 Judul saja -->
   <h1>Asupanmu</h1>
 
-  <!-- 🔍 Search -->
-  <input 
-    type="text" 
-    id="search"
-    placeholder="Cari video..."
-  />
+  <input type="text" id="search" placeholder="Cari video...">
 
-  <!-- 📦 Video list -->
   <div id="videoList">Loading...</div>
 
-  <script src="script.js"></script>
+  <script>
+    let allVideos = [];
+
+    async function loadVideos() {
+      const container = document.getElementById("videoList");
+
+      try {
+        const res = await fetch("/api/videos");
+        const data = await res.json();
+
+        // 🔥 FIX DI SINI
+        if (!data.result || !data.result.videos) {
+          container.innerHTML = "<div class='error'>Format API salah</div>";
+          console.log(data);
+          return;
+        }
+
+        allVideos = data.result.videos;
+        renderVideos(allVideos);
+
+      } catch (err) {
+        container.innerHTML = "<div class='error'>Gagal load data</div>";
+        console.error(err);
+      }
+    }
+
+    function renderVideos(videos) {
+      const container = document.getElementById("videoList");
+
+      if (videos.length === 0) {
+        container.innerHTML = "Tidak ada video";
+        return;
+      }
+
+      container.innerHTML = videos.map(v => `
+        <div class="video">
+          <a href="${v.link}" target="_blank">
+            <img src="${v.thumbnail}" alt="">
+          </a>
+          <div class="title">${v.title}</div>
+        </div>
+      `).join("");
+    }
+
+    // 🔍 SEARCH
+    document.getElementById("search").addEventListener("input", function () {
+      const keyword = this.value.toLowerCase();
+
+      const filtered = allVideos.filter(v =>
+        v.title.toLowerCase().includes(keyword)
+      );
+
+      renderVideos(filtered);
+    });
+
+    loadVideos();
+  </script>
 
 </body>
 </html>
