@@ -4,30 +4,55 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asupanmu</title>
-  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    .video {
+      margin-bottom: 25px;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 10px;
+    }
+  </style>
 </head>
+
 <body>
 
-  <header>
-    <h1>Asupanmu</h1>
-  </header>
-<header>
+  <!-- ✅ 1 Judul saja -->
   <h1>Asupanmu</h1>
 
-  <!-- 🔍 SEARCH -->
+  <!-- 🔍 Search -->
   <input 
     type="text" 
     id="search"
     placeholder="Cari video..."
-    style="padding:10px;width:100%;margin-top:10px"
   />
-</header>
 
-<div class="container" id="videoList"></div>
-  <div class="container" id="videoList">
-    <!-- Video muncul di sini -->
-  </div>
+  <!-- 📦 Video list -->
+  <div id="videoList">Loading...</div>
 
   <script src="script.js"></script>
+
 </body>
 </html>
