@@ -1,41 +1,65 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Poppins', sans-serif;
   background: #0d0d0d;
   color: white;
 }
 
+/* Navbar */
 header {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: #111;
   padding: 15px;
-  font-size: 20px;
-  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.container {
+/* Logo aesthetic */
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+  background: linear-gradient(45deg, #ff00cc, #3333ff);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Search */
+#search {
+  padding: 8px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+}
+
+/* Grid */
+#video-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   padding: 10px;
 }
 
+/* Card */
 .card {
   position: relative;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
 }
 
 .card img {
   width: 100%;
-  height: 180px;
+  height: 200px;
   object-fit: cover;
 }
 
-.title {
+.card .title {
   position: absolute;
   bottom: 0;
   padding: 8px;
   font-size: 14px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.8));
-  width: 100%;
+  background: linear-gradient(transparent, black);
 }
