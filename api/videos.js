@@ -1,44 +1,58 @@
+let cache = {};
+let lastFetch = {};
+
+const CACHE_TTL = 60 * 5; // 5 menit
+
 export default async function handler(req, res) {
-  const vidaraKey = process.env.VIDARA_API_KEY;
-  const vizeyKey = process.env.VIZEY_API_KEY;
+  const { page = 1, q = "" } = req.query;
+  const key = `${page}_${q}`;
+
+  // 🔥 cek cache dulu
+  if (cache[key] && Date.now() - lastFetch[key] < CACHE_TTL * 1000) {
+    return res.status(200).json(cache[key]);
+  }
 
   try {
-    const [vidaraRes, vizeyRes] = await Promise.all([
-      fetch(`https://api.vidara.so/v1/video/list?api_key=${vidaraKey}&limit=20`),
-      fetch(`https://vizey.co/api/v1/list?apikey=${vizeyKey}`)
-    ]);
+    const v1 = await fetch(`https://YOUR_VIDARA_API?page=${page}&q=${q}`);
+    const v2 = await fetch(`https://YOUR_VIZEY_API?page=${page}&q=${q}`);
 
-    const vidara = await vidaraRes.json();
-    const vizey = await vizeyRes.json();
+    const d1 = await v1.json();
+    const d2 = await v2.json();
 
-    const videos = [];
+    let videos = [...(d1.videos || []), ...(d2.videos || [])].map((v, i) => ({
+      id: v.id || i,
+      title: v.title || "No title",
+      thumbnail:
+        v.thumbnail ||
+        v.cover ||
+        v.image ||
+        "https://via.placeholder.com/300x400?text=No+Image",
+      url: v.url || v.link || "#"
+    }));
 
-    // VIDARA
-    if (vidara?.result?.videos) {
-      vidara.result.videos.forEach(v => {
-        videos.push({
-          title: v.title,
-          thumbnail: v.thumbnail,
-          url: `https://vidara.so/${v.filecode}`
-        });
-      });
+    // 🔥 hilangkan duplikat
+    const unique = [];
+    const seen = new Set();
+
+    for (let v of videos) {
+      if (!seen.has(v.url)) {
+        seen.add(v.url);
+        unique.push(v);
+      }
     }
 
-    // VIZEY
-    if (vizey?.data) {
-      vizey.data.forEach(v => {
-        videos.push({
-          title: v.title,
-          thumbnail: v.thumbnail,
-          url: v.url
-        });
-      });
-    }
+    // 🔥 simpan cache
+    cache[key] = unique;
+    lastFetch[key] = Date.now();
 
-    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate");
-    res.status(200).json(videos);
+    // 🔥 CDN cache (Vercel edge)
+    res.setHeader(
+      "Cache-Control",
+      "s-maxage=300, stale-while-revalidate=600"
+    );
 
+    res.status(200).json(unique);
   } catch (err) {
-    res.status(500).json({ error: "Gagal fetch API" });
+    res.status(500).json({ error: "failed" });
   }
 }
