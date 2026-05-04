@@ -1,49 +1,45 @@
+const grid = document.getElementById("grid");
+const searchInput = document.getElementById("search");
+
 let allVideos = [];
 
 async function loadVideos() {
-  const container = document.getElementById("videoList");
-  const loading = document.getElementById("loading");
+  const res = await fetch("/api/videos");
+  const data = await res.json();
 
-  try {
-    const res = await fetch("/api/videos");
-    const json = await res.json();
-
-    allVideos = json || [];
-
-    if (allVideos.length === 0) {
-      loading.innerText = "Tidak ada video";
-      return;
-    }
-
-    renderVideos(allVideos);
-    loading.style.display = "none";
-
-  } catch (err) {
-    loading.innerText = "Gagal load data";
-    console.error(err);
-  }
+  allVideos = data;
+  render(data);
 }
 
-function renderVideos(videos) {
-  const container = document.getElementById("videoList");
-  container.innerHTML = "";
+function render(videos) {
+  grid.innerHTML = "";
 
   videos.forEach(v => {
-    let url = "#";
+    const card = document.createElement("div");
+    card.className = "card";
 
-    if (v.source === "vidara") {
-      url = `https://vidara.so/v/${v.filecode}`;
-    } else {
-      url = `https://vizey.co/v/${v.filecode}`;
-    }
-
-    container.innerHTML += `
-      <div class="card" onclick="window.open('${url}', '_blank')">
-        <img src="${v.thumbnail}" loading="lazy">
-        <div class="title">${v.title}</div>
-      </div>
+    card.innerHTML = `
+      <img src="${v.thumbnail}" />
+      <div class="title">${v.title}</div>
     `;
+
+    card.onclick = () => {
+      window.location.href = v.url; // ✅ redirect ke API asli
+    };
+
+    grid.appendChild(card);
   });
 }
+
+// SEARCH
+searchInput.addEventListener("input", e => {
+  const keyword = e.target.value.toLowerCase();
+
+  const filtered = allVideos.filter(v =>
+    v.title.toLowerCase().includes(keyword)
+  );
+
+  render(filtered);
+});
 
 loadVideos();
