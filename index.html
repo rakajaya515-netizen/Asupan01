@@ -8,9 +8,9 @@
 <style>
 body {
   margin: 0;
-  font-family: sans-serif;
   background: #000;
   color: #fff;
+  font-family: sans-serif;
 }
 
 h1 {
@@ -58,7 +58,7 @@ async function loadVideos() {
     const res = await fetch('/api/videos')
     const data = await res.json()
 
-    console.log("API:", data)
+    console.log(data)
 
     const videos = data.result?.videos || []
 
@@ -75,13 +75,13 @@ async function loadVideos() {
     videos.forEach(v => {
 
       // 🔥 FIX THUMBNAIL
-      let thumb = v.thumbnail || ''
+      let thumb = v.thumbnail
 
       if (!thumb || thumb.includes("undefined")) {
         thumb = "https://via.placeholder.com/300x200?text=No+Image"
       }
 
-      // 🔥 LINK KE PAGE ASLI
+      // 🔥 LINK ASLI
       let link = "#"
 
       if (v.source === "vizey") {
