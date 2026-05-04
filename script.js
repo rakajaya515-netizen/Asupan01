@@ -59,8 +59,8 @@ function renderVideos(videos) {
 
     if (v.source === "vidara") {
       url = `https://vidara.so/v/${v.filecode}`
-    } else if (v.source === "dood") {
-      url = `https://doodstream.com/d/${v.filecode}`
+    } else if (v.source === "vizey") {
+      url = `https://vizey.co/v/${v.filecode}`
     }
 
     div.innerHTML = `
