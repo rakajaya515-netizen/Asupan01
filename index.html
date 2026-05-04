@@ -2,18 +2,21 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asupanmu</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <div class="logo">Asupanmu</div>
-  <input type="text" id="search" placeholder="Search..." />
-</header>
+  <div class="navbar">
+    <div class="logo">Asupanmu</div>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Search video...">
+    </div>
+  </div>
 
-<main id="video-container"></main>
+  <div class="grid" id="grid"></div>
 
-<script src="app.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
