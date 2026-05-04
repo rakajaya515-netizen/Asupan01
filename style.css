@@ -36,21 +36,8 @@ body {
   padding: 12px;
 }
 
-/* Bikin card tinggi & gede */
-.card {
-  border-radius: 18px;
-  overflow: hidden;
-  background: #111;
-}
-
-/* 🔥 ini kunci biar kayak TikTok */
 .card img {
   width: 100%;
-  height: 260px;
+  height: 300px; /* lebih tinggi */
   object-fit: cover;
-}
-
-.card p {
-  padding: 10px;
-  font-size: 14px;
 }
