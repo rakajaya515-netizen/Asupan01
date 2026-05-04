@@ -1,15 +1,22 @@
+let page = 1;
+let loading = false;
+let query = "";
+
+const container = document.getElementById("videos");
+const searchInput = document.getElementById("search");
+
 async function loadVideos(reset = false) {
   if (loading) return;
   loading = true;
 
   try {
-    const res = await fetch(`/api/videos?page=${page}&q=${query}`);
+    const res = await fetch("/api/videos");
     const data = await res.json();
 
-    console.log("VIDEOS:", data); // 🔥 DEBUG
+    console.log("VIDEOS:", data);
 
     if (!data || data.length === 0) {
-      console.log("DATA KOSONG");
+      container.innerHTML = "<p>Tidak ada video</p>";
       return;
     }
 
@@ -32,10 +39,19 @@ async function loadVideos(reset = false) {
       container.appendChild(el);
     });
 
-    page++;
   } catch (err) {
     console.error("ERROR:", err);
+    container.innerHTML = "<p>Error load video</p>";
   }
 
   loading = false;
 }
+
+// search
+searchInput.addEventListener("input", (e) => {
+  query = e.target.value;
+  loadVideos(true);
+});
+
+// first load
+loadVideos();
