@@ -3,19 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Asupanmu</title>
 
 <style>
 body {
-  margin:0;
   background:#000;
   color:#fff;
+  margin:0;
   font-family:sans-serif;
 }
 
-h1 {
-  padding:15px;
-}
+h1 { padding:15px; }
 
 #search {
   width:90%;
@@ -27,13 +26,9 @@ h1 {
 
 .grid {
   display:grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns:1fr 1fr;
   gap:10px;
   padding:10px;
-}
-
-.video {
-  cursor:pointer;
 }
 
 .video img {
@@ -45,9 +40,7 @@ h1 {
   font-size:12px;
 }
 
-.ads {
-  text-align:center;
-}
+.ads { text-align:center; }
 </style>
 </head>
 
@@ -56,61 +49,47 @@ h1 {
 <h1>Asupanmu</h1>
 
 <div class="ads">
-  <button onclick="bukaIklan()">🔥 Klik di sini 🔥</button>
+  <button onclick="iklan()">🔥 Paling di cari 🔥</button>
 </div>
 
 <input id="search" placeholder="Cari video...">
 
-<div class="grid" id="videoList"></div>
+<div id="list" class="grid"></div>
 
 <script>
-let allVideos = []
+let data = []
 let page = 0
-let limit = 10
-let loading = false
-let iklanSudah = false
+let limit = 12
+let iklanDone = false
 
-// ======================
 // IKLAN 1x
-// ======================
-function bukaIklan(){
-  if(!iklanSudah){
+function iklan(){
+  if(!iklanDone){
     window.open("https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1","_blank")
-    iklanSudah = true
+    iklanDone = true
   }
 }
 
-// ======================
-// FETCH API
-// ======================
-async function loadVideos(){
-  if(loading) return
-  loading = true
-
+// LOAD API
+async function load(){
   const res = await fetch("/api/videos")
-  const data = await res.json()
+  const json = await res.json()
 
-  allVideos = data.videos || []
-
-  renderNext()
-
-  loading = false
+  data = json.videos || []
+  render()
 }
 
-// ======================
-// RENDER NEXT (INFINITE)
-// ======================
-function renderNext(){
-  const list = document.getElementById("videoList")
+// RENDER
+function render(){
+  const list = document.getElementById("list")
 
   const start = page * limit
   const end = start + limit
 
-  const slice = allVideos.slice(start, end)
+  const slice = data.slice(start, end)
 
   slice.forEach(v=>{
     const div = document.createElement("div")
-    div.className = "video"
 
     div.innerHTML = `
       <img loading="lazy" src="${v.thumbnail}">
@@ -125,46 +104,39 @@ function renderNext(){
   page++
 }
 
-// ======================
-// PLAY VIDEO
-// ======================
-function play(id, source){
-  if(source==="vidara"){
+// PLAY
+function play(id, src){
+  if(src==="vidara"){
     location.href = `https://vidara.so/v/${id}`
-  }else if(source==="dood"){
+  }else if(src==="dood"){
     location.href = `https://doodstream.com/d/${id}`
   }else{
     location.href = `https://vizey.com/d/${id}`
   }
 }
 
-// ======================
-// SCROLL LOAD
-// ======================
+// INFINITE SCROLL
 window.addEventListener("scroll", ()=>{
   if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 200){
-    renderNext()
+    render()
   }
 })
 
-// ======================
 // SEARCH
-// ======================
 document.getElementById("search").addEventListener("input", e=>{
   const val = e.target.value.toLowerCase()
 
-  const filtered = allVideos.filter(v =>
+  const filtered = data.filter(v =>
     v.title.toLowerCase().includes(val)
   )
 
-  document.getElementById("videoList").innerHTML = ""
+  document.getElementById("list").innerHTML = ""
   page = 0
-  allVideos = filtered
-  renderNext()
+  data = filtered
+  render()
 })
 
-// ======================
-loadVideos()
+load()
 </script>
 
 </body>
