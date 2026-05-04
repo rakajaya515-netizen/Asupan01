@@ -16,6 +16,8 @@ export default async function handler(req, res) {
   const VIDARA_KEY = process.env.VIDARA_API_KEY
   const VIZEY_KEY = process.env.VIZEY_API_KEY
 
+  console.log("VIDARA:", !!process.env.VIDARA_API_KEY)
+console.log("VIZEY:", !!process.env.VIZEY_API_KEY)
   let allVideos = []
 
   try {
