@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
       while (hasNext && page <= 3) { // limit 3 page biar cepat
         const resVizey = await fetch(
-          `https://vizey.co/api/v1/list?apikey=${VIZEY_KEY}&page=${page}`
+          `https://vizey.co/api/v1/video/list?apikey=${VIZEY_KEY}&page=${page}`
         )
         const json = await resVizey.json()
 
