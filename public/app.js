@@ -1,7 +1,6 @@
 const container = document.getElementById("video-container");
 const searchInput = document.getElementById("search");
 
-// load awal
 loadVideos();
 
 async function loadVideos() {
@@ -15,27 +14,24 @@ function render(videos) {
   container.innerHTML = "";
 
   videos.forEach(v => {
-    const thumb = v.thumbnail || v.player_img;
-    const title = v.title || v.video_title;
-    const link = v.url || v.link;
-
     const el = document.createElement("div");
     el.className = "card";
 
     el.innerHTML = `
-      <img src="${thumb}">
-      <div class="title">${title}</div>
+      <img src="${v.thumbnail}">
+      <div class="title">${v.title}</div>
     `;
 
+    // 🔥 FIX: buka halaman asli
     el.onclick = () => {
-      window.location.href = link;
+      window.open(v.url, "_blank");
     };
 
     container.appendChild(el);
   });
 }
 
-// search
+/* SEARCH */
 searchInput.addEventListener("input", async (e) => {
   const q = e.target.value;
 
