@@ -1,65 +1,91 @@
 body {
   margin: 0;
   font-family: 'Poppins', sans-serif;
-  background: #0d0d0d;
+  background: #0b0b0b;
   color: white;
 }
 
-/* Navbar */
+/* NAVBAR */
 header {
   position: sticky;
   top: 0;
   z-index: 999;
-  background: #111;
-  padding: 15px;
+  background: #0b0b0b;
+  padding: 12px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-/* Logo aesthetic */
 .logo {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: bold;
-  background: linear-gradient(45deg, #ff00cc, #3333ff);
+  background: linear-gradient(45deg, #ff00cc, #6a5cff);
   -webkit-background-clip: text;
   color: transparent;
 }
 
-/* Search */
+/* SEARCH */
 #search {
-  padding: 8px;
+  padding: 8px 12px;
   border-radius: 20px;
   border: none;
   outline: none;
+  width: 130px;
 }
 
-/* Grid */
+/* GRID */
 #video-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  padding: 10px;
+  gap: 12px;
+  padding: 12px;
 }
 
-/* Card */
+/* CARD */
 .card {
   position: relative;
-  border-radius: 10px;
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
 }
 
+/* IMAGE FULL */
 .card img {
   width: 100%;
-  height: 200px;
+  height: 220px;
   object-fit: cover;
+  border-radius: 16px;
 }
 
-.card .title {
+/* OVERLAY */
+.card::after {
+  content: "";
   position: absolute;
   bottom: 0;
-  padding: 8px;
+  width: 100%;
+  height: 60%;
+  background: linear-gradient(transparent, rgba(0,0,0,0.9));
+}
+
+/* TITLE */
+.title {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  right: 10px;
   font-size: 14px;
-  background: linear-gradient(transparent, black);
+  font-weight: 500;
+  z-index: 2;
+}
+
+/* MOBILE FIX */
+@media (max-width: 600px) {
+  #video-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card img {
+    height: 200px;
+  }
 }
