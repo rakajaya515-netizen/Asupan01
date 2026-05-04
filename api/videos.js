@@ -15,74 +15,64 @@ export default async function handler(req, res) {
   const VIZEY_KEY = process.env.VIZEY_API_KEY
   const VIDARA_KEY = process.env.VIDARA_API_KEY
 
-  let allVideos = []
+  let vizeyVideos = []
+  let vidaraVideos = []
 
   try {
     // =========================
-    // 🔥 FETCH VIZEY (FIX URL)
+    // 🔥 VIZEY
     // =========================
-    let vizeyVideos = []
-
     if (VIZEY_KEY) {
       try {
-        const resVizey = await fetch(
+        const r = await fetch(
           `https://vizey.co/api/v1/list?apikey=${VIZEY_KEY}&page=1`
         )
-        const json = await resVizey.json()
+        const j = await r.json()
 
-        if (json?.data) {
-          vizeyVideos = json.data.map(v => ({
+        if (j?.data) {
+          vizeyVideos = j.data.map(v => ({
             title: v.title,
             thumbnail: v.thumbnail,
-            filecode: v.id,
+            url: v.url,               // ✅ link asli
+            embed: v.embed_url,
             source: "vizey",
             createdAt: v.createdAt
           }))
         }
-      } catch (err) {
-        console.log("VIZEY ERROR:", err.message)
+      } catch (e) {
+        console.log("VIZEY ERROR:", e.message)
       }
     }
 
     // =========================
-    // 🔥 FETCH VIDARA
+    // 🔥 VIDARA
     // =========================
-    let vidaraVideos = []
+    if (VIDARA_KEY) {
+      try {
+        const r = await fetch(
+          `https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`
+        )
+        const j = await r.json()
 
-if (VIDARA_KEY) {
-  try {
-    const resVidara = await fetch(
-      `https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`
-    )
-
-    const json = await resVidara.json()
-
-    if (json?.result?.videos) {
-      vidaraVideos = json.result.videos.map(v => ({
-        title: v.title || "No title",
-        thumbnail: v.thumbnail,
-        filecode: v.filecode,
-        source: "vidara",
-        createdAt: v.created_at || new Date().toISOString()
-      }))
-    } else {
-      console.log("VIDARA EMPTY:", json)
+        if (j?.result?.videos) {
+          vidaraVideos = j.result.videos.map(v => ({
+            title: v.title,
+            thumbnail: v.thumbnail,
+            url: `https://vidara.so/v/${v.filecode}`, // ✅ link play
+            source: "vidara",
+            createdAt: v.created_at
+          }))
+        }
+      } catch (e) {
+        console.log("VIDARA ERROR:", e.message)
+      }
     }
 
-  } catch (err) {
-    console.log("VIDARA ERROR:", err.message)
-  }
-}
+    // =========================
+    // 🔥 GABUNG + SORT
+    // =========================
+    let allVideos = [...vizeyVideos, ...vidaraVideos]
 
-    // =========================
-    // 🔥 FALLBACK LOGIC
-    // =========================
-    allVideos =
-      vizeyVideos.length > 0 ? vizeyVideos : vidaraVideos
-
-    // =========================
-    // 🔥 SORT TERBARU
-    // =========================
     allVideos.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     )
@@ -98,9 +88,7 @@ if (VIDARA_KEY) {
     return res.status(200).json(allVideos)
 
   } catch (err) {
-    console.log("FATAL ERROR:", err.message)
-
-    // ❗ jangan bikin crash
+    console.log("FATAL:", err.message)
     return res.status(200).json([])
   }
 }
