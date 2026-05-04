@@ -12,19 +12,20 @@ export default async function handler(req, res) {
 
     const data = [
       ...(vidara?.result?.videos || []).map(v => ({
-        title: v.title,
-        thumbnail: v.thumbnail,
-        url: v.link
+        title: v.video_title,
+        thumbnail: v.player_img,
+        url: v.link // 🔥 LINK ASLI
       })),
       ...(vizey?.data || []).map(v => ({
         title: v.title,
         thumbnail: v.thumbnail,
-        url: v.url
+        url: v.url // 🔥 LINK ASLI
       }))
     ];
 
     res.status(200).json(data);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 }
