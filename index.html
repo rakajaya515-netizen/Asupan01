@@ -26,17 +26,38 @@ body {
   position: sticky;
   top: 0;
   z-index: 999;
-  padding: 16px;
-  background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(12px);
+  padding: 14px 16px;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .navbar h1 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   background: linear-gradient(90deg, #ff4d6d, #ff9a3c);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* SEARCH BAR */
+.search-box {
+  position: sticky;
+  top: 58px; /* di bawah navbar */
+  z-index: 998;
+  padding: 10px 12px;
+  background: #0b0b0b;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  background: #1a1a1a;
+  color: #fff;
 }
 
 /* GRID */
@@ -54,7 +75,7 @@ body {
   overflow: hidden;
   background: #111;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.25s;
 }
 
 .card:hover {
@@ -67,14 +88,15 @@ body {
   object-fit: cover;
 }
 
-/* TITLE OVERLAY */
+/* TITLE */
 .title {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   padding: 12px;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.3;
   background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
 }
 
@@ -89,103 +111,83 @@ body {
 
 <body>
 
+<!-- NAVBAR -->
 <div class="navbar">
   <h1>Asupanmu</h1>
 </div>
 
-<div class="container" id="container"></div>
-<div class="loading" id="loading">Loading...</div>
+<!-- SEARCH -->
+<div class="search-box">
+  <input type="text" id="search" placeholder="Cari video...">
+</div>
+
+<!-- CONTENT -->
+<div id="videoList" class="container"></div>
+<div id="loading" class="loading">Loading...</div>
 
 <script>
-const API_KEY = "YOUR_VIZEY_API_KEY";
-const VIZEY = `https://vizey.co/api/v1/list?apikey=${API_KEY}`;
-const VIDARA = "YOUR_VIDARA_API";
+let allVideos = [];
 
-let page = 1;
-let loading = false;
-let useFallback = false;
+/* LOAD DATA */
+async function loadVideos() {
+  const loading = document.getElementById("loading");
 
-/* FETCH */
-async function fetchVideos() {
   try {
-    let url = useFallback
-      ? `${VIDARA}?page=${page}`
-      : `${VIZEY}&page=${page}`;
-
-    const res = await fetch(url);
+    const res = await fetch("/api/videos");
     const data = await res.json();
 
-    console.log("RAW:", data);
+    allVideos = data || [];
 
-    // ===== VIZEY FORMAT =====
-    if (!useFallback) {
-      if (!data.success || !data.data || data.data.length === 0) {
-        throw "Vizey kosong";
-      }
-
-      return data.data.map(v => ({
-        title: v.title,
-        thumbnail: v.thumbnail,
-        video: `https://vizey.co/api/v1/videos?apikey=${API_KEY}&id=${v.id}`
-      }));
+    if (allVideos.length === 0) {
+      loading.innerText = "Tidak ada video";
+      return;
     }
 
-    // ===== VIDARA FORMAT (SESUAIKAN) =====
-    return data.data.map(v => ({
-      title: v.title,
-      thumbnail: v.thumbnail,
-      video: v.url
-    }));
+    renderVideos(allVideos);
+    loading.style.display = "none";
 
-  } catch (e) {
-    console.log("⚠️ Fallback ke Vidara...");
-    useFallback = true;
-    return fetchVideos();
+  } catch (err) {
+    loading.innerText = "Gagal load data";
+    console.error(err);
   }
 }
 
 /* RENDER */
-function render(videos) {
-  const container = document.getElementById("container");
+function renderVideos(videos) {
+  const container = document.getElementById("videoList");
+  container.innerHTML = "";
 
   videos.forEach(v => {
-    const el = document.createElement("div");
-    el.className = "card";
+    let url = "#";
 
-    el.innerHTML = `
-      <img src="${v.thumbnail}" loading="lazy">
-      <div class="title">${v.title}</div>
+    if (v.source === "vidara") {
+      url = `https://vidara.so/v/${v.filecode}`;
+    } else {
+      url = `https://vizey.co/v/${v.filecode}`;
+    }
+
+    container.innerHTML += `
+      <div class="card" onclick="window.open('${url}', '_blank')">
+        <img src="${v.thumbnail}" loading="lazy">
+        <div class="title">${v.title}</div>
+      </div>
     `;
-
-    el.onclick = () => {
-      window.open(v.video, "_blank");
-    };
-
-    container.appendChild(el);
   });
 }
 
-/* LOAD MORE */
-async function load() {
-  if (loading) return;
-  loading = true;
+/* SEARCH */
+document.getElementById("search").addEventListener("input", e => {
+  const keyword = e.target.value.toLowerCase();
 
-  const vids = await fetchVideos();
-  render(vids);
+  const filtered = allVideos.filter(v =>
+    v.title.toLowerCase().includes(keyword)
+  );
 
-  page++;
-  loading = false;
-}
-
-/* INFINITE SCROLL */
-window.addEventListener("scroll", () => {
-  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 150) {
-    load();
-  }
+  renderVideos(filtered);
 });
 
 /* INIT */
-load();
+loadVideos();
 </script>
 
 </body>
