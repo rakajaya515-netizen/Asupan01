@@ -50,12 +50,13 @@ export default async function handler(req, res) {
       const j = await r.json()
 
       const vids = j?.result?.videos?.map(v => ({
-        title: v.title,
-        thumbnail: v.thumbnail,
-        filecode: v.filecode,
-        date: v.uploaded,
-        source: "vidara"
-      })) || []
+  title: v.title,
+  thumbnail: v.thumbnail,
+  filecode: v.filecode,
+  link: v.link, // 🔥 PENTING
+  date: v.uploaded,
+  source: "vidara"
+})) || []
 
       allVideos.push(...vids)
     } catch (e) {
