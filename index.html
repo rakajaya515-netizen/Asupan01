@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Asupanmu</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -26,36 +25,30 @@ body {
   position: sticky;
   top: 0;
   z-index: 999;
-  padding: 14px 16px;
-  background: rgba(0,0,0,0.85);
+  padding: 16px;
+  background: rgba(0,0,0,0.8);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .navbar h1 {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 600;
-  background: linear-gradient(90deg, #ff4d6d, #ff9a3c);
+  background: linear-gradient(90deg,#ff4d6d,#ff9a3c);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* SEARCH BAR */
+/* SEARCH */
 .search-box {
-  position: sticky;
-  top: 58px; /* di bawah navbar */
-  z-index: 998;
-  padding: 10px 12px;
-  background: #0b0b0b;
+  margin-top: 10px;
 }
 
 .search-box input {
   width: 100%;
-  padding: 10px 14px;
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: 25px;
   border: none;
   outline: none;
-  font-size: 14px;
   background: #1a1a1a;
   color: #fff;
 }
@@ -63,7 +56,7 @@ body {
 /* GRID */
 .container {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2,1fr);
   gap: 14px;
   padding: 12px;
 }
@@ -74,18 +67,13 @@ body {
   border-radius: 16px;
   overflow: hidden;
   background: #111;
-  cursor: pointer;
-  transition: 0.25s;
-}
-
-.card:hover {
-  transform: scale(1.03);
 }
 
 .card img {
   width: 100%;
   height: 260px;
   object-fit: cover;
+  background: #222;
 }
 
 /* TITLE */
@@ -94,100 +82,91 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 12px;
+  padding: 10px;
   font-size: 13px;
-  line-height: 1.3;
   background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
 }
 
 /* LOADING */
 .loading {
   text-align: center;
-  padding: 20px;
-  opacity: 0.7;
+  padding: 40px;
+  opacity: 0.6;
 }
 </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
 <div class="navbar">
   <h1>Asupanmu</h1>
+  <div class="search-box">
+    <input type="text" id="search" placeholder="Cari video...">
+  </div>
 </div>
 
-<!-- SEARCH -->
-<div class="search-box">
-  <input type="text" id="search" placeholder="Cari video...">
-</div>
-
-<!-- CONTENT -->
 <div id="videoList" class="container"></div>
 <div id="loading" class="loading">Loading...</div>
 
 <script>
-let allVideos = [];
+let allVideos = []
 
-/* LOAD DATA */
+// 🔥 LOAD DATA (CACHE AKTIF)
 async function loadVideos() {
-  const loading = document.getElementById("loading");
-
   try {
-    const res = await fetch("/api/videos");
-    const data = await res.json();
+    const res = await fetch("/api/videos", {
+      cache: "force-cache"
+    })
 
-    allVideos = data || [];
+    const data = await res.json()
+    allVideos = data
+    render(data)
 
-    if (allVideos.length === 0) {
-      loading.innerText = "Tidak ada video";
-      return;
-    }
+    document.getElementById("loading").style.display = "none"
 
-    renderVideos(allVideos);
-    loading.style.display = "none";
-
-  } catch (err) {
-    loading.innerText = "Gagal load data";
-    console.error(err);
+  } catch {
+    document.getElementById("loading").innerText = "Gagal load data"
   }
 }
 
-/* RENDER */
-function renderVideos(videos) {
-  const container = document.getElementById("videoList");
-  container.innerHTML = "";
+// 🔥 RENDER
+function render(videos) {
+  const container = document.getElementById("videoList")
+  container.innerHTML = ""
 
   videos.forEach(v => {
-    let url = "#";
+    const div = document.createElement("div")
+    div.className = "card"
 
-    if (v.source === "vidara") {
-      url = `https://vidara.so/v/${v.filecode}`;
-    } else {
-      url = `https://vizey.co/v/${v.filecode}`;
+    div.innerHTML = `
+      <img src="${v.thumbnail}"
+           onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
+      <div class="title">${v.title}</div>
+    `
+
+    div.onclick = () => {
+      if (v.url) {
+        window.open(v.url, "_blank")
+      }
     }
 
-    container.innerHTML += `
-      <div class="card" onclick="window.open('${url}', '_blank')">
-        <img src="${v.thumbnail}" loading="lazy">
-        <div class="title">${v.title}</div>
-      </div>
-    `;
-  });
+    container.appendChild(div)
+  })
 }
 
-/* SEARCH */
+// 🔥 SEARCH
 document.getElementById("search").addEventListener("input", e => {
-  const keyword = e.target.value.toLowerCase();
+  const key = e.target.value.toLowerCase()
 
   const filtered = allVideos.filter(v =>
-    v.title.toLowerCase().includes(keyword)
-  );
+    v.title.toLowerCase().includes(key)
+  )
 
-  renderVideos(filtered);
-});
+  render(filtered)
+})
 
-/* INIT */
-loadVideos();
+// INIT
+loadVideos()
 </script>
 
 </body>
