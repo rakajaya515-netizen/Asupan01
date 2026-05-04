@@ -1,88 +1,49 @@
-let allVideos = []
-
-const AD_LINK = "https://www.profitablecpmratenetwork.com/s6szeryj1j?key=67a910e3b4387aa420b25f4a4bfa41b1"
-
-// 🔥 HANDLE CLICK (IKLAN 1x)
-function handleClick(url) {
-  const adsShown = sessionStorage.getItem("adsShown")
-
-  if (!adsShown) {
-    sessionStorage.setItem("adsShown", "true")
-
-    // buka iklan
-    window.open(AD_LINK, "_blank")
-
-    // delay lalu buka video
-    setTimeout(() => {
-      window.open(url, "_blank")
-    }, 500)
-
-  } else {
-    // langsung video
-    window.open(url, "_blank")
-  }
-}
+let allVideos = [];
 
 async function loadVideos() {
-  const container = document.getElementById("videoList")
+  const container = document.getElementById("videoList");
+  const loading = document.getElementById("loading");
 
   try {
-    const res = await fetch("/api/videos", { cache: "no-store" })
-    const json = await res.json()
+    const res = await fetch("/api/videos");
+    const json = await res.json();
 
-    allVideos = json.result?.videos || []
-    renderVideos(allVideos)
+    allVideos = json || [];
 
-  } catch {
-    container.innerHTML = "Error load data"
+    if (allVideos.length === 0) {
+      loading.innerText = "Tidak ada video";
+      return;
+    }
+
+    renderVideos(allVideos);
+    loading.style.display = "none";
+
+  } catch (err) {
+    loading.innerText = "Gagal load data";
+    console.error(err);
   }
 }
 
 function renderVideos(videos) {
-  const container = document.getElementById("videoList")
-  container.innerHTML = ""
+  const container = document.getElementById("videoList");
+  container.innerHTML = "";
 
-  videos.forEach((v, i) => {
-
-    // 🔥 iklan tiap 6 video (ringan)
-    if (i % 6 === 0 && i !== 0) {
-      const ad = document.createElement("div")
-      ad.className = "banner"
-      ad.innerHTML = `<a href="${AD_LINK}" target="_blank">🚀 Iklan 🚀</a>`
-      container.appendChild(ad)
-    }
-
-    const div = document.createElement("div")
-    div.className = "video"
-
-    let url = "#"
+  videos.forEach(v => {
+    let url = "#";
 
     if (v.source === "vidara") {
-      url = `https://vidara.so/v/${v.filecode}`
-    } else if (v.source === "vizey") {
-      url = `https://vizey.co/v/${v.filecode}`
+      url = `https://vidara.so/v/${v.filecode}`;
+    } else {
+      url = `https://vizey.co/v/${v.filecode}`;
     }
 
-    div.innerHTML = `
-      <img loading="lazy" src="${v.thumbnail}">
-      <p>🔥 ${v.title}</p>
-    `
-
-    div.onclick = () => handleClick(url)
-
-    container.appendChild(div)
-  })
+    container.innerHTML += `
+      <div class="card" onclick="window.open('${url}', '_blank')">
+        <img src="${v.thumbnail}" loading="lazy">
+        <div class="title">${v.title}</div>
+      </div>
+    `;
+  });
 }
 
-// SEARCH
-document.getElementById("search").addEventListener("input", e => {
-  const key = e.target.value.toLowerCase()
-
-  const filtered = allVideos.filter(v =>
-    v.title.toLowerCase().includes(key)
-  )
-
-  renderVideos(filtered)
-})
-
-loadVideos()
+loadVideos();
