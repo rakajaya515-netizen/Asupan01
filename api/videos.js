@@ -3,13 +3,20 @@ let cache = {
   time: 0
 }
 
+// ======================
+// RANDOM SHUFFLE
+// ======================
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5)
+}
+
 export default async function handler(req, res) {
   const now = Date.now()
 
   // ======================
-  // CACHE 60 DETIK
+  // CACHE 30 DETIK
   // ======================
-  if (cache.data && now - cache.time < 60000) {
+  if (cache.data && now - cache.time < 30000) {
     return res.status(200).json(cache.data)
   }
 
@@ -45,7 +52,7 @@ export default async function handler(req, res) {
     }
 
     // ======================
-    // VIZEY (mirip dood biasanya)
+    // VIZEY
     // ======================
     if (VIZEY_KEY) {
       try {
@@ -56,9 +63,9 @@ export default async function handler(req, res) {
     }
 
     // ======================
-    // FORMAT SEMUA
+    // FORMAT DATA
     // ======================
-    const videos = [
+    const allVideos = [
       ...vidara.map(v => ({
         title: v.title,
         thumbnail: v.thumbnail,
@@ -80,14 +87,16 @@ export default async function handler(req, res) {
     ]
 
     // ======================
-    // SIMPAN CACHE
+    // RANDOM
     // ======================
+    const shuffled = shuffle(allVideos)
+
     cache = {
-      data: { videos },
+      data: { videos: shuffled },
       time: now
     }
 
-    res.status(200).json({ videos })
+    res.status(200).json({ videos: shuffled })
 
   } catch (err) {
     res.status(500).json({ error: err.message })
