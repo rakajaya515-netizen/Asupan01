@@ -1,160 +1,131 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Asupanmu</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
-  background: #0b0b0b;
-  font-family: 'Poppins', sans-serif;
-  color: #fff;
+  margin:0;
+  font-family:sans-serif;
+  background:#000;
+  color:#fff;
 }
 
-/* NAVBAR */
-.navbar {
+.header {
   position: sticky;
-  top: 0;
-  z-index: 999;
-  padding: 16px;
-  background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(10px);
+  top:0;
+  background:#000;
+  padding:15px;
+  z-index:999;
 }
 
-.navbar h1 {
-  font-size: 24px;
-  font-weight: 600;
-  background: linear-gradient(90deg,#ff4d6d,#ff9a3c);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.title {
+  color:#ff4d6d;
+  font-size:22px;
+  font-weight:bold;
 }
 
-/* SEARCH */
-.search-box {
-  margin-top: 10px;
+.search {
+  margin-top:10px;
 }
 
-.search-box input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 25px;
-  border: none;
-  outline: none;
-  background: #1a1a1a;
-  color: #fff;
+.search input {
+  width:100%;
+  padding:12px;
+  border-radius:20px;
+  border:none;
+  background:#111;
+  color:#fff;
 }
 
-/* GRID */
-.container {
-  display: grid;
-  grid-template-columns: repeat(2,1fr);
-  gap: 14px;
-  padding: 12px;
+.grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  padding:12px;
 }
 
-/* CARD */
 .card {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #111;
+  background:#111;
+  border-radius:12px;
+  overflow:hidden;
+  cursor:pointer;
 }
 
 .card img {
-  width: 100%;
-  height: 260px;
-  object-fit: cover;
-  background: #222;
+  width:100%;
+  height:200px;
+  object-fit:cover;
 }
 
-/* TITLE */
-.title {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 10px;
-  font-size: 13px;
-  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+.card p {
+  padding:10px;
+  font-size:14px;
 }
 
-/* LOADING */
 .loading {
-  text-align: center;
-  padding: 40px;
-  opacity: 0.6;
+  text-align:center;
+  padding:30px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="navbar">
-  <h1>Asupanmu</h1>
-  <div class="search-box">
+<div class="header">
+  <div class="title">Asupanmu</div>
+  <div class="search">
     <input type="text" id="search" placeholder="Cari video...">
   </div>
 </div>
 
-<div id="videoList" class="container"></div>
+<div id="videoList" class="grid"></div>
 <div id="loading" class="loading">Loading...</div>
 
 <script>
 let allVideos = []
 
-// 🔥 LOAD DATA (CACHE AKTIF)
 async function loadVideos() {
   try {
     const res = await fetch("/api/videos", {
-      cache: "force-cache"
+      cache: "force-cache" // 🚀 SUPER CEPAT
     })
 
     const data = await res.json()
     allVideos = data
-    render(data)
 
+    render(data)
     document.getElementById("loading").style.display = "none"
 
-  } catch {
+  } catch (e) {
     document.getElementById("loading").innerText = "Gagal load data"
   }
 }
 
-// 🔥 RENDER
 function render(videos) {
-  const container = document.getElementById("videoList")
-  container.innerHTML = ""
+  const el = document.getElementById("videoList")
+  el.innerHTML = ""
 
   videos.forEach(v => {
     const div = document.createElement("div")
     div.className = "card"
 
     div.innerHTML = `
-      <img src="${v.thumbnail}"
-           onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
-      <div class="title">${v.title}</div>
+      <img src="${v.thumbnail}" loading="lazy">
+      <p>${v.title}</p>
     `
 
     div.onclick = () => {
-      if (v.url) {
-        window.open(v.url, "_blank")
-      }
+      window.open(v.url, "_blank") // ✅ langsung ke halaman asli
     }
 
-    container.appendChild(div)
+    el.appendChild(div)
   })
 }
 
-// 🔥 SEARCH
+// 🔍 SEARCH
 document.getElementById("search").addEventListener("input", e => {
   const key = e.target.value.toLowerCase()
 
@@ -165,7 +136,6 @@ document.getElementById("search").addEventListener("input", e => {
   render(filtered)
 })
 
-// INIT
 loadVideos()
 </script>
 
