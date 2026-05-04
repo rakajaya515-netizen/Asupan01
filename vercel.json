@@ -1,10 +1,5 @@
 {
   "routes": [
-    {
-      "src": "/api/videos",
-      "headers": {
-        "Cache-Control": "s-maxage=60, stale-while-revalidate"
-      }
-    }
+    { "src": "/api/videos", "dest": "/api/videos.js" }
   ]
 }
