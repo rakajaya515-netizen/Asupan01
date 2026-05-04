@@ -49,24 +49,30 @@ export default async function handler(req, res) {
     // =========================
     let vidaraVideos = []
 
-    if (VIDARA_KEY) {
-      try {
-        const resVidara = await fetch(
-          `https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`
-        )
-        const json = await resVidara.json()
+if (VIDARA_KEY) {
+  try {
+    const resVidara = await fetch(
+      `https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`
+    )
 
-        vidaraVideos = (json?.result?.videos || []).map(v => ({
-          title: v.title,
-          thumbnail: v.thumbnail,
-          filecode: v.filecode,
-          source: "vidara",
-          createdAt: v.created_at
-        }))
-      } catch (err) {
-        console.log("VIDARA ERROR:", err.message)
-      }
+    const json = await resVidara.json()
+
+    if (json?.result?.videos) {
+      vidaraVideos = json.result.videos.map(v => ({
+        title: v.title || "No title",
+        thumbnail: v.thumbnail,
+        filecode: v.filecode,
+        source: "vidara",
+        createdAt: v.created_at || new Date().toISOString()
+      }))
+    } else {
+      console.log("VIDARA EMPTY:", json)
     }
+
+  } catch (err) {
+    console.log("VIDARA ERROR:", err.message)
+  }
+}
 
     // =========================
     // 🔥 FALLBACK LOGIC
