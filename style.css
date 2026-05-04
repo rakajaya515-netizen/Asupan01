@@ -1,33 +1,29 @@
 body {
   margin: 0;
-  background: #0d0d0d;
-  font-family: 'Poppins', sans-serif;
+  background: #0b0b0b;
   color: white;
+  font-family: sans-serif;
 }
 
 .navbar {
   position: sticky;
   top: 0;
-  z-index: 1000;
-  background: rgba(15,15,15,0.95);
-  backdrop-filter: blur(10px);
-  padding: 15px;
-}
-
-.logo {
-  font-size: 22px;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.search-box {
-  margin-top: 10px;
-}
-
-.search-box input {
-  width: 100%;
   padding: 12px;
-  border-radius: 12px;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px);
+  z-index: 999;
+}
+
+.navbar h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+#search {
+  margin-top: 8px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
   border: none;
   background: #1a1a1a;
   color: white;
@@ -36,27 +32,32 @@ body {
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-  padding: 15px;
+  gap: 10px;
+  padding: 10px;
 }
 
 .card {
-  position: relative;
-  border-radius: 16px;
+  border-radius: 15px;
   overflow: hidden;
-  cursor: pointer;
+  background: #111;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: scale(1.03);
 }
 
 .card img {
   width: 100%;
-  height: 260px;
+  height: 220px;
   object-fit: cover;
 }
 
-.card .title {
-  position: absolute;
-  bottom: 0;
-  padding: 10px;
-  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-  font-size: 14px;
+.card p {
+  padding: 8px;
+  font-size: 13px;
+}
+
+#loader {
+  height: 80px;
 }
