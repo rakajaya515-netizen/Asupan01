@@ -1,45 +1,65 @@
-const grid = document.getElementById("grid");
-const searchInput = document.getElementById("search");
+let page = 1;
+let loading = false;
+let query = "";
+let observer;
 
-let allVideos = [];
+const container = document.getElementById("videos");
 
-async function loadVideos() {
-  const res = await fetch("/api/videos");
+async function loadVideos(reset = false) {
+  if (loading) return;
+  loading = true;
+
+  const res = await fetch(`/api/videos?page=${page}&q=${query}`);
   const data = await res.json();
 
-  allVideos = data;
-  render(data);
-}
+  if (reset) {
+    container.innerHTML = "";
+    page = 1;
+  }
 
-function render(videos) {
-  grid.innerHTML = "";
+  data.forEach((video) => {
+    const el = document.createElement("div");
+    el.className = "card";
 
-  videos.forEach(v => {
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.innerHTML = `
-      <img src="${v.thumbnail}" />
-      <div class="title">${v.title}</div>
+    el.innerHTML = `
+      <a href="/watch?url=${encodeURIComponent(video.url)}">
+        <img loading="lazy" src="${video.thumbnail}" />
+        <p>${video.title}</p>
+      </a>
     `;
 
-    card.onclick = () => {
-      window.location.href = v.url; // ✅ redirect ke API asli
-    };
-
-    grid.appendChild(card);
+    container.appendChild(el);
   });
+
+  page++;
+  loading = false;
 }
 
-// SEARCH
-searchInput.addEventListener("input", e => {
-  const keyword = e.target.value.toLowerCase();
+// 🔥 infinite scroll pakai observer (lebih ringan dari scroll event)
+function initObserver() {
+  const loader = document.getElementById("loader");
 
-  const filtered = allVideos.filter(v =>
-    v.title.toLowerCase().includes(keyword)
-  );
+  observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      loadVideos();
+    }
+  });
 
-  render(filtered);
+  observer.observe(loader);
+}
+
+// 🔍 search debounce (biar ringan)
+let debounce;
+document.getElementById("search").addEventListener("input", (e) => {
+  clearTimeout(debounce);
+
+  debounce = setTimeout(() => {
+    query = e.target.value;
+    page = 1;
+    loadVideos(true);
+  }, 400);
 });
 
+// init
 loadVideos();
+initObserver();
