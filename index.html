@@ -2,147 +2,190 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Asupanmu</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
-body {
+* {
   margin: 0;
-  background: #000;
-  color: #fff;
-  font-family: sans-serif;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* HEADER */
-.header {
+body {
+  background: #0b0b0b;
+  font-family: 'Poppins', sans-serif;
+  color: #fff;
+}
+
+/* NAVBAR */
+.navbar {
   position: sticky;
   top: 0;
-  background: #000;
-  padding: 10px;
   z-index: 999;
+  padding: 16px;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(12px);
 }
 
-/* SEARCH */
-.search {
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  font-size: 16px;
+.navbar h1 {
+  font-size: 22px;
+  font-weight: 600;
+  background: linear-gradient(90deg, #ff4d6d, #ff9a3c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* GRID 2 KOLOM */
-.grid {
+/* GRID */
+.container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  padding: 10px;
+  gap: 14px;
+  padding: 12px;
 }
 
 /* CARD */
 .card {
-  background: #111;
-  border-radius: 12px;
+  position: relative;
+  border-radius: 16px;
   overflow: hidden;
+  background: #111;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.03);
 }
 
 .card img {
   width: 100%;
-  height: 220px;
+  height: 260px;
   object-fit: cover;
 }
 
+/* TITLE OVERLAY */
 .title {
-  padding: 8px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px;
   font-size: 14px;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
 }
 
+/* LOADING */
+.loading {
+  text-align: center;
+  padding: 20px;
+  opacity: 0.7;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <input id="search" class="search" placeholder="Cari video..." />
+<div class="navbar">
+  <h1>Asupanmu</h1>
 </div>
 
-<div id="grid" class="grid"></div>
+<div class="container" id="container"></div>
+<div class="loading" id="loading">Loading...</div>
 
 <script>
-let allVideos = []
-let page = 0
-const perPage = 20
+const API_KEY = "YOUR_VIZEY_API_KEY";
+const VIZEY = `https://vizey.co/api/v1/list?apikey=${API_KEY}`;
+const VIDARA = "YOUR_VIDARA_API";
 
-// =========================
-// 🔥 FETCH API
-// =========================
-async function loadData() {
-  const res = await fetch('/api/videos')
-  const json = await res.json()
+let page = 1;
+let loading = false;
+let useFallback = false;
 
-  allVideos = json.videos
-  render()
-}
+/* FETCH */
+async function fetchVideos() {
+  try {
+    let url = useFallback
+      ? `${VIDARA}?page=${page}`
+      : `${VIZEY}&page=${page}`;
 
-// =========================
-// 🔥 RENDER
-// =========================
-function render() {
-  const grid = document.getElementById('grid')
+    const res = await fetch(url);
+    const data = await res.json();
 
-  const start = page * perPage
-  const end = start + perPage
+    console.log("RAW:", data);
 
-  const items = allVideos.slice(start, end)
-
-  items.forEach(v => {
-    const div = document.createElement('div')
-    div.className = 'card'
-
-    div.innerHTML = `
-      <img loading="lazy" src="${v.thumbnail}" />
-      <div class="title">${v.title}</div>
-    `
-
-    div.onclick = () => {
-      if (v.source === 'vidara') {
-        window.open(`https://vidara.so/v/${v.filecode}`)
-      } else {
-        window.open(`https://vizey.co/view/${v.filecode}`)
+    // ===== VIZEY FORMAT =====
+    if (!useFallback) {
+      if (!data.success || !data.data || data.data.length === 0) {
+        throw "Vizey kosong";
       }
+
+      return data.data.map(v => ({
+        title: v.title,
+        thumbnail: v.thumbnail,
+        video: `https://vizey.co/api/v1/videos?apikey=${API_KEY}&id=${v.id}`
+      }));
     }
 
-    grid.appendChild(div)
-  })
+    // ===== VIDARA FORMAT (SESUAIKAN) =====
+    return data.data.map(v => ({
+      title: v.title,
+      thumbnail: v.thumbnail,
+      video: v.url
+    }));
+
+  } catch (e) {
+    console.log("⚠️ Fallback ke Vidara...");
+    useFallback = true;
+    return fetchVideos();
+  }
 }
 
-// =========================
-// 🔥 INFINITE SCROLL
-// =========================
-window.addEventListener('scroll', () => {
-  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-    page++
-    render()
+/* RENDER */
+function render(videos) {
+  const container = document.getElementById("container");
+
+  videos.forEach(v => {
+    const el = document.createElement("div");
+    el.className = "card";
+
+    el.innerHTML = `
+      <img src="${v.thumbnail}" loading="lazy">
+      <div class="title">${v.title}</div>
+    `;
+
+    el.onclick = () => {
+      window.open(v.video, "_blank");
+    };
+
+    container.appendChild(el);
+  });
+}
+
+/* LOAD MORE */
+async function load() {
+  if (loading) return;
+  loading = true;
+
+  const vids = await fetchVideos();
+  render(vids);
+
+  page++;
+  loading = false;
+}
+
+/* INFINITE SCROLL */
+window.addEventListener("scroll", () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 150) {
+    load();
   }
-})
+});
 
-// =========================
-// 🔥 SEARCH
-// =========================
-document.getElementById('search').addEventListener('input', (e) => {
-  const val = e.target.value.toLowerCase()
-
-  document.getElementById('grid').innerHTML = ''
-
-  allVideos = allVideos.filter(v =>
-    v.title.toLowerCase().includes(val)
-  )
-
-  page = 0
-  render()
-})
-
-// START
-loadData()
+/* INIT */
+load();
 </script>
 
 </body>
