@@ -2,69 +2,76 @@ const CACHE_TTL = 60 * 1000 // 1 menit
 let cache = {
   data: null,
   time: 0
-}
+export default async function handler(req, res) {
+  const VIDARA_KEY = process.env.VIDARA_API_KEY
+  const VIZEY_KEY = process.env.VIZEY_API_KEY
 
-   export default async function handler(req, res) {
   try {
-    const VIZEY_KEY = process.env.VIZEY_API_KEY
-    const VIDARA_KEY = process.env.VIDARA_API_KEY
-
-    let videos = []
+    let allVideos = []
 
     // =========================
-    // 🔥 VIZEY
+    // FETCH VIDARA
     // =========================
-    if (VIZEY_KEY) {
-      const r = await fetch(
-        `https://vizey.co/api/v1/list?apikey=${VIZEY_KEY}&page=1`
-      )
-      const j = await r.json()
+    if (VIDARA_KEY) {
+      try {
+        const vidaraRes = await fetch(
+          `https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`
+        )
 
-      if (j.data) {
-        const vizey = j.data.map(v => ({
-          title: v.title,
-          thumbnail: v.thumbnail, // ✅ sudah benar dari API
-          url: `https://vizey.co/v/${v.id}`, // ✅ FIX PLAY
-          createdAt: v.createdAt
-        }))
+        const vidaraJson = await vidaraRes.json()
 
-        videos.push(...vizey)
+        const vidaraVideos =
+          vidaraJson?.result?.videos?.map((v) => ({
+            title: v.title || "Untitled",
+            thumbnail: v.thumbnail || "",
+            filecode: v.filecode,
+            source: "vidara"
+          })) || []
+
+        allVideos.push(...vidaraVideos)
+      } catch (e) {
+        console.log("Vidara error:", e.message)
       }
     }
 
     // =========================
-    // 🔥 VIDARA (FIX FORMAT)
+    // FETCH VIZEY
     // =========================
-    if (VIDARA_KEY) {
-      const r = await fetch(
-        `https://api.vidara.so/v1/video/list?api_key=${VIDARA_KEY}`
-      )
-      const j = await r.json()
+    if (VIZEY_KEY) {
+      try {
+        const vizeyRes = await fetch(
+          `https://api.vizey.com/v1/video/list?api_key=${VIZEY_KEY}`
+        )
 
-      // 🔥 PERHATIKAN INI (beda format)
-      const list = j?.data || j?.result || []
+        const vizeyJson = await vizeyRes.json()
 
-      const vidara = list.map(v => ({
-        title: v.title,
-        thumbnail: v.thumbnail || v.screenshot || "",
-        url: `https://vidara.so/v/${v.filecode}`, // ✅ FIX PLAY
-        createdAt: v.created_at
-      }))
+        const vizeyVideos =
+          vizeyJson?.result?.videos?.map((v) => ({
+            title: v.title || "Untitled",
+            thumbnail: v.thumbnail || "",
+            filecode: v.filecode,
+            source: "vizey"
+          })) || []
 
-      videos.push(...vidara)
+        allVideos.push(...vizeyVideos)
+      } catch (e) {
+        console.log("Vizey error:", e.message)
+      }
     }
 
     // =========================
-    // 🔥 SORT TERBARU
+    // RANDOM ORDER
     // =========================
-    videos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    allVideos = allVideos.sort(() => Math.random() - 0.5)
 
-    res.status(200).json(videos)
-
-  } catch (e) {
-    res.status(500).json({
-      error: true,
-      message: e.message
+    return res.status(200).json({
+      result: {
+        videos: allVideos
+      }
+    })
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message
     })
   }
-        }
+}
