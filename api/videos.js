@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     if (VIZEY_KEY) {
       try {
         const vizeyRes = await fetch(
-          `https://api.vizey.com/v1/video/list?api_key=${VIZEY_KEY}`
+          `https://api.vizey.co/v1/video/list?api_key=${VIZEY_KEY}`
         )
 
         const vizeyJson = await vizeyRes.json()
