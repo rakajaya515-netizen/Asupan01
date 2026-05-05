@@ -10,25 +10,25 @@ async function loadVideos() {
     const vidara = await vidaraRes.json();
     const vizey = await vizeyRes.json();
 
-    // 🔥 NORMALISASI
-    const vidaraMapped = vidara.map(v => ({
-      title: v.title,
-      thumbnail: v.thumbnail,
-      url: v.link
-    }));
+    console.log("VIDARA:", vidara);
+    console.log("VIZEY:", vizey);
 
-    const vizeyMapped = vizey.map(v => ({
-      title: v.title,
-      thumbnail: v.thumbnail,
-      url: `https://vizey.co/watch/${v.id}`
-    }));
+    // 🔥 mapping fleksibel (biar gak error walau field beda)
+    const mapData = (arr) =>
+      arr.map(v => ({
+        title: v.title || v.name || "No title",
+        thumbnail: v.thumbnail || v.thumb || "https://via.placeholder.com/300x200",
+        url: v.link || v.url || v.video_url || "#"
+      }));
 
-    allVideos = [...vidaraMapped, ...vizeyMapped];
+    allVideos = [...mapData(vidara), ...mapData(vizey)];
 
     renderVideos(allVideos);
 
   } catch (err) {
     console.error(err);
+    document.getElementById("video-grid").innerHTML =
+      "<p>Gagal load video 😢</p>";
   }
 }
 
@@ -36,19 +36,19 @@ function renderVideos(videos) {
   const container = document.getElementById("video-grid");
 
   if (!videos.length) {
-    container.innerHTML = "<p>No more video</p>";
+    container.innerHTML = "<p>Tidak ada video</p>";
     return;
   }
 
   container.innerHTML = videos.map(video => `
     <div class="card" onclick="window.open('${video.url}', '_blank')">
-      <img src="${video.thumbnail}" loading="lazy" />
+      <img src="${video.thumbnail}" loading="lazy"/>
       <p>${video.title}</p>
     </div>
   `).join("");
 }
 
-// 🔍 SEARCH
+// 🔍 search
 document.getElementById("search").addEventListener("input", (e) => {
   const keyword = e.target.value.toLowerCase();
 
@@ -59,5 +59,4 @@ document.getElementById("search").addEventListener("input", (e) => {
   renderVideos(filtered);
 });
 
-// 🚀 LOAD
 loadVideos();
