@@ -5,9 +5,22 @@ export default async function handler(req, res) {
   try {
     const r = await fetch(
       `https://api.vidara.so/v1/video/list?api_key=${process.env.VIDARA_API_KEY}&limit=20`,
-      { headers: { "User-Agent": "Mozilla/5.0" } }
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+          "Accept": "application/json"
+        }
+      }
     );
-    const d = await r.json();
+
+    const text = await r.text();
+
+    // 🔥 cek kalau bukan JSON
+    if (!text.startsWith("{") && !text.startsWith("[")) {
+      throw new Error("Bukan JSON");
+    }
+
+    const d = JSON.parse(text);
 
     const vids = d.result?.videos || d.result || [];
 
@@ -18,7 +31,7 @@ export default async function handler(req, res) {
     })));
 
   } catch (e) {
-    console.log("Vidara fail");
+    console.log("Vidara server gagal, skip...");
   }
 
   // ===== VIZEY =====
@@ -29,29 +42,15 @@ export default async function handler(req, res) {
     );
     const d = await r.json();
 
-    const vids = d.data || [];
-
-    result.push(...vids.map(v => ({
+    result.push(...(d.data || []).map(v => ({
       title: v.title,
       thumb: v.thumbnail,
       link: v.url || `https://vizey.co/${v.id}`
     })));
 
   } catch (e) {
-    console.log("Vizey fail");
+    console.log("Vizey gagal");
   }
 
-  // ===== FALLBACK (ANTI KOSONG) =====
-  if (!result.length) {
-    result = [
-      {
-        title: "Video tidak tersedia (API error)",
-        thumb: "https://via.placeholder.com/300x200",
-        link: "#"
-      }
-    ];
-  }
-
-  res.setHeader("Cache-Control", "s-maxage=60");
   res.status(200).json(result);
 }
