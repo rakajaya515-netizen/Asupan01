@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Asupanmu</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #0d0d0d;
+  color: white;
+}
+
+/* NAVBAR */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #0d0d0d;
+  padding: 12px;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  font-family: cursive;
+}
+
+/* SEARCH */
+.search-box {
+  margin-top: 10px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+  background: #1a1a1a;
+  color: white;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+
+.card {
+  position: relative;
+  border-radius: 15px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.title {
+  position: absolute;
+  bottom: 0;
+  padding: 8px;
+  font-size: 14px;
+  background: linear-gradient(transparent, black);
+}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+  <div class="logo">Asupanmu</div>
+
+  <div class="search-box">
+    <input type="text" id="search" placeholder="Search..." />
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const grid = document.getElementById("grid");
+const searchInput = document.getElementById("search");
+
+let allVideos = [];
+
+/* CACHE (localStorage 1 menit) */
+function setCache(data) {
+  localStorage.setItem("videos", JSON.stringify({
+    time: Date.now(),
+    data
+  }));
+}
+
+function getCache() {
+  const cache = localStorage.getItem("videos");
+  if (!cache) return null;
+
+  const parsed = JSON.parse(cache);
+  if (Date.now() - parsed.time > 60000) return null;
+
+  return parsed.data;
+}
+
+/* FETCH DATA */
+async function fetchVideos() {
+  const cached = getCache();
+  if (cached) {
+    render(cached);
+    return;
+  }
+
+  const [vidara, vizey] = await Promise.all([
+    fetch("/api/vidara").then(r => r.json()),
+    fetch("/api/vizey").then(r => r.json())
+  ]);
+
+  const merged = [
+    ...vidara.map(v => ({
+      title: v.title,
+      thumb: v.thumbnail,
+      link: `https://vidara.so/${v.filecode}`
+    })),
+    ...vizey.map(v => ({
+      title: v.title,
+      thumb: v.thumbnail,
+      link: `https://vizey.co/${v.id}`
+    }))
+  ];
+
+  allVideos = merged;
+  setCache(merged);
+  render(merged);
+}
+
+/* RENDER */
+function render(data) {
+  grid.innerHTML = "";
+
+  data.forEach(v => {
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <img src="${v.thumb}" />
+      <div class="title">${v.title}</div>
+    `;
+
+    div.onclick = () => {
+      window.location.href = v.link;
+    };
+
+    grid.appendChild(div);
+  });
+}
+
+/* SEARCH */
+searchInput.addEventListener("input", () => {
+  const keyword = searchInput.value.toLowerCase();
+
+  const filtered = allVideos.filter(v =>
+    v.title.toLowerCase().includes(keyword)
+  );
+
+  render(filtered);
+});
+
+/* AUTO LOAD */
+fetchVideos();
+</script>
+
+</body>
+</html>
