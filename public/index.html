@@ -1,120 +1,154 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Asupanmu</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asupanmu</title>
 
-<style>
-body { margin:0; background:#0d0d0d; color:white; font-family:sans-serif; }
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: white;
+      font-family: sans-serif;
+    }
 
-.navbar {
-  position:sticky;
-  top:0;
-  background:#0d0d0d;
-  padding:12px;
-}
+    .navbar {
+      position: sticky;
+      top: 0;
+      background: #0b0b0b;
+      padding: 16px;
+      z-index: 10;
+    }
 
-.logo { font-family:cursive; font-size:22px; }
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      font-family: cursive;
+    }
 
-input {
-  width:100%;
-  padding:10px;
-  border-radius:20px;
-  border:none;
-  margin-top:10px;
-  background:#1a1a1a;
-  color:white;
-}
+    .search {
+      margin-top: 10px;
+      width: 100%;
+      padding: 12px;
+      border-radius: 20px;
+      border: none;
+      background: #1a1a1a;
+      color: white;
+    }
 
-.grid {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
-  padding:10px;
-}
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 12px;
+    }
 
-.card {
-  position:relative;
-  border-radius:12px;
-  overflow:hidden;
-}
+    .card {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #111;
+      cursor: pointer;
+    }
 
-.card img {
-  width:100%;
-  height:180px;
-  object-fit:cover;
-}
+    .card img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+    }
 
-.title {
-  position:absolute;
-  bottom:0;
-  padding:8px;
-  background:linear-gradient(transparent, black);
-}
-</style>
+    .card p {
+      position: absolute;
+      bottom: 0;
+      padding: 10px;
+      font-size: 14px;
+      background: linear-gradient(transparent, black);
+      width: 100%;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: gray;
+    }
+  </style>
 </head>
-
 <body>
 
 <div class="navbar">
-  <div class="logo">Asupanmu</div>
-  <input id="search" placeholder="Search...">
+  <div class="title">Asupanmu</div>
+  <input id="search" class="search" placeholder="Search..." />
 </div>
 
 <div id="grid" class="grid"></div>
+<div id="loading" class="loading">Loading...</div>
 
 <script>
-const grid = document.getElementById("grid");
-const search = document.getElementById("search");
+let page = 1;
+let loading = false;
+let keyword = "";
 
-let all = [];
+async function loadVideos() {
+  if (loading) return;
+  loading = true;
 
-function fix(url){
-  if(!url) return "https://via.placeholder.com/300x200";
-  return url.replace("http://","https://");
-}
+  document.getElementById("loading").innerText = "Loading...";
 
-async function load(){
-  try{
-    const res = await fetch("/api/videos");
+  try {
+    const res = await fetch(`/api/all?page=${page}&search=${keyword}`);
     const data = await res.json();
 
-    all = data.map(v=>({
-      ...v,
-      thumb: fix(v.thumb)
-    }));
+    const grid = document.getElementById("grid");
 
-    render(all);
+    data.forEach(v => {
+      const card = document.createElement("div");
+      card.className = "card";
 
-  }catch{
-    grid.innerHTML = "<p style='padding:20px'>Gagal load</p>";
+      card.innerHTML = `
+        <img src="${v.thumbnail}" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
+        <p>${v.title}</p>
+      `;
+
+      // ✅ redirect ke halaman asli
+      card.onclick = () => {
+        window.location.href = v.link;
+      };
+
+      grid.appendChild(card);
+    });
+
+    page++;
+
+    if (data.length === 0) {
+      document.getElementById("loading").innerText = "No more video";
+    }
+
+  } catch (e) {
+    console.log(e);
+    document.getElementById("loading").innerText = "Error load";
   }
+
+  loading = false;
 }
 
-function render(data){
-  grid.innerHTML = "";
+// infinite scroll
+window.addEventListener("scroll", () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+    loadVideos();
+  }
+});
 
-  data.forEach(v=>{
-    const el = document.createElement("div");
-    el.className="card";
+// search
+document.getElementById("search").addEventListener("input", (e) => {
+  keyword = e.target.value;
+  page = 1;
+  document.getElementById("grid").innerHTML = "";
+  loadVideos();
+});
 
-    el.innerHTML = `
-      <img src="${v.thumb}" onerror="this.src='https://via.placeholder.com/300x200'">
-      <div class="title">${v.title}</div>
-    `;
-
-    el.onclick=()=>window.open(v.link,"_blank");
-
-    grid.appendChild(el);
-  });
-}
-
-search.oninput = ()=>{
-  const q = search.value.toLowerCase();
-  render(all.filter(v=>v.title.toLowerCase().includes(q)));
-};
-
-load();
+// first load
+loadVideos();
 </script>
 
 </body>
