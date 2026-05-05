@@ -1,0 +1,54 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #0b0b0b;
+  color: white;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  background: #0b0b0b;
+  padding: 15px;
+  z-index: 10;
+}
+
+h1 {
+  margin: 0;
+  font-family: cursive;
+}
+
+#search {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+  background: #1a1a1a;
+  color: white;
+}
+
+#video-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+
+.card {
+  background: #111;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+}
+
+.card p {
+  padding: 5px;
+  font-size: 12px;
+}
