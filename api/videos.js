@@ -1,18 +1,22 @@
-export default function handler(req, res) {
-  res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate");
+export default async function handler(req, res) {
+  try {
+    const apiKey = process.env.VIDARA_KEY;
 
-  res.status(200).json([
-    {
-      id: 1,
-      title: "Test Video 1",
-      thumbnail: "https://picsum.photos/400/600?1",
-      url: "https://example.com"
-    },
-    {
-      id: 2,
-      title: "Test Video 2",
-      thumbnail: "https://picsum.photos/400/600?2",
-      url: "https://example.com"
-    }
-  ]);
+    const response = await fetch(`https://vidara.site/api?key=${apiKey}`);
+    const data = await response.json();
+
+    // sesuaikan dengan struktur API asli
+    const list = data.result || data.data || [];
+
+    const videos = list.map(item => ({
+      title: item.title || item.caption,
+      thumbnail: item.thumbnail || item.thumb,
+      url: item.url || item.link
+    }));
+
+    res.status(200).json({ videos });
+
+  } catch (err) {
+    res.status(500).json({ error: "API error", detail: err.message });
+  }
 }
