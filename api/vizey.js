@@ -1,27 +1,17 @@
 export default async function handler(req, res) {
-  const API_KEY = process.env.VIZEY_API_KEY;
-
   try {
-    const response = await fetch(
-      `https://vizey.co/api/v1/list?apikey=${API_KEY}`
-    );
+    const response = await fetch("https://api.vizey.com/videos", {
+      headers: {
+        Authorization: `Bearer ${process.env.VIZEY_KEY}`
+      }
+    });
 
-    const text = await response.text();
+    const data = await response.json();
 
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return res.status(500).json({ error: "Parse gagal", raw: text });
-    }
+    res.setHeader("Cache-Control", "s-maxage=300");
 
-    const videos = data.data || data || [];
-
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Cache-Control", "s-maxage=60");
-    res.status(200).json(videos);
-
+    res.status(200).json(data.results || data || []);
   } catch (err) {
-    res.status(500).json({ error: "Vizey error" });
+    res.status(200).json([]);
   }
 }
