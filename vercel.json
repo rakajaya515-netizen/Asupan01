@@ -1,3 +1,6 @@
 {
-  "framework": "nextjs"
+  "routes": [
+    { "src": "/api/vidara", "dest": "/api/vidara.js" },
+    { "src": "/api/vizey", "dest": "/api/vizey.js" }
+  ]
 }
