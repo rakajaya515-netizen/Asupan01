@@ -1,33 +1,28 @@
 export default async function handler(req, res) {
   try {
-    const page = req.query.page || 1;
-    const search = req.query.search || "";
-
     const [vidaraRes, vizeyRes] = await Promise.all([
-      fetch(`${process.env.VIDARA_API}?page=${page}&search=${search}`),
-      fetch(`${process.env.VIZEY_API}?page=${page}&search=${search}`)
+      fetch(`${req.headers.origin}/api/vidara`),
+      fetch(`${req.headers.origin}/api/vizey`)
     ]);
 
-    const vidara = await vidaraRes.json();
-    const vizey = await vizeyRes.json();
+    let vidara = [];
+    let vizey = [];
 
-    const formatVidara = (vidara.data || []).map(v => ({
-      title: v.title,
-      thumbnail: v.thumbnail,
-      link: v.link
-    }));
+    try {
+      const v1 = await vidaraRes.json();
+      vidara = Array.isArray(v1) ? v1 : (v1.data || []);
+    } catch {}
 
-    const formatVizey = (vizey.data || []).map(v => ({
-      title: v.title,
-      thumbnail: v.thumbnail,
-      link: v.link
-    }));
+    try {
+      const v2 = await vizeyRes.json();
+      vizey = Array.isArray(v2) ? v2 : (v2.data || []);
+    } catch {}
 
-    const combined = [...formatVidara, ...formatVizey];
+    const combined = [...vidara, ...vizey];
 
     res.status(200).json(combined);
 
   } catch (e) {
-    res.status(500).json({ error: "API error", detail: e.message });
+    res.status(200).json([]); // ❗ jangan error, biar frontend gak crash
   }
 }
