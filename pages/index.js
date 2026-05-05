@@ -30,12 +30,12 @@ export default function Home() {
 
       {/* GRID */}
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 12
-        }}
-      >
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: 14
+  }}
+>
         {videos.map((v, i) => {
           const title = v.title || v.name || "No title";
           const thumb =
