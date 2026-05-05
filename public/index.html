@@ -18,7 +18,7 @@ body {
   top: 0;
   background: #0d0d0d;
   padding: 12px;
-  z-index: 1000;
+  z-index: 999;
 }
 
 .logo {
@@ -33,6 +33,7 @@ body {
   border: none;
   background: #1a1a1a;
   color: white;
+  margin-top: 10px;
 }
 
 .grid {
@@ -58,6 +59,7 @@ body {
   position: absolute;
   bottom: 0;
   padding: 8px;
+  font-size: 14px;
   background: linear-gradient(transparent, black);
 }
 </style>
@@ -91,44 +93,75 @@ function fixImage(url) {
   return url;
 }
 
-/* FETCH GABUNG */
-async function fetchVideos() {
-  let vidara = [];
-  let vizey = [];
+/* CACHE */
+function saveCache(data) {
+  localStorage.setItem("videos_cache", JSON.stringify(data));
+}
 
-  // VIDARA
-  try {
-    const res = await fetch("/api/vidara");
-    vidara = await res.json();
-  } catch {
-    console.log("Vidara gagal");
-  }
+function loadCache() {
+  const data = localStorage.getItem("videos_cache");
+  return data ? JSON.parse(data) : [];
+}
 
-  // VIZEY
+/* FETCH VIDARA */
+async function getVidara() {
   try {
-    const res = await fetch("/api/vizey");
+    const res = await fetch("https://api.vidara.so/v1/video/list?api_key=242817171b8ff9319fa61c70fece394753d22249818306320ebe5a3e16daf3bd&limit=20");
     const data = await res.json();
-    vizey = Array.isArray(data) ? data : (data.data || []);
-  } catch {
-    console.log("Vizey gagal");
-  }
 
-  const merged = [
-    ...vidara.map(v => ({
+    return (data.result?.videos || data.result || []).map(v => ({
       title: v.title || v.video_title || "No title",
       thumb: fixImage(v.thumbnail || v.player_img),
       link: v.link
-    })),
+    }));
 
-    ...vizey.map(v => ({
+  } catch {
+    console.log("Vidara gagal");
+    return [];
+  }
+}
+
+/* FETCH VIZEY */
+async function getVizey() {
+  try {
+    const res = await fetch("https://vizey.co/api/v1/list?apikey=vipoy_d8704e5249&page=1");
+    const data = await res.json();
+
+    return (data.data || []).map(v => ({
       title: v.title || "No title",
       thumb: fixImage(v.thumbnail),
       link: v.url || `https://vizey.co/${v.id}`
-    }))
-  ];
+    }));
 
-  allVideos = merged;
-  render(merged);
+  } catch {
+    console.log("Vizey gagal");
+    return [];
+  }
+}
+
+/* LOAD ALL */
+async function loadVideos() {
+  grid.innerHTML = "<p style='padding:20px'>Loading...</p>";
+
+  const cache = loadCache();
+  if (cache.length) {
+    render(cache);
+  }
+
+  const [vidara, vizey] = await Promise.all([
+    getVidara(),
+    getVizey()
+  ]);
+
+  const merged = [...vidara, ...vizey];
+
+  if (merged.length) {
+    allVideos = merged;
+    saveCache(merged);
+    render(merged);
+  } else {
+    render(cache); // fallback cache
+  }
 }
 
 /* RENDER */
@@ -145,8 +178,7 @@ function render(data) {
     div.className = "card";
 
     div.innerHTML = `
-      <img src="${v.thumb}" 
-           onerror="this.src='https://via.placeholder.com/300x200'">
+      <img src="${v.thumb}" onerror="this.src='https://via.placeholder.com/300x200'">
       <div class="title">${v.title}</div>
     `;
 
@@ -162,8 +194,8 @@ searchInput.addEventListener("input", () => {
   render(allVideos.filter(v => v.title.toLowerCase().includes(key)));
 });
 
-/* LOAD */
-fetchVideos();
+/* START */
+loadVideos();
 </script>
 
 </body>
