@@ -32,7 +32,7 @@ export default function Home() {
       <div
   style={{
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gridTemplateColumns: "1fr 1fr", // FIX 2 kolom
     gap: 14
   }}
 >
@@ -44,57 +44,52 @@ export default function Home() {
 
           return (
             <a
-              key={i}
-              href={link}
-              target="_blank"
-              style={{ textDecoration: "none" }}
-            >
-              <div
-                style={{
-                  position: "relative",
-                  borderRadius: 16,
-                  overflow: "hidden",
-                  height: 200,
-                  background: "#111"
-                }}
-              >
-                {/* IMAGE */}
-                <img
-                  src={thumb}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover"
-                  }}
-                />
+  key={i}
+  href={link}
+  target="_blank"
+  style={{ textDecoration: "none" }}
+>
+  <div
+    style={{
+      position: "relative",
+      borderRadius: 18,
+      overflow: "hidden",
+      height: 260, // 👉 tinggi portrait (penting!)
+      background: "#111"
+    }}
+  >
+    {/* IMAGE */}
+    <img
+      src={thumb}
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover"
+      }}
+    />
 
-                {/* OVERLAY GELAP */}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    padding: 10,
-                    background:
-                      "linear-gradient(to top, rgba(0,0,0,0.8), transparent)"
-                  }}
-                >
-                  <span
-                    style={{
-                      color: "white",
-                      fontSize: 14,
-                      fontWeight: "500"
-                    }}
-                  >
-                    {title}
-                  </span>
-                </div>
-              </div>
-            </a>
-          );
-        })}
+    {/* OVERLAY */}
+    <div
+      style={{
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: 12,
+        background:
+          "linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.2), transparent)"
+      }}
+    >
+      <div
+        style={{
+          color: "white",
+          fontSize: 14,
+          fontWeight: "600",
+          lineHeight: "18px"
+        }}
+      >
+        {title}
       </div>
     </div>
-  );
-}
+  </div>
+</a>
