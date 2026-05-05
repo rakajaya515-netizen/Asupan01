@@ -7,9 +7,8 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      `https://api.vidara.so/v1/video/list?api_key=${API_KEY}&limit=20`,
+      `https://api.vidara.so/v1/video/list?api_key=${API_KEY}&limit=50`,
       {
-        method: "GET",
         headers: {
           "Accept": "application/json",
           "User-Agent": "Mozilla/5.0",
@@ -17,17 +16,17 @@ export default async function handler(req, res) {
       }
     );
 
-    const text = await response.text(); // 🔥 ambil raw dulu
+    const text = await response.text();
 
-    // DEBUG LOG (penting)
-    console.log("VIDARA RAW:", text);
-
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return res.status(500).json({ error: "JSON parse gagal", raw: text });
+    // 🔥 VALIDASI RESPONSE
+    if (!text || text.startsWith("<")) {
+      return res.status(500).json({
+        error: "Vidara bukan JSON",
+        raw: text.slice(0, 200)
+      });
     }
+
+    let data = JSON.parse(text);
 
     let videos = [];
 
@@ -39,12 +38,18 @@ export default async function handler(req, res) {
       videos = data.result;
     }
 
-    res.setHeader("Cache-Control", "s-maxage=60");
-    res.status(200).json(videos);
+    // ✅ HEADER HARUS DI ATAS
     res.setHeader("Access-Control-Allow-Origin", "*");
-    
+    res.setHeader("Cache-Control", "s-maxage=60");
+
+    return res.status(200).json(videos);
+
   } catch (err) {
     console.error("VIDARA ERROR:", err);
-    res.status(500).json({ error: "Vidara fetch gagal" });
+
+    return res.status(500).json({
+      error: "Vidara fetch gagal",
+      message: err.message
+    });
   }
 }
