@@ -8,12 +8,20 @@ export default async function handler(req, res) {
 
     const text = await response.text();
 
-    res.setHeader("Content-Type", "text/plain");
-    res.setHeader("Cache-Control", "s-maxage=60");
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return res.status(500).json({ error: "Parse gagal", raw: text });
+    }
 
-    return res.status(200).send(text); // 🔥 kirim raw
+    const videos = data.data || data || [];
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cache-Control", "s-maxage=60");
+    res.status(200).json(videos);
+
   } catch (err) {
-    return res.status(500).send("Vizey error");
+    res.status(500).json({ error: "Vizey error" });
   }
 }
