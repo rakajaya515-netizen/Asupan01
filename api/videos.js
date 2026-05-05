@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   try {
     const apiKey = process.env.VIDARA_KEY;
 
-    const response = await fetch(`https://vidara.site/api?key=${apiKey}`);
+    const response = await fetch(`https://vidara.so/v/api?key=${apiKey}`);
     const data = await response.json();
 
     // sesuaikan dengan struktur API asli
