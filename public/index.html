@@ -1,66 +1,55 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Asupanmu</title>
 
 <style>
-body {
-  margin: 0;
-  background: #0d0d0d;
-  font-family: sans-serif;
-  color: white;
-}
+body { margin:0; background:#0d0d0d; color:white; font-family:sans-serif; }
 
 .navbar {
-  position: sticky;
-  top: 0;
-  background: #0d0d0d;
-  padding: 12px;
-  z-index: 999;
+  position:sticky;
+  top:0;
+  background:#0d0d0d;
+  padding:12px;
 }
 
-.logo {
-  font-size: 22px;
-  font-family: cursive;
-}
+.logo { font-family:cursive; font-size:22px; }
 
-.search-box input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 20px;
-  border: none;
-  background: #1a1a1a;
-  color: white;
-  margin-top: 10px;
+input {
+  width:100%;
+  padding:10px;
+  border-radius:20px;
+  border:none;
+  margin-top:10px;
+  background:#1a1a1a;
+  color:white;
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: repeat(2,1fr);
-  gap: 10px;
-  padding: 10px;
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  padding:10px;
 }
 
 .card {
-  position: relative;
-  border-radius: 15px;
-  overflow: hidden;
+  position:relative;
+  border-radius:12px;
+  overflow:hidden;
 }
 
 .card img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
+  width:100%;
+  height:180px;
+  object-fit:cover;
 }
 
 .title {
-  position: absolute;
-  bottom: 0;
-  padding: 8px;
-  font-size: 14px;
-  background: linear-gradient(transparent, black);
+  position:absolute;
+  bottom:0;
+  padding:8px;
+  background:linear-gradient(transparent, black);
 }
 </style>
 </head>
@@ -69,133 +58,63 @@ body {
 
 <div class="navbar">
   <div class="logo">Asupanmu</div>
-  <div class="search-box">
-    <input id="search" placeholder="Search...">
-  </div>
+  <input id="search" placeholder="Search...">
 </div>
 
-<div class="grid" id="grid"></div>
+<div id="grid" class="grid"></div>
 
 <script>
 const grid = document.getElementById("grid");
-const searchInput = document.getElementById("search");
+const search = document.getElementById("search");
 
-let allVideos = [];
+let all = [];
 
-/* FIX IMAGE */
-function fixImage(url) {
-  if (!url) return "https://via.placeholder.com/300x200";
-
-  if (url.startsWith("http://")) {
-    return url.replace("http://", "https://");
-  }
-
-  return url;
+function fix(url){
+  if(!url) return "https://via.placeholder.com/300x200";
+  return url.replace("http://","https://");
 }
 
-/* CACHE */
-function saveCache(data) {
-  localStorage.setItem("videos_cache", JSON.stringify(data));
-}
-
-function loadCache() {
-  const data = localStorage.getItem("videos_cache");
-  return data ? JSON.parse(data) : [];
-}
-
-/* FETCH VIDARA */
-async function getVidara() {
-  try {
-    const res = await fetch("https://api.vidara.so/v1/video/list?api_key=242817171b8ff9319fa61c70fece394753d22249818306320ebe5a3e16daf3bd&limit=20");
+async function load(){
+  try{
+    const res = await fetch("/api/videos");
     const data = await res.json();
 
-    return (data.result?.videos || data.result || []).map(v => ({
-      title: v.title || v.video_title || "No title",
-      thumb: fixImage(v.thumbnail || v.player_img),
-      link: v.link
+    all = data.map(v=>({
+      ...v,
+      thumb: fix(v.thumb)
     }));
 
-  } catch {
-    console.log("Vidara gagal");
-    return [];
+    render(all);
+
+  }catch{
+    grid.innerHTML = "<p style='padding:20px'>Gagal load</p>";
   }
 }
 
-/* FETCH VIZEY */
-async function getVizey() {
-  try {
-    const res = await fetch("https://vizey.co/api/v1/list?apikey=vipoy_d8704e5249&page=1");
-    const data = await res.json();
-
-    return (data.data || []).map(v => ({
-      title: v.title || "No title",
-      thumb: fixImage(v.thumbnail),
-      link: v.url || `https://vizey.co/${v.id}`
-    }));
-
-  } catch {
-    console.log("Vizey gagal");
-    return [];
-  }
-}
-
-/* LOAD ALL */
-async function loadVideos() {
-  grid.innerHTML = "<p style='padding:20px'>Loading...</p>";
-
-  const cache = loadCache();
-  if (cache.length) {
-    render(cache);
-  }
-
-  const [vidara, vizey] = await Promise.all([
-    getVidara(),
-    getVizey()
-  ]);
-
-  const merged = [...vidara, ...vizey];
-
-  if (merged.length) {
-    allVideos = merged;
-    saveCache(merged);
-    render(merged);
-  } else {
-    render(cache); // fallback cache
-  }
-}
-
-/* RENDER */
-function render(data) {
+function render(data){
   grid.innerHTML = "";
 
-  if (!data.length) {
-    grid.innerHTML = "<p style='padding:20px'>Tidak ada video</p>";
-    return;
-  }
+  data.forEach(v=>{
+    const el = document.createElement("div");
+    el.className="card";
 
-  data.forEach(v => {
-    const div = document.createElement("div");
-    div.className = "card";
-
-    div.innerHTML = `
+    el.innerHTML = `
       <img src="${v.thumb}" onerror="this.src='https://via.placeholder.com/300x200'">
       <div class="title">${v.title}</div>
     `;
 
-    div.onclick = () => window.open(v.link, "_blank");
+    el.onclick=()=>window.open(v.link,"_blank");
 
-    grid.appendChild(div);
+    grid.appendChild(el);
   });
 }
 
-/* SEARCH */
-searchInput.addEventListener("input", () => {
-  const key = searchInput.value.toLowerCase();
-  render(allVideos.filter(v => v.title.toLowerCase().includes(key)));
-});
+search.oninput = ()=>{
+  const q = search.value.toLowerCase();
+  render(all.filter(v=>v.title.toLowerCase().includes(q)));
+};
 
-/* START */
-loadVideos();
+load();
 </script>
 
 </body>
