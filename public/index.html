@@ -2,154 +2,18 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Asupanmu</title>
-
-  <style>
-    body {
-      margin: 0;
-      background: #0b0b0b;
-      color: white;
-      font-family: sans-serif;
-    }
-
-    .navbar {
-      position: sticky;
-      top: 0;
-      background: #0b0b0b;
-      padding: 16px;
-      z-index: 10;
-    }
-
-    .title {
-      font-size: 24px;
-      font-weight: bold;
-      font-family: cursive;
-    }
-
-    .search {
-      margin-top: 10px;
-      width: 100%;
-      padding: 12px;
-      border-radius: 20px;
-      border: none;
-      background: #1a1a1a;
-      color: white;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      padding: 12px;
-    }
-
-    .card {
-      position: relative;
-      border-radius: 16px;
-      overflow: hidden;
-      background: #111;
-      cursor: pointer;
-    }
-
-    .card img {
-      width: 100%;
-      height: 220px;
-      object-fit: cover;
-    }
-
-    .card p {
-      position: absolute;
-      bottom: 0;
-      padding: 10px;
-      font-size: 14px;
-      background: linear-gradient(transparent, black);
-      width: 100%;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 20px;
-      color: gray;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="navbar">
-  <div class="title">Asupanmu</div>
-  <input id="search" class="search" placeholder="Search..." />
-</div>
+  <header>
+    <h1>Asupanmu</h1>
+    <input type="text" id="search" placeholder="Search..." />
+  </header>
 
-<div id="grid" class="grid"></div>
-<div id="loading" class="loading">Loading...</div>
+  <div id="video-grid"></div>
 
-<script>
-let page = 1;
-let loading = false;
-let keyword = "";
-
-async function loadVideos() {
-  if (loading) return;
-  loading = true;
-
-  document.getElementById("loading").innerText = "Loading...";
-
-  try {
-    const res = await fetch(`/api/all?page=${page}&search=${keyword}`);
-    const data = await res.json();
-
-    const grid = document.getElementById("grid");
-
-    data.forEach(v => {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      card.innerHTML = `
-        <img src="${v.thumbnail}" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
-        <p>${v.title}</p>
-      `;
-
-      // ✅ redirect ke halaman asli
-      card.onclick = () => {
-        window.location.href = v.link;
-      };
-
-      grid.appendChild(card);
-    });
-
-    page++;
-
-    if (data.length === 0) {
-      document.getElementById("loading").innerText = "No more video";
-    }
-
-  } catch (e) {
-    console.log(e);
-    document.getElementById("loading").innerText = "Error load";
-  }
-
-  loading = false;
-}
-
-// infinite scroll
-window.addEventListener("scroll", () => {
-  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
-    loadVideos();
-  }
-});
-
-// search
-document.getElementById("search").addEventListener("input", (e) => {
-  keyword = e.target.value;
-  page = 1;
-  document.getElementById("grid").innerHTML = "";
-  loadVideos();
-});
-
-// first load
-loadVideos();
-</script>
-
+  <script src="script.js"></script>
 </body>
 </html>
