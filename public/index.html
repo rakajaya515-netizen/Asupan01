@@ -1,37 +1,29 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asupanmu</title>
 
 <style>
 body {
   margin: 0;
-  font-family: sans-serif;
   background: #0d0d0d;
+  font-family: sans-serif;
   color: white;
 }
 
-/* NAVBAR */
 .navbar {
   position: sticky;
   top: 0;
-  z-index: 1000;
   background: #0d0d0d;
   padding: 12px;
+  z-index: 1000;
 }
 
 .logo {
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 22px;
   font-family: cursive;
-}
-
-/* SEARCH */
-.search-box {
-  margin-top: 10px;
 }
 
 .search-box input {
@@ -39,15 +31,13 @@ body {
   padding: 10px;
   border-radius: 20px;
   border: none;
-  outline: none;
   background: #1a1a1a;
   color: white;
 }
 
-/* GRID */
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2,1fr);
   gap: 10px;
   padding: 10px;
 }
@@ -56,7 +46,6 @@ body {
   position: relative;
   border-radius: 15px;
   overflow: hidden;
-  cursor: pointer;
 }
 
 .card img {
@@ -69,7 +58,6 @@ body {
   position: absolute;
   bottom: 0;
   padding: 8px;
-  font-size: 14px;
   background: linear-gradient(transparent, black);
 }
 </style>
@@ -79,9 +67,8 @@ body {
 
 <div class="navbar">
   <div class="logo">Asupanmu</div>
-
   <div class="search-box">
-    <input type="text" id="search" placeholder="Search..." />
+    <input id="search" placeholder="Search...">
   </div>
 </div>
 
@@ -93,76 +80,55 @@ const searchInput = document.getElementById("search");
 
 let allVideos = [];
 
-/* CACHE */
-function setCache(data) {
-  localStorage.setItem("videos_cache", JSON.stringify({
-    time: Date.now(),
-    data
-  }));
-}
-
-function getCache() {
-  const cache = localStorage.getItem("videos_cache");
-  if (!cache) return null;
-
-  const parsed = JSON.parse(cache);
-  if (Date.now() - parsed.time > 60000) return null;
-
-  return parsed.data;
-}
-
 /* FIX IMAGE */
 function fixImage(url) {
-  if (!url) return "";
+  if (!url) return "https://via.placeholder.com/300x200";
 
   if (url.startsWith("http://")) {
-    url = url.replace("http://", "https://");
+    return url.replace("http://", "https://");
   }
 
-  // paksa lewat proxy (ANTI BLOCK)
-  return `/api/image?url=${encodeURIComponent(url)}`;
+  return url;
 }
 
-/* FETCH */
+/* FETCH GABUNG */
 async function fetchVideos() {
+  let vidara = [];
+  let vizey = [];
+
+  // VIDARA
   try {
-    const cache = getCache();
-    if (cache) {
-      allVideos = cache;
-      render(cache);
-      return;
-    }
-
-    const [res1, res2] = await Promise.all([
-      fetch("/api/vidara"),
-      fetch("/api/vizey")
-    ]);
-
-    const vidara = await res1.json();
-    const vizey = await res2.json();
-
-    const merged = [
-      ...(Array.isArray(vidara) ? vidara : []).map(v => ({
-        title: v.title || "No title",
-        thumb: fixImage(v.thumbnail),
-        link: v.link
-      })),
-
-      ...(Array.isArray(vizey) ? vizey : []).map(v => ({
-        title: v.title || "No title",
-        thumb: fixImage(v.thumbnail || v.thumb || ""),
-        link: v.url || `https://vizey.co/${v.id}`
-      }))
-    ];
-
-    allVideos = merged;
-    setCache(merged);
-    render(merged);
-
-  } catch (err) {
-    console.error(err);
-    grid.innerHTML = "<p style='padding:20px'>Gagal load</p>";
+    const res = await fetch("/api/vidara");
+    vidara = await res.json();
+  } catch {
+    console.log("Vidara gagal");
   }
+
+  // VIZEY
+  try {
+    const res = await fetch("/api/vizey");
+    const data = await res.json();
+    vizey = Array.isArray(data) ? data : (data.data || []);
+  } catch {
+    console.log("Vizey gagal");
+  }
+
+  const merged = [
+    ...vidara.map(v => ({
+      title: v.title || v.video_title || "No title",
+      thumb: fixImage(v.thumbnail || v.player_img),
+      link: v.link
+    })),
+
+    ...vizey.map(v => ({
+      title: v.title || "No title",
+      thumb: fixImage(v.thumbnail),
+      link: v.url || `https://vizey.co/${v.id}`
+    }))
+  ];
+
+  allVideos = merged;
+  render(merged);
 }
 
 /* RENDER */
@@ -179,11 +145,8 @@ function render(data) {
     div.className = "card";
 
     div.innerHTML = `
-      <img 
-        loading="lazy"
-        src="${v.thumb}" 
-        onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'"
-      />
+      <img src="${v.thumb}" 
+           onerror="this.src='https://via.placeholder.com/300x200'">
       <div class="title">${v.title}</div>
     `;
 
@@ -195,15 +158,13 @@ function render(data) {
 
 /* SEARCH */
 searchInput.addEventListener("input", () => {
-  const keyword = searchInput.value.toLowerCase();
-
-  const filtered = allVideos.filter(v =>
-    v.title.toLowerCase().includes(keyword)
-  );
-
-  render(filtered);
+  const key = searchInput.value.toLowerCase();
+  render(allVideos.filter(v => v.title.toLowerCase().includes(key)));
 });
 
 /* LOAD */
 fetchVideos();
-      </script>
+</script>
+
+</body>
+</html>
