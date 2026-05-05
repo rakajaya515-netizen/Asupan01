@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asupanmu</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
-<div class="navbar">
+<header class="navbar">
   <h1>Asupanmu</h1>
-  <input id="search" placeholder="Search video..." />
+  <input type="text" id="search" placeholder="Search video...">
+</header>
+
+<div class="container">
+  <div id="videoList" class="grid"></div>
 </div>
 
-<div id="videos" class="grid"></div>
-
-<div id="loader"></div>
-
-<script src="script.js"></script>
+<script src="/app.js"></script>
 </body>
 </html>
