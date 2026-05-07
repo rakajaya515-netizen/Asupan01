@@ -1,3 +1,30 @@
+async function fetchWithTimeout(url, timeout = 8000) {
+
+  const controller =
+    new AbortController();
+
+  const id =
+    setTimeout(
+      () => controller.abort(),
+      timeout
+    );
+
+  const response =
+    await fetch(url, {
+
+      signal:
+        controller.signal
+
+    });
+
+  clearTimeout(id);
+
+  return response;
+
+}
+
+
+
 export default async function handler(req, res) {
 
   try {
@@ -8,123 +35,105 @@ export default async function handler(req, res) {
     const VIZEY_API =
       process.env.VIZEY_API_KEY;
 
-    let doodVideos = [];
-    let vizeyVideos = [];
+    let videos = [];
 
 
-    // =========================
+
+    // ======================
     // DOODSTREAM
-    // =========================
+    // ======================
 
     try {
 
       const doodRes =
-        await fetch(
-          `https://doodapi.co/api/file/list?key=${DOOD_API}`
+        await fetchWithTimeout(
+          `https://doodapi.co/api/file/list?key=${DOOD_API}&page=1`
         );
 
       const doodJson =
         await doodRes.json();
 
-      if (
-        doodJson.result &&
-        doodJson.result.files
-      ) {
+      const doodVideos =
+        (doodJson.result?.files || [])
+        .map(video => ({
 
-        doodVideos =
-          doodJson.result.files.map(video => ({
+          title:
+            video.title ||
+            "No Title",
 
-            title:
-              video.title ||
-              "No Title",
+          thumbnail:
+            video.splash_img ||
+            video.single_img ||
+            "https://placehold.co/400x600",
 
-            thumbnail:
-              video.splash_img ||
-              video.single_img ||
-              "https://via.placeholder.com/300x400",
+          url:
+            video.download_url ||
+            video.protected_embed ||
+            "#",
 
-            url:
-              video.download_url ||
-              video.protected_embed ||
-              "#",
+          source:
+            "doodstream"
 
-            source:"doodstream"
+        }));
 
-          }));
-
-      }
+      videos.push(...doodVideos);
 
     } catch(err){
 
-      console.log("DOOD ERROR:", err);
+      console.log("DOOD ERROR");
 
     }
 
 
-    // =========================
+
+    // ======================
     // VIZEY
-    // =========================
+    // ======================
 
     try {
 
       const vizeyRes =
-        await fetch(
-          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}`
+        await fetchWithTimeout(
+          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=1`
         );
 
       const vizeyJson =
         await vizeyRes.json();
 
-      if (
-        vizeyJson.data &&
-        Array.isArray(vizeyJson.data)
-      ) {
+      const vizeyVideos =
+        (vizeyJson.data || [])
+        .filter(v => v.id)
+        .map(video => ({
 
-        vizeyVideos =
-          vizeyJson.data.map(video => ({
+          title:
+            video.title ||
+            "No Title",
 
-            title:
-              video.title ||
-              "No Title",
+          thumbnail:
+            video.thumbnail ||
+            "https://placehold.co/400x600",
 
-            thumbnail:
-              video.thumbnail ||
-              "https://via.placeholder.com/300x400",
+          url:
+            `https://vizey.net/view/${video.id}`,
 
-            url:
-              video.id
-              ? `https://vizey.net/view/${video.id}`
-              : "#",
+          source:
+            "vizey"
 
-            source:"vizey"
+        }));
 
-          }));
-
-      }
+      videos.push(...vizeyVideos);
 
     } catch(err){
 
-      console.log("VIZEY ERROR:", err);
+      console.log("VIZEY ERROR");
 
     }
 
 
-    // =========================
-    // MERGE
-    // =========================
 
-    const videos = [
-
-      ...doodVideos,
-
-      ...vizeyVideos
-
-    ];
-
-
-    // =========================
+    // ======================
     // CACHE
-    // =========================
+    // ======================
 
     res.setHeader(
       "Cache-Control",
@@ -132,15 +141,21 @@ export default async function handler(req, res) {
     );
 
 
-    return res.status(200).json(videos);
+
+    return res
+      .status(200)
+      .json(videos);
 
   } catch(err){
 
-    return res.status(500).json({
+    return res
+      .status(500)
+      .json({
 
-      error: err.message
+        error:
+          err.message
 
-    });
+      });
 
   }
 
