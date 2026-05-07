@@ -58,54 +58,38 @@ export default async function handler(req, res) {
 
     let vizeyVideos = [];
 
-    try {
+try {
 
-      const vizeyRes =
-        await fetch(
-          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}`
-        );
+  const vizeyRes =
+    await fetch(
+      `https://vizey.net/api/v1/list?apikey=${VIZEY_API}`
+    );
 
-      const vizeyJson =
-        await vizeyRes.json();
+  const vizeyJson =
+    await vizeyRes.json();
 
-      vizeyVideos =
-        vizeyJson.data?.map(video => ({
+  vizeyVideos =
+    vizeyJson.data?.map(video => ({
 
-          title:
-            video.title || "No Title",
+      title:
+        video.title || "No Title",
 
-          thumbnail:
-            video.thumbnail ||
-            "https://via.placeholder.com/300x400",
+      thumbnail:
+        video.thumbnail ||
+        "https://via.placeholder.com/300x400",
 
-          url:
-            video.url ||
-            video.shortUrl ||
-            "#",
+      url:
+        `https://vizey.net/embed/${video.id}`,
 
-          source:"vizey"
+      source:"vizey"
 
-        })) || [];
+    })) || [];
 
-    } catch(e){
+} catch(e){
 
-      console.log(e);
+  console.log(e);
 
-    }
-
-
-    // =========================
-    // MERGE
-    // =========================
-
-    const videos = [
-
-      ...doodVideos,
-
-      ...vizeyVideos
-
-    ];
-
+}
 
     // =========================
     // CACHE
