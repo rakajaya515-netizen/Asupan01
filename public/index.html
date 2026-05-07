@@ -11,10 +11,13 @@
 
   <title>Asupanindo</title>
 
-  <link rel="stylesheet" href="style.css" />
+  <link
+    rel="stylesheet"
+    href="style.css"
+  />
 
   <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet"
   />
 
@@ -22,24 +25,42 @@
 
 <body>
 
+  <!-- NAVBAR -->
+
   <header class="navbar">
 
     <div class="logo">
       Asupanindo
     </div>
 
-    <input
-      type="text"
-      id="search"
-      placeholder="Search..."
-    />
+    <div class="search-wrapper">
+
+      <input
+        type="text"
+        id="search"
+        placeholder="Search..."
+      />
+
+    </div>
 
   </header>
 
 
+  <!-- VIDEO GRID -->
+
   <main>
 
-    <div id="videos" class="grid"></div>
+    <div
+      id="videos"
+      class="grid"
+    ></div>
+
+    <div
+      id="loading"
+      class="loading"
+    >
+      Loading videos...
+    </div>
 
   </main>
 
