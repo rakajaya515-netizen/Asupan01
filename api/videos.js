@@ -2,88 +2,96 @@ export default async function handler(req, res) {
 
   try {
 
-    const DOOD_API = process.env.DOOD_API_KEY;
-    const VIZEY_API = process.env.VIZEY_API_KEY;
+    const DOOD_API =
+      process.env.DOOD_API_KEY;
+
+    const VIZEY_API =
+      process.env.VIZEY_API_KEY;
+
 
     // =========================
     // DOODSTREAM
     // =========================
 
-    const doodRes = await fetch(
-      `https://doodapi.co/api/file/list?key=${DOOD_API}`
-    );
+    let doodVideos = [];
 
-    const doodJson = await doodRes.json();
+    try {
 
-    const doodVideos =
-      doodJson.result?.files?.map(video => ({
+      const doodRes =
+        await fetch(
+          `https://doodapi.co/api/file/list?key=${DOOD_API}`
+        );
 
-        title: video.title || "No Title",
+      const doodJson =
+        await doodRes.json();
 
-        thumbnail:
-          video.splash_img ||
-          video.single_img ||
-          "https://via.placeholder.com/300x400",
+      doodVideos =
+        doodJson.result?.files?.map(video => ({
 
-        url:
-          video.download_url ||
-          video.protected_embed,
+          title:
+            video.title || "No Title",
 
-        source: "doodstream"
+          thumbnail:
+            video.splash_img ||
+            video.single_img ||
+            "https://via.placeholder.com/300x400",
 
-      })) || [];
+          url:
+            video.download_url ||
+            video.protected_embed ||
+            "#",
+
+          source:"doodstream"
+
+        })) || [];
+
+    } catch(e){
+
+      console.log(e);
+
+    }
 
 
     // =========================
     // VIZEY
     // =========================
 
-    const vizeyList =
-  await fetch(
-    `https://vizey.net/api/v1/list?apikey=${VIZEY_API}`
-  );
+    let vizeyVideos = [];
 
-const listJson =
-  await vizeyList.json();
+    try {
 
-const vizeyVideos = [];
+      const vizeyRes =
+        await fetch(
+          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}`
+        );
 
-for (const item of listJson.data || []) {
+      const vizeyJson =
+        await vizeyRes.json();
 
-  try {
+      vizeyVideos =
+        vizeyJson.data?.map(video => ({
 
-    const detail =
-      await fetch(
-        `https://vizey.net/api/v1/videos?apikey=${VIZEY_API}&id=${item.id}`
-      );
+          title:
+            video.title || "No Title",
 
-    const detailJson =
-      await detail.json();
+          thumbnail:
+            video.thumbnail ||
+            "https://via.placeholder.com/300x400",
 
-    const video =
-      detailJson.data;
+          url:
+            video.url ||
+            video.shortUrl ||
+            "#",
 
-    vizeyVideos.push({
+          source:"vizey"
 
-      title:
-        video.title || "No Title",
+        })) || [];
 
-      thumbnail:
-        video.thumbnail,
+    } catch(e){
 
-      url:
-        video.url ||
-        video.embed ||
-        "#",
+      console.log(e);
 
-      source:"vizey"
-
-    });
-
-  } catch(e) {}
-
-}
-      })) || [];
+    }
 
 
     // =========================
@@ -91,8 +99,11 @@ for (const item of listJson.data || []) {
     // =========================
 
     const videos = [
+
       ...doodVideos,
+
       ...vizeyVideos
+
     ];
 
 
@@ -105,12 +116,15 @@ for (const item of listJson.data || []) {
       "s-maxage=300, stale-while-revalidate"
     );
 
+
     return res.status(200).json(videos);
 
-  } catch (err) {
+  } catch(err){
 
     return res.status(500).json({
+
       error: err.message
+
     });
 
   }
