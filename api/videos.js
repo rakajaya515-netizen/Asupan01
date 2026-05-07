@@ -1,5 +1,3 @@
-// api/videos.js
-
 export default async function handler(req, res) {
 
   try {
@@ -16,28 +14,24 @@ export default async function handler(req, res) {
 
 
 
-    // =========================
+    // ======================
     // DOODSTREAM
-    // =========================
+    // ======================
 
     try {
 
-      let page = 1;
+      for(let page = 1; page <= 3; page++){
 
-      let hasMore = true;
-
-      while (hasMore) {
-
-        const doodRes =
+        const response =
           await fetch(
             `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
           );
 
-        const doodJson =
-          await doodRes.json();
+        const json =
+          await response.json();
 
         const files =
-          doodJson.result?.files || [];
+          json.result?.files || [];
 
         const mapped =
           files.map(video => ({
@@ -63,52 +57,38 @@ export default async function handler(req, res) {
 
         doodVideos.push(...mapped);
 
-        if (files.length < 50) {
-
-          hasMore = false;
-
-        } else {
-
-          page++;
-
-        }
-
       }
 
-    } catch (err) {
+    } catch(err){
 
-      console.log("DOOD ERROR:", err);
+      console.log(err);
 
     }
 
 
 
-    // =========================
+    // ======================
     // VIZEY
-    // =========================
+    // ======================
 
     try {
 
-      let page = 1;
+      for(let page = 1; page <= 3; page++){
 
-      let hasMore = true;
-
-      while (hasMore) {
-
-        const vizeyRes =
+        const response =
           await fetch(
             `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
           );
 
-        const vizeyJson =
-          await vizeyRes.json();
+        const json =
+          await response.json();
 
-        const videos =
-          vizeyJson.data || [];
+        const files =
+          json.data || [];
 
         const mapped =
-          videos
-            .filter(video => video.id)
+          files
+            .filter(v => v.id)
             .map(video => ({
 
               title:
@@ -129,29 +109,19 @@ export default async function handler(req, res) {
 
         vizeyVideos.push(...mapped);
 
-        if (videos.length < 50) {
-
-          hasMore = false;
-
-        } else {
-
-          page++;
-
-        }
-
       }
 
-    } catch (err) {
+    } catch(err){
 
-      console.log("VIZEY ERROR:", err);
+      console.log(err);
 
     }
 
 
 
-    // =========================
+    // ======================
     // MERGE
-    // =========================
+    // ======================
 
     const videos = [
 
@@ -163,9 +133,9 @@ export default async function handler(req, res) {
 
 
 
-    // =========================
+    // ======================
     // CACHE
-    // =========================
+    // ======================
 
     res.setHeader(
       "Cache-Control",
@@ -178,7 +148,7 @@ export default async function handler(req, res) {
       .status(200)
       .json(videos);
 
-  } catch (err) {
+  } catch(err){
 
     return res
       .status(500)
