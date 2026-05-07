@@ -1,3 +1,5 @@
+// api/videos.js
+
 export default async function handler(req, res) {
 
   try {
@@ -9,134 +11,143 @@ export default async function handler(req, res) {
       process.env.VIZEY_API_KEY;
 
     let doodVideos = [];
+
     let vizeyVideos = [];
+
 
 
     // =========================
     // DOODSTREAM
     // =========================
 
-try {
+    try {
 
-  let page = 1;
+      let page = 1;
 
-  let hasMore = true;
+      let hasMore = true;
 
-  while(hasMore){
+      while (hasMore) {
 
-    const doodRes =
-      await fetch(
-        `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
-      );
+        const doodRes =
+          await fetch(
+            `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
+          );
 
-    const doodJson =
-      await doodRes.json();
+        const doodJson =
+          await doodRes.json();
 
-    const files =
-      doodJson.result?.files || [];
+        const files =
+          doodJson.result?.files || [];
 
-    const mapped =
-      files.map(video => ({
+        const mapped =
+          files.map(video => ({
 
-        title:
-          video.title || "No Title",
+            title:
+              video.title ||
+              "No Title",
 
-        thumbnail:
-          video.splash_img ||
-          video.single_img ||
-          "https://via.placeholder.com/300x400",
+            thumbnail:
+              video.splash_img ||
+              video.single_img ||
+              "https://placehold.co/400x600?text=No+Image",
 
-        url:
-          video.download_url ||
-          video.protected_embed ||
-          "#",
+            url:
+              video.download_url ||
+              video.protected_embed ||
+              "#",
 
-        source:"doodstream"
+            source:
+              "doodstream"
 
-      }));
+          }));
 
-    doodVideos.push(...mapped);
+        doodVideos.push(...mapped);
 
-    if(files.length < 50){
+        if (files.length < 50) {
 
-      hasMore = false;
+          hasMore = false;
 
-    } else {
+        } else {
 
-      page++;
+          page++;
+
+        }
+
+      }
+
+    } catch (err) {
+
+      console.log("DOOD ERROR:", err);
 
     }
 
-  }
-
-} catch(err){
-
-  console.log(err);
-
-}
 
 
     // =========================
     // VIZEY
     // =========================
 
-try {
+    try {
 
-  let page = 1;
+      let page = 1;
 
-  let hasMore = true;
+      let hasMore = true;
 
-  while(hasMore){
+      while (hasMore) {
 
-    const vizeyRes =
-      await fetch(
-        `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
-      );
+        const vizeyRes =
+          await fetch(
+            `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
+          );
 
-    const vizeyJson =
-      await vizeyRes.json();
+        const vizeyJson =
+          await vizeyRes.json();
 
-    const videos =
-      vizeyJson.data || [];
+        const videos =
+          vizeyJson.data || [];
 
-    const mapped =
-      videos.map(video => ({
+        const mapped =
+          videos
+            .filter(video => video.id)
+            .map(video => ({
 
-        title:
-          video.title || "No Title",
+              title:
+                video.title ||
+                "No Title",
 
-        thumbnail:
-          video.thumbnail ||
-          "https://via.placeholder.com/300x400",
+              thumbnail:
+                video.thumbnail ||
+                "https://placehold.co/400x600?text=No+Image",
 
-        url:
-          video.id
-          ? `https://vizey.net/embed/${video.id}`
-          : "#",
+              url:
+                `https://vizey.net/watch/${video.id}`,
 
-        source:"vizey"
+              source:
+                "vizey"
 
-      }));
+            }));
 
-    vizeyVideos.push(...mapped);
+        vizeyVideos.push(...mapped);
 
-    if(videos.length < 50){
+        if (videos.length < 50) {
 
-      hasMore = false;
+          hasMore = false;
 
-    } else {
+        } else {
 
-      page++;
+          page++;
+
+        }
+
+      }
+
+    } catch (err) {
+
+      console.log("VIZEY ERROR:", err);
 
     }
 
-  }
 
-} catch(err){
-
-  console.log(err);
-
-}
 
     // =========================
     // MERGE
@@ -151,6 +162,7 @@ try {
     ];
 
 
+
     // =========================
     // CACHE
     // =========================
@@ -161,15 +173,20 @@ try {
     );
 
 
-    return res.status(200).json(videos);
 
-  } catch(err){
+    return res
+      .status(200)
+      .json(videos);
 
-    return res.status(500).json({
+  } catch (err) {
 
-      error: err.message
+    return res
+      .status(500)
+      .json({
 
-    });
+        error: err.message
+
+      });
 
   }
 
