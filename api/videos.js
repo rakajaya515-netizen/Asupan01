@@ -8,12 +8,13 @@ export default async function handler(req, res) {
     const VIZEY_API =
       process.env.VIZEY_API_KEY;
 
+    let doodVideos = [];
+    let vizeyVideos = [];
+
 
     // =========================
     // DOODSTREAM
     // =========================
-
-    let doodVideos = [];
 
     try {
 
@@ -25,29 +26,37 @@ export default async function handler(req, res) {
       const doodJson =
         await doodRes.json();
 
-      doodVideos =
-        doodJson.result?.files?.map(video => ({
+      if (
+        doodJson.result &&
+        doodJson.result.files
+      ) {
 
-          title:
-            video.title || "No Title",
+        doodVideos =
+          doodJson.result.files.map(video => ({
 
-          thumbnail:
-            video.splash_img ||
-            video.single_img ||
-            "https://via.placeholder.com/300x400",
+            title:
+              video.title ||
+              "No Title",
 
-          url:
-            video.download_url ||
-            video.protected_embed ||
-            "#",
+            thumbnail:
+              video.splash_img ||
+              video.single_img ||
+              "https://via.placeholder.com/300x400",
 
-          source:"doodstream"
+            url:
+              video.download_url ||
+              video.protected_embed ||
+              "#",
 
-        })) || [];
+            source:"doodstream"
 
-    } catch(e){
+          }));
 
-      console.log(e);
+      }
+
+    } catch(err){
+
+      console.log("DOOD ERROR:", err);
 
     }
 
@@ -56,40 +65,62 @@ export default async function handler(req, res) {
     // VIZEY
     // =========================
 
-    let vizeyVideos = [];
+    try {
 
-try {
+      const vizeyRes =
+        await fetch(
+          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}`
+        );
 
-  const vizeyRes =
-    await fetch(
-      `https://vizey.net/api/v1/list?apikey=${VIZEY_API}`
-    );
+      const vizeyJson =
+        await vizeyRes.json();
 
-  const vizeyJson =
-    await vizeyRes.json();
+      if (
+        vizeyJson.data &&
+        Array.isArray(vizeyJson.data)
+      ) {
 
-  vizeyVideos =
-    vizeyJson.data?.map(video => ({
+        vizeyVideos =
+          vizeyJson.data.map(video => ({
 
-      title:
-        video.title || "No Title",
+            title:
+              video.title ||
+              "No Title",
 
-      thumbnail:
-        video.thumbnail ||
-        "https://via.placeholder.com/300x400",
+            thumbnail:
+              video.thumbnail ||
+              "https://via.placeholder.com/300x400",
 
-      url:
-        `https://vizey.net/embed/${video.id}`,
+            url:
+              video.id
+              ? `https://vizey.net/embed/${video.id}`
+              : "#",
 
-      source:"vizey"
+            source:"vizey"
 
-    })) || [];
+          }));
 
-} catch(e){
+      }
 
-  console.log(e);
+    } catch(err){
 
-}
+      console.log("VIZEY ERROR:", err);
+
+    }
+
+
+    // =========================
+    // MERGE
+    // =========================
+
+    const videos = [
+
+      ...doodVideos,
+
+      ...vizeyVideos
+
+    ];
+
 
     // =========================
     // CACHE
