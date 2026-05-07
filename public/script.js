@@ -83,10 +83,7 @@ function renderVideos(videos){
 
       if(video.url && video.url !== "#"){
 
-        window.open(
-          video.url,
-          "_blank"
-        );
+        window.location.href = video.url;
 
       }
 
