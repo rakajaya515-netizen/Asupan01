@@ -52,15 +52,14 @@ async function fetchVideos() {
 
     loading.innerHTML = "";
 
-  } catch (err) {
+  } catch(err){
 
-    console.log(err);
+  console.log(err);
 
-    loading.innerHTML =
-      "Failed load videos";
+  loading.innerHTML =
+    err.message;
 
   }
-
 }
 
 
