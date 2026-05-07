@@ -1,24 +1,34 @@
-const container =
-  document.getElementById("videos");
+const grid =
+  document.getElementById("videoGrid");
+
+const searchInput =
+  document.getElementById("search");
 
 const loading =
   document.getElementById("loading");
 
-const search =
-  document.getElementById("search");
-
 let allVideos = [];
 
+let filteredVideos = [];
 
-// =========================
+let currentPage = 1;
+
+const LIMIT = 20;
+
+let isLoading = false;
+
+
+
+// ======================
 // FETCH VIDEOS
-// =========================
+// ======================
 
-async function loadVideos() {
+async function fetchVideos() {
 
   try {
 
-    loading.style.display = "block";
+    loading.innerHTML =
+      "Loading videos...";
 
     const res =
       await fetch("/api/videos");
@@ -26,15 +36,19 @@ async function loadVideos() {
     const data =
       await res.json();
 
-    console.log(data);
-
     allVideos = data;
 
-    renderVideos(data);
+    filteredVideos = data;
 
-    loading.style.display = "none";
+    grid.innerHTML = "";
 
-  } catch(err){
+    currentPage = 1;
+
+    renderVideos();
+
+    loading.innerHTML = "";
+
+  } catch (err) {
 
     console.log(err);
 
@@ -46,81 +60,148 @@ async function loadVideos() {
 }
 
 
-// =========================
-// RENDER
-// =========================
 
-function renderVideos(videos){
+// ======================
+// RENDER VIDEOS
+// ======================
 
-  container.innerHTML = "";
+function renderVideos() {
+
+  if (isLoading) return;
+
+  isLoading = true;
+
+  const start =
+    (currentPage - 1) * LIMIT;
+
+  const end =
+    start + LIMIT;
+
+  const videos =
+    filteredVideos.slice(start, end);
 
   videos.forEach(video => {
 
     const card =
-      document.createElement("div");
+      document.createElement("a");
 
-    card.className = "card";
+    card.className =
+      "card";
+
+    card.href =
+      video.url;
+
+    card.target =
+      "_blank";
 
     card.innerHTML = `
 
-      <img
-        src="${video.thumbnail}"
-        loading="lazy"
-        alt="${video.title}"
-      />
+      <div class="thumb-wrap">
 
-      <div class="overlay"></div>
+        <img
+          src="${video.thumbnail}"
+          alt="${video.title}"
+          loading="lazy"
+        />
 
-      <h3>
-        ${video.title}
-      </h3>
+      </div>
+
+      <div class="info">
+
+        <h3>${video.title}</h3>
+
+        <span>${video.source}</span>
+
+      </div>
 
     `;
 
-    // CLICK
-
-    card.addEventListener("click", () => {
-
-      if(video.url && video.url !== "#"){
-
-        window.location.href = video.url;
-
-      }
-
-    });
-
-    container.appendChild(card);
+    grid.appendChild(card);
 
   });
+
+  isLoading = false;
 
 }
 
 
-// =========================
+
+// ======================
 // SEARCH
-// =========================
+// ======================
 
-search.addEventListener("input", e => {
+searchInput.addEventListener(
+  "input",
+  e => {
 
-  const keyword =
-    e.target.value.toLowerCase();
+    const value =
+      e.target.value.toLowerCase();
 
-  const filtered =
-    allVideos.filter(video =>
+    filteredVideos =
+      allVideos.filter(video =>
+        (video.title || "")
+          .toLowerCase()
+          .includes(value)
+      );
 
-      (video.title || "")
-.toLowerCase()
-      .includes(keyword)
+    grid.innerHTML = "";
 
-    );
+    currentPage = 1;
 
-  renderVideos(filtered);
+    renderVideos();
 
-});
+  }
+);
 
 
-// =========================
-// AUTO LOAD
-// =========================
 
-loadVideos();
+// ======================
+// INFINITE SCROLL
+// ======================
+
+window.addEventListener(
+  "scroll",
+  () => {
+
+    const {
+
+      scrollTop,
+
+      scrollHeight,
+
+      clientHeight
+
+    } = document.documentElement;
+
+    if (
+
+      scrollTop + clientHeight >=
+      scrollHeight - 300
+
+    ) {
+
+      const maxPage =
+        Math.ceil(
+          filteredVideos.length / LIMIT
+        );
+
+      if (currentPage < maxPage) {
+
+        currentPage++;
+
+        renderVideos();
+
+      }
+
+    }
+
+  }
+);
+
+
+
+// ======================
+// INIT
+// ======================
+
+fetchVideos();
