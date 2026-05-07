@@ -38,23 +38,51 @@ export default async function handler(req, res) {
     // VIZEY
     // =========================
 
-    const vizeyRes = await fetch(
-      `https://vizey.net/api/v1/list?apikey=${VIZEY_API}`
-    );
+    const vizeyList =
+  await fetch(
+    `https://vizey.net/api/v1/list?apikey=${VIZEY_API}`
+  );
 
-    const vizeyJson = await vizeyRes.json();
+const listJson =
+  await vizeyList.json();
 
-    const vizeyVideos =
-      vizeyJson.data?.map(video => ({
+const vizeyVideos = [];
 
-        title: video.title,
+for (const item of listJson.data || []) {
 
-        thumbnail: video.thumbnail,
+  try {
 
-        url: `https://vizey.net/watch/${video.id}`,
+    const detail =
+      await fetch(
+        `https://vizey.net/api/v1/videos?apikey=${VIZEY_API}&id=${item.id}`
+      );
 
-        source: "vizey"
+    const detailJson =
+      await detail.json();
 
+    const video =
+      detailJson.data;
+
+    vizeyVideos.push({
+
+      title:
+        video.title || "No Title",
+
+      thumbnail:
+        video.thumbnail,
+
+      url:
+        video.url ||
+        video.embed ||
+        "#",
+
+      source:"vizey"
+
+    });
+
+  } catch(e) {}
+
+}
       })) || [];
 
 
