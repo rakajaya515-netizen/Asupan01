@@ -16,98 +16,127 @@ export default async function handler(req, res) {
     // DOODSTREAM
     // =========================
 
-    try {
+try {
 
-      const doodRes =
-        await fetch(
-          `https://doodapi.co/api/file/list?key=${DOOD_API}`
-        );
+  let page = 1;
 
-      const doodJson =
-        await doodRes.json();
+  let hasMore = true;
 
-      if (
-        doodJson.result &&
-        doodJson.result.files
-      ) {
+  while(hasMore){
 
-        doodVideos =
-          doodJson.result.files.map(video => ({
+    const doodRes =
+      await fetch(
+        `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
+      );
 
-            title:
-              video.title ||
-              "No Title",
+    const doodJson =
+      await doodRes.json();
 
-            thumbnail:
-              video.splash_img ||
-              video.single_img ||
-              "https://via.placeholder.com/300x400",
+    const files =
+      doodJson.result?.files || [];
 
-            url:
-              video.download_url ||
-              video.protected_embed ||
-              "#",
+    const mapped =
+      files.map(video => ({
 
-            source:"doodstream"
+        title:
+          video.title || "No Title",
 
-          }));
+        thumbnail:
+          video.splash_img ||
+          video.single_img ||
+          "https://via.placeholder.com/300x400",
 
-      }
+        url:
+          video.download_url ||
+          video.protected_embed ||
+          "#",
 
-    } catch(err){
+        source:"doodstream"
 
-      console.log("DOOD ERROR:", err);
+      }));
+
+    doodVideos.push(...mapped);
+
+    if(files.length < 50){
+
+      hasMore = false;
+
+    } else {
+
+      page++;
 
     }
+
+  }
+
+} catch(err){
+
+  console.log(err);
+
+}
 
 
     // =========================
     // VIZEY
     // =========================
 
-    try {
+try {
 
-      const vizeyRes =
-        await fetch(
-          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}`
-        );
+  let page = 1;
 
-      const vizeyJson =
-        await vizeyRes.json();
+  let hasMore = true;
 
-      if (
-        vizeyJson.data &&
-        Array.isArray(vizeyJson.data)
-      ) {
+  while(hasMore){
 
-        vizeyVideos =
-          vizeyJson.data.map(video => ({
+    const vizeyRes =
+      await fetch(
+        `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
+      );
 
-            title:
-              video.title ||
-              "No Title",
+    const vizeyJson =
+      await vizeyRes.json();
 
-            thumbnail:
-              video.thumbnail ||
-              "https://via.placeholder.com/300x400",
+    const videos =
+      vizeyJson.data || [];
 
-            url:
-              video.id
-              ? `https://vizey.net/view/${video.id}`
-              : "#",
+    const mapped =
+      videos.map(video => ({
 
-            source:"vizey"
+        title:
+          video.title || "No Title",
 
-          }));
+        thumbnail:
+          video.thumbnail ||
+          "https://via.placeholder.com/300x400",
 
-      }
+        url:
+          video.id
+          ? `https://vizey.net/embed/${video.id}`
+          : "#",
 
-    } catch(err){
+        source:"vizey"
 
-      console.log("VIZEY ERROR:", err);
+      }));
+
+    vizeyVideos.push(...mapped);
+
+    if(videos.length < 50){
+
+      hasMore = false;
+
+    } else {
+
+      page++;
 
     }
 
+  }
+
+} catch(err){
+
+  console.log(err);
+
+}
 
     // =========================
     // MERGE
