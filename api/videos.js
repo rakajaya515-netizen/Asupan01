@@ -93,7 +93,7 @@ export default async function handler(req, res) {
 
             url:
               video.id
-              ? `https://vizey.net/embed/${video.id}`
+              ? `https://vizey.net/view/${video.id}`
               : "#",
 
             source:"vizey"
