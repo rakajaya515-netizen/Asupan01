@@ -111,8 +111,8 @@ search.addEventListener("input", e => {
   const filtered =
     allVideos.filter(video =>
 
-      video.title
-      .toLowerCase()
+      (video.title || "")
+.toLowerCase()
       .includes(keyword)
 
     );
