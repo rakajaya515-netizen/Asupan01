@@ -1,3 +1,5 @@
+// public/script.js
+
 const grid =
   document.getElementById("videoGrid");
 
@@ -36,9 +38,11 @@ async function fetchVideos() {
     const data =
       await res.json();
 
-    allVideos = data;
+    allVideos =
+      data.filter(v => v.url);
 
-    filteredVideos = data;
+    filteredVideos =
+      allVideos;
 
     grid.innerHTML = "";
 
@@ -102,6 +106,7 @@ function renderVideos() {
           src="${video.thumbnail}"
           alt="${video.title}"
           loading="lazy"
+          onerror="this.src='https://placehold.co/400x600?text=No+Image'"
         />
 
       </div>
