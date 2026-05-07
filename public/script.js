@@ -113,7 +113,8 @@ function renderVideos() {
 
       <div class="info">
 
-        <h3>${video.title}</h3>
+        <h3>${video.title || "")
+.toLowerCase()}</h3>
 
         <span>${video.source}</span>
 
