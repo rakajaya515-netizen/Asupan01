@@ -1,14 +1,23 @@
-const container = document.getElementById("videos");
+const container =
+  document.getElementById("videos");
+
+const search =
+  document.getElementById("search");
 
 let allVideos = [];
 
-async function getVideos() {
+
+async function loadVideos() {
 
   try {
 
-    const res = await fetch("/api/videos");
+    const res =
+      await fetch("/api/videos");
 
-    const data = await res.json();
+    const data =
+      await res.json();
+
+    console.log(data);
 
     allVideos = data;
 
@@ -22,46 +31,61 @@ async function getVideos() {
 
 }
 
+
 function renderVideos(videos) {
 
   container.innerHTML = "";
 
   videos.forEach(video => {
 
-    container.innerHTML += `
-    
-      <div class="card"
-        onclick="window.open('${video.url}')">
+    const card =
+      document.createElement("div");
 
-        <img src="${video.thumbnail}" />
+    card.className = "card";
 
-        <div class="overlay"></div>
+    card.innerHTML = `
 
-        <h3>${video.title}</h3>
+      <img
+        src="${video.thumbnail}"
+        loading="lazy"
+      />
 
-      </div>
+      <div class="overlay"></div>
+
+      <h3>${video.title}</h3>
 
     `;
+
+    card.onclick = () => {
+
+      window.open(video.url, "_blank");
+
+    };
+
+    container.appendChild(card);
 
   });
 
 }
 
 
-document
-.getElementById("search")
-.addEventListener("input", e => {
+search.addEventListener("input", e => {
 
   const keyword =
     e.target.value.toLowerCase();
 
-  const filtered = allVideos.filter(v =>
-    v.title.toLowerCase().includes(keyword)
-  );
+  const filtered =
+    allVideos.filter(video =>
+
+      video.title
+      .toLowerCase()
+      .includes(keyword)
+
+    );
 
   renderVideos(filtered);
 
 });
 
 
-getVideos();
+loadVideos();
