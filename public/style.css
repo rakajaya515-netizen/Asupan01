@@ -164,16 +164,15 @@ body{
 
 /* LOADING */
 
-.loading{
-
+#loading{
   text-align:center;
+  padding:20px;
+  color:white;
+}
 
-  padding:30px;
-
-  color:#888;
-
-  font-size:18px;
-
+.card{
+  display:block;
+  text-decoration:none;
 }
 
 /* MOBILE */
