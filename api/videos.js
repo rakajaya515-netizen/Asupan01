@@ -8,62 +8,41 @@ export default async function handler(req, res) {
     const VIZEY_API =
       process.env.VIZEY_API_KEY;
 
-    let doodVideos = [];
-
-    let vizeyVideos = [];
-
 
 
     // ======================
     // DOODSTREAM
     // ======================
 
-    try {
+    const doodRes =
+      await fetch(
+        `https://doodapi.co/api/file/list?key=${DOOD_API}&page=1`
+      );
 
-      for(let page = 1; page <= 3; page++){
+    const doodJson =
+      await doodRes.json();
 
-        const response =
-          await fetch(
-            `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
-          );
+    const doodVideos =
+      (doodJson.result?.files || [])
+      .map(video => ({
 
-        const json =
-          await response.json();
+        title:
+          video.title || "No Title",
 
-        const files =
-          json.result?.files || [];
+        thumbnail:
+          video.splash_img ||
+          video.single_img ||
+          "https://placehold.co/400x600",
 
-        const mapped =
-          files.map(video => ({
+        url:
+          video.download_url ||
+          video.protected_embed ||
+          "#",
 
-            title:
-              video.title ||
-              "No Title",
+        source:
+          "doodstream"
 
-            thumbnail:
-              video.splash_img ||
-              video.single_img ||
-              "https://placehold.co/400x600?text=No+Image",
-
-            url:
-              video.download_url ||
-              video.protected_embed ||
-              "#",
-
-            source:
-              "doodstream"
-
-          }));
-
-        doodVideos.push(...mapped);
-
-      }
-
-    } catch(err){
-
-      console.log(err);
-
-    }
+      }));
 
 
 
@@ -71,51 +50,33 @@ export default async function handler(req, res) {
     // VIZEY
     // ======================
 
-    try {
+    const vizeyRes =
+      await fetch(
+        `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=1`
+      );
 
-      for(let page = 1; page <= 3; page++){
+    const vizeyJson =
+      await vizeyRes.json();
 
-        const response =
-          await fetch(
-            `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
-          );
+    const vizeyVideos =
+      (vizeyJson.data || [])
+      .filter(v => v.id)
+      .map(video => ({
 
-        const json =
-          await response.json();
+        title:
+          video.title || "No Title",
 
-        const files =
-          json.data || [];
+        thumbnail:
+          video.thumbnail ||
+          "https://placehold.co/400x600",
 
-        const mapped =
-          files
-            .filter(v => v.id)
-            .map(video => ({
+        url:
+          `https://vizey.net/watch/${video.id}`,
 
-              title:
-                video.title ||
-                "No Title",
+        source:
+          "vizey"
 
-              thumbnail:
-                video.thumbnail ||
-                "https://placehold.co/400x600?text=No+Image",
-
-              url:
-                `https://vizey.net/watch/${video.id}`,
-
-              source:
-                "vizey"
-
-            }));
-
-        vizeyVideos.push(...mapped);
-
-      }
-
-    } catch(err){
-
-      console.log(err);
-
-    }
+      }));
 
 
 
