@@ -1,15 +1,24 @@
 const container =
   document.getElementById("videos");
 
+const loading =
+  document.getElementById("loading");
+
 const search =
   document.getElementById("search");
 
 let allVideos = [];
 
 
+// =========================
+// FETCH VIDEOS
+// =========================
+
 async function loadVideos() {
 
   try {
+
+    loading.style.display = "block";
 
     const res =
       await fetch("/api/videos");
@@ -23,16 +32,25 @@ async function loadVideos() {
 
     renderVideos(data);
 
-  } catch (err) {
+    loading.style.display = "none";
+
+  } catch(err){
 
     console.log(err);
+
+    loading.innerHTML =
+      "Failed load videos";
 
   }
 
 }
 
 
-function renderVideos(videos) {
+// =========================
+// RENDER
+// =========================
+
+function renderVideos(videos){
 
   container.innerHTML = "";
 
@@ -48,19 +66,31 @@ function renderVideos(videos) {
       <img
         src="${video.thumbnail}"
         loading="lazy"
+        alt="${video.title}"
       />
 
       <div class="overlay"></div>
 
-      <h3>${video.title}</h3>
+      <h3>
+        ${video.title}
+      </h3>
 
     `;
 
-    card.onclick = () => {
+    // CLICK
 
-      window.open(video.url, "_blank");
+    card.addEventListener("click", () => {
 
-    };
+      if(video.url && video.url !== "#"){
+
+        window.open(
+          video.url,
+          "_blank"
+        );
+
+      }
+
+    });
 
     container.appendChild(card);
 
@@ -68,6 +98,10 @@ function renderVideos(videos) {
 
 }
 
+
+// =========================
+// SEARCH
+// =========================
 
 search.addEventListener("input", e => {
 
@@ -87,5 +121,9 @@ search.addEventListener("input", e => {
 
 });
 
+
+// =========================
+// AUTO LOAD
+// =========================
 
 loadVideos();
