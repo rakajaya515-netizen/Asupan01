@@ -86,49 +86,50 @@ export default async function handler(req, res) {
 
 
 
-    // ======================
-    // VIZEY
-    // ======================
+    // =====================
+// VIZEY
+// =====================
 
-    try {
+try {
 
-      const vizeyRes =
-        await fetchWithTimeout(
-          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=1`
-        );
+  const vizeyRes =
+    await fetchWithTimeout(VIZEY_API);
 
-      const vizeyJson =
-        await vizeyRes.json();
+  const vizeyJson =
+    await vizeyRes.json();
 
-      const vizeyVideos =
-        (vizeyJson.data || [])
-        .filter(v => v.id)
-        .map(video => ({
+  const vizeyVideos =
+    (Array.isArray(vizeyJson)
+      ? vizeyJson
+      : vizeyJson.result || []
+    ).map(video => ({
 
-          title:
-            video.title ||
-            "No Title",
+      title:
+        video.title ||
+        "No Title",
 
-          thumbnail:
-            video.thumbnail ||
-            "https://placehold.co/400x600",
+      thumbnail:
+        video.thumbnail ||
+        video.image ||
+        "https://placehold.co/400x600",
 
-          url:
-            `https://vizey.net/view/${video.id}`,
+      url:
+        video.url ||
+        video.link ||
+        "#",
 
-          source:
-            "vizey"
+      source:
+        "vizey"
 
-        }));
+    }));
 
-      videos.push(...vizeyVideos);
+  videos.push(...vizeyVideos);
 
-    } catch(err){
+} catch(err) {
 
-      console.log("VIZEY ERROR");
+  console.log("VIZEY ERROR");
 
-    }
-
+}
 
 
     // ======================
