@@ -54,7 +54,7 @@ module.exports = async (req, res) => {
 
     }
 
-    // ====================
+// ====================
 // VIZEY
 // ====================
 
@@ -98,28 +98,4 @@ try {
   console.log("VIZEY ERROR:", err);
 
 }
-// ======================
-    // CACHE
-    // ======================
 
-    res.setHeader(
-      "Cache-Control",
-      "s-maxage=300, stale-while-revalidate"
-    );
-
-
-
-    return res
-      .status(200)
-      .json(videos);
-
-  } catch(err){
-
-    return res
-      .status(500)
-      .json({
-
-        error:
-          err.message
-
-      });
