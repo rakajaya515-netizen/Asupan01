@@ -1,14 +1,12 @@
 async function fetchWithTimeout(url, timeout = 10000) {
-
   const controller = new AbortController();
 
-  const id = setTimeout(
-    () => controller.abort(),
-    timeout
-  );
+  const id = setTimeout(() => {
+    controller.abort();
+  }, timeout);
 
   const response = await fetch(url, {
-    signal: controller.signal
+    signal: controller.signal,
   });
 
   clearTimeout(id);
@@ -17,25 +15,24 @@ async function fetchWithTimeout(url, timeout = 10000) {
 }
 
 export default async function handler(req, res) {
-
   try {
 
+    // API KEYS
     const VIZEY_API =
       process.env.VIZEY_API_KEY;
 
     const DOOD_API =
       process.env.DOOD_API_KEY;
 
+    // VIDEO STORAGE
     let vizeyVideos = [];
     let doodVideos = [];
-    videos = [
-  ...vizeyVideos,
-  ...doodVideos
-];
 
-    // ====================
+
+
+    // =========================
     // VIZEY FIRST
-    // ====================
+    // =========================
 
     try {
 
@@ -70,15 +67,20 @@ export default async function handler(req, res) {
 
           }));
 
-    } catch(err) {
+    } catch (err) {
 
-      console.log("VIZEY ERROR:", err);
+      console.log(
+        "VIZEY ERROR:",
+        err
+      );
 
     }
 
-    // ====================
+
+
+    // =========================
     // DOODSTREAM
-    // ====================
+    // =========================
 
     try {
 
@@ -110,31 +112,59 @@ export default async function handler(req, res) {
               "#",
 
             source:
-              "dood"
+              "doodstream"
 
           }));
 
-    } catch(err) {
+    } catch (err) {
 
-      console.log("DOOD ERROR:", err);
+      console.log(
+        "DOOD ERROR:",
+        err
+      );
 
     }
 
-    // =====================
-// GABUNGKAN VIDEO
-// =====================
 
-// VIZEY DI ATAS
-videos = [
-  ...vizeyVideos,
-  ...doodVideos
-];
 
-// hapus duplicate url
-const uniqueVideos = videos.filter(
-  (video, index, self) =>
-    index ===
-    self.findIndex(v => v.url === video.url)
-);
+    // =========================
+    // FINAL VIDEO LIST
+    // VIZEY PALING ATAS
+    // =========================
 
-res.status(200).json(uniqueVideos);
+    const videos = [
+
+      ...vizeyVideos,
+
+      ...doodVideos
+
+    ];
+
+
+
+    // HAPUS DUPLIKAT
+    const uniqueVideos =
+      videos.filter(
+        (video, index, self) =>
+          index ===
+          self.findIndex(
+            v => v.url === video.url
+          )
+      );
+
+
+
+    return res.status(200).json(
+      uniqueVideos
+    );
+
+  } catch (err) {
+
+    console.log("SERVER ERROR:", err);
+
+    return res.status(500).json({
+      error: "Internal Server Error"
+    });
+
+  }
+}
