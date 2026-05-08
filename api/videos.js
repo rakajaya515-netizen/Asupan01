@@ -103,23 +103,24 @@ try {
   console.log("VIZEY:", vizeyJson);
 
   const vizeyVideos =
-    (vizeyJson.data || []).map(video => ({
+ const vizeyVideos =
+(vizeyJson.data || []).map(video => ({
 
-      title:
-        video.title ||
-        "No Title",
+  title:
+    video.title ||
+    "No Title",
 
-      thumbnail:
-        video.thumbnail ||
-        "https://placehold.co/400x600",
+  thumbnail:
+    video.thumbnail ||
+    "https://placehold.co/400x600",
 
-      url:
-        `https://vizey.net/view/${video.id}`,
+  url:
+    `https://vizey.net/e/${video.id}`,
 
-      source:
-        "vizey"
+  source:
+    "vizey"
 
-    }));
+}));
 
   videos.push(...vizeyVideos);
 
