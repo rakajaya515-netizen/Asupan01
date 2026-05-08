@@ -127,7 +127,7 @@ try {
 
 } catch(err) {
 
-  console.log("VIZEY ERROR");
+  console.log(videos);
 
 }
 
