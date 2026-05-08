@@ -127,7 +127,7 @@ try {
 
 } catch(err) {
 
-  console.log(videos);
+  console.log("VIZEY ERROR");
 
 }
 
@@ -141,11 +141,12 @@ try {
       "s-maxage=300, stale-while-revalidate"
     );
 
-
+console.log(videos);
 
     return res
       .status(200)
       .json(videos);
+  
 
   } catch(err){
 
