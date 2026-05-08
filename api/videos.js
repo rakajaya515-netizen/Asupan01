@@ -96,11 +96,11 @@ try {
 
     const endpoints = [
 
-      `https://vizey.com/api/file/list?key=${VIZEY_API}`,
+      `https://vizey.net/api/file/list?key=${VIZEY_API}`,
 
-      `https://vizey.com/api/files?key=${VIZEY_API}`,
+      `https://vizey.net/api/files?key=${VIZEY_API}`,
 
-      `https://vizey.com/api/list?key=${VIZEY_API}`
+      `https://vizey.net/api/list?key=${VIZEY_API}`
 
     ];
 
