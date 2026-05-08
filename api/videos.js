@@ -15,11 +15,11 @@ async function fetchWithTimeout(url, timeout = 10000) {
 }
 
 export default async function handler(req, res) {
+
   try {
 
-    // =========================
-    // API KEYS
-    // =========================
+    const page =
+      Number(req.query.page || 1);
 
     const VIZEY_API =
       process.env.VIZEY_API_KEY;
@@ -27,141 +27,106 @@ export default async function handler(req, res) {
     const DOOD_API =
       process.env.DOOD_API_KEY;
 
-
-
-    // =========================
-    // VIDEO STORAGE
-    // =========================
-
     let vizeyVideos = [];
     let doodVideos = [];
 
 
 
-    // =========================
-    // VIZEY MULTI PAGE
-    // =========================
+    // =====================
+    // VIZEY
+    // =====================
 
-    for (let page = 1; page <= 10; page++) {
+    try {
 
-      try {
-
-        const vizeyRes =
-          await fetchWithTimeout(
-            `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
-          );
-
-        const vizeyJson =
-          await vizeyRes.json();
-
-        console.log(
-          "VIZEY PAGE:",
-          page
+      const vizeyRes =
+        await fetchWithTimeout(
+          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
         );
 
-        const newVideos =
-          (vizeyJson.data || [])
-            .filter(v => v.id)
-            .map(video => ({
+      const vizeyJson =
+        await vizeyRes.json();
 
-              title:
-                video.title || "No Title",
+      vizeyVideos =
+        (vizeyJson.data || [])
+          .filter(v => v.id)
+          .map(video => ({
 
-              thumbnail:
-                video.thumbnail ||
-                "https://placehold.co/400x600",
+            title:
+              video.title || "No Title",
 
-              url:
-                `https://vizey.net/d/${video.id}`,
+            thumbnail:
+              video.thumbnail ||
+              "https://placehold.co/400x600",
 
-              source:
-                "vizey"
+            url:
+              `https://vizey.net/embed/${video.id}`,
 
-            }));
+            source:
+              "vizey"
 
-        vizeyVideos.push(
-          ...newVideos
-        );
+          }));
 
-      } catch (err) {
+    } catch (err) {
 
-        console.log(
-          "VIZEY ERROR PAGE:",
-          page,
-          err
-        );
-
-      }
+      console.log(
+        "VIZEY ERROR:",
+        err
+      );
 
     }
 
 
 
-    // =========================
-    // DOODSTREAM MULTI PAGE
-    // =========================
+    // =====================
+    // DOODSTREAM
+    // =====================
 
-    for (let page = 1; page <= 10; page++) {
+    try {
 
-      try {
-
-        const doodRes =
-          await fetchWithTimeout(
-            `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
-          );
-
-        const doodJson =
-          await doodRes.json();
-
-        console.log(
-          "DOOD PAGE:",
-          page
+      const doodRes =
+        await fetchWithTimeout(
+          `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
         );
 
-        const newVideos =
-          (doodJson.result?.files || [])
-            .map(video => ({
+      const doodJson =
+        await doodRes.json();
 
-              title:
-                video.title || "No Title",
+      doodVideos =
+        (doodJson.result?.files || [])
+          .map(video => ({
 
-              thumbnail:
-                video.splash_img ||
-                video.single_img ||
-                "https://placehold.co/400x600",
+            title:
+              video.title || "No Title",
 
-              url:
-                video.download_url ||
-                video.protected_embed ||
-                "#",
+            thumbnail:
+              video.splash_img ||
+              video.single_img ||
+              "https://placehold.co/400x600",
 
-              source:
-                "doodstream"
+            url:
+              video.download_url ||
+              video.protected_embed ||
+              "#",
 
-            }));
+            source:
+              "doodstream"
 
-        doodVideos.push(
-          ...newVideos
-        );
+          }));
 
-      } catch (err) {
+    } catch (err) {
 
-        console.log(
-          "DOOD ERROR PAGE:",
-          page,
-          err
-        );
-
-      }
+      console.log(
+        "DOOD ERROR:",
+        err
+      );
 
     }
 
 
 
-    // =========================
-    // FINAL VIDEO LIST
-    // VIZEY PALING ATAS
-    // =========================
+    // =====================
+    // FINAL
+    // =====================
 
     const videos = [
 
@@ -173,40 +138,18 @@ export default async function handler(req, res) {
 
 
 
-    // =========================
-    // REMOVE DUPLICATE
-    // =========================
-
-    const uniqueVideos =
-      videos.filter(
-        (video, index, self) =>
-          index ===
-          self.findIndex(
-            v => v.url === video.url
-          )
-      );
-
-
-
-    // =========================
-    // RESPONSE
-    // =========================
-
     return res.status(200).json(
-      uniqueVideos
+      videos
     );
 
   } catch (err) {
 
-    console.log(
-      "SERVER ERROR:",
-      err
-    );
+    console.log(err);
 
     return res.status(500).json({
-      error:
-        "Internal Server Error"
+      error: "Server Error"
     });
 
   }
-      }
+
+}
