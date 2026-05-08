@@ -1,4 +1,4 @@
- export default async function handler(req, res) {
+module.exports = async (req, res) => {
 
   try {
 
@@ -39,7 +39,6 @@
           url:
             video.download_url ||
             video.protected_embed ||
-
             "#",
 
           source:
@@ -51,7 +50,7 @@
 
     } catch (err) {
 
-      console.log("DOOD ERROR");
+      console.log("DOOD ERROR", err);
 
     }
 
@@ -92,7 +91,7 @@
 
     } catch (err) {
 
-      console.log("VIZEY ERROR");
+      console.log("VIZEY ERROR", err);
 
     }
 
@@ -100,7 +99,7 @@
 
   } catch (err) {
 
-    console.log(err);
+    console.log("SERVER ERROR", err);
 
     return res.status(500).json({
       error: "SERVER ERROR"
@@ -108,5 +107,4 @@
 
   }
 
-      }
-    
+};
