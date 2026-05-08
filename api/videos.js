@@ -28,6 +28,10 @@ export default async function handler(req, res) {
 
     let vizeyVideos = [];
     let doodVideos = [];
+    videos = [
+  ...vizeyVideos,
+  ...doodVideos
+];
 
     // ====================
     // VIZEY FIRST
