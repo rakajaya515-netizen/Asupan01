@@ -115,7 +115,7 @@ try {
         "https://placehold.co/400x600",
 
       url:
-        `https://vizey.net/net/${video.id}`,
+        `https://vizey.net/view/${video.id}`,
 
       source:
         "vizey"
