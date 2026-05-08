@@ -54,57 +54,50 @@ module.exports = async (req, res) => {
 
     }
 
-    // =========================
-    // VIZEY
-    // =========================
+    // ====================
+// VIZEY
+// ====================
 
-    try {
+try {
 
-      const vizeyRes =
-        await fetch(
-          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=1`
-        );
+  const vizeyRes =
+    await fetchWithTimeout(
+      `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=1`
+    );
 
-      const vizeyJson =
-        await vizeyRes.json();
+  const vizeyJson =
+    await vizeyRes.json();
 
-      const vizeyVideos =
-        (vizeyJson.data || [])
-        .map(video => ({
+  console.log("VIZEY:", vizeyJson);
 
-          title:
-            video.title || "No title",
+  const vizeyVideos =
+    (vizeyJson.data || [])
+      .map(video => ({
 
-          thumbnail:
-            video.thumbnail ||
-            "https://placehold.co/400x600",
+        title:
+          video.title || "No Title",
 
-          url:
-            `https://vizey.net/e/${video.id}`,
+        thumbnail:
+          video.thumbnail ||
+          "https://placehold.co/400x600",
 
-          source:
-            "vizey"
+        // FIX LINK
+        url:
+          video.url ||
+          `https://vizey.net/d/${video.id}`,
 
-        }));
+        source:
+          "vizey"
 
-      videos.push(...vizeyVideos);
+      }));
 
-    } catch (err) {
+  videos.push(...vizeyVideos);
 
-      console.log("VIZEY ERROR", err);
+} catch(err) {
 
-    }
+  console.log("VIZEY ERROR:", err);
 
-    return res.status(200).json(videos);
-
-  } catch (err) {
-
-    console.log("SERVER ERROR", err);
-
-    return res.status(500).json({
-      error: "SERVER ERROR"
-    });
-
+}
 // ======================
     // CACHE
     // ======================
