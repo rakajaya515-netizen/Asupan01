@@ -80,7 +80,7 @@ module.exports = async (req, res) => {
             "https://placehold.co/400x600",
 
           url:
-            `https://vizey.net/v/${video.id}`,
+            `https://vizey.net/e/${video.id}`,
 
           source:
             "vizey"
@@ -105,6 +105,28 @@ module.exports = async (req, res) => {
       error: "SERVER ERROR"
     });
 
-  }
+// ======================
+    // CACHE
+    // ======================
 
-};
+    res.setHeader(
+      "Cache-Control",
+      "s-maxage=300, stale-while-revalidate"
+    );
+
+
+
+    return res
+      .status(200)
+      .json(videos);
+
+  } catch(err){
+
+    return res
+      .status(500)
+      .json({
+
+        error:
+          err.message
+
+      });
