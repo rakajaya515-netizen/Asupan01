@@ -200,3 +200,18 @@ body{
   }
 
 }
+
+ads-banner{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:20px 0;
+  overflow:hidden;
+}
+
+.ads-banner iframe{
+  border:none;
+  border-radius:14px;
+  overflow:hidden;
+}
