@@ -1,212 +1,123 @@
-// public/script.js
-
-const grid =
-  document.getElementById("videoGrid");
-
-const searchInput =
-  document.getElementById("search");
-
-const loading =
-  document.getElementById("loading");
+const grid = document.getElementById("videos");
+const search = document.getElementById("search");
+const loading = document.getElementById("loading");
 
 let allVideos = [];
-
 let filteredVideos = [];
 
 let currentPage = 1;
-
 const LIMIT = 20;
 
 let isLoading = false;
 
-
-
-// ======================
 // FETCH VIDEOS
-// ======================
-
 async function fetchVideos() {
-
   try {
+    loading.innerHTML = "Loading videos...";
 
-    loading.innerHTML =
-      "Loading videos...";
+    const res = await fetch("/api/videos");
 
-    const res =
-      await fetch("/api/videos");
+    if (!res.ok) {
+      throw new Error("API ERROR");
+    }
 
-    const data =
-      await res.json();
+    const data = await res.json();
 
-    allVideos =
-      data.filter(v => v.url);
+    console.log(data);
 
-    filteredVideos =
-      allVideos;
+    // pastikan array
+    if (!Array.isArray(data)) {
+      throw new Error("Invalid API response");
+    }
+
+    // filter video valid
+    allVideos = data.filter(
+      (v) =>
+        v &&
+        v.url &&
+        v.thumbnail
+    );
+
+    filteredVideos = allVideos;
 
     grid.innerHTML = "";
-
     currentPage = 1;
 
     renderVideos();
 
     loading.innerHTML = "";
+  } catch (err) {
+    console.log(err);
 
-  } catch(err){
-
-  console.log(err);
-
-  loading.innerHTML =
-    err.message;
-
+    loading.innerHTML =
+      "Failed load videos";
   }
 }
 
-
-
-// ======================
-// RENDER VIDEOS
-// ======================
-
+// RENDER
 function renderVideos() {
-
   if (isLoading) return;
 
   isLoading = true;
 
-  const start =
-    (currentPage - 1) * LIMIT;
-
-  const end =
-    start + LIMIT;
+  const start = (currentPage - 1) * LIMIT;
+  const end = start + LIMIT;
 
   const videos =
     filteredVideos.slice(start, end);
 
-  videos.forEach(video => {
+  videos.forEach((video) => {
+    const a = document.createElement("a");
 
-    const card =
-      document.createElement("a");
+    a.className = "card";
+    a.href = video.url;
+    a.target = "_blank";
 
-    card.className =
-      "card";
-
-    card.href =
-      video.url;
-
-    card.target =
-      "_blank";
-
-    card.innerHTML = `
-
-      <div class="thumb-wrap">
-
-        <img
-          src="${video.thumbnail}"
-          alt="${video.title}"
-          loading="lazy"
-          onerror="this.src='https://placehold.co/400x600?text=No+Image'"
-        />
-
-      </div>
-
-      <div class="info">
-
-        <h3>${video.title || "")
-.toLowerCase()}</h3>
-
-        <span>${video.source}</span>
-
-      </div>
-
+    a.innerHTML = `
+      <img src="${video.thumbnail}" alt="">
+      <div class="overlay"></div>
+      <h3>${video.title || "No title"}</h3>
     `;
 
-    grid.appendChild(card);
-
+    grid.appendChild(a);
   });
 
   isLoading = false;
-
 }
 
-
-
-// ======================
-// SEARCH
-// ======================
-
-searchInput.addEventListener(
-  "input",
-  e => {
-
-    const value =
-      e.target.value.toLowerCase();
-
-    filteredVideos =
-      allVideos.filter(video =>
-        (video.title || "")
-          .toLowerCase()
-          .includes(value)
-      );
-
-    grid.innerHTML = "";
-
-    currentPage = 1;
-
-    renderVideos();
-
-  }
-);
-
-
-
-// ======================
 // INFINITE SCROLL
-// ======================
-
-window.addEventListener(
-  "scroll",
-  () => {
-
-    const {
-
-      scrollTop,
-
-      scrollHeight,
-
-      clientHeight
-
-    } = document.documentElement;
-
+window.addEventListener("scroll", () => {
+  if (
+    window.innerHeight + window.scrollY >=
+    document.body.offsetHeight - 500
+  ) {
     if (
-
-      scrollTop + clientHeight >=
-      scrollHeight - 300
-
+      currentPage * LIMIT <
+      filteredVideos.length
     ) {
-
-      const maxPage =
-        Math.ceil(
-          filteredVideos.length / LIMIT
-        );
-
-      if (currentPage < maxPage) {
-
-        currentPage++;
-
-        renderVideos();
-
-      }
-
+      currentPage++;
+      renderVideos();
     }
-
   }
-);
+});
 
+// SEARCH
+search.addEventListener("input", (e) => {
+  const value =
+    e.target.value.toLowerCase();
 
+  filteredVideos = allVideos.filter(
+    (video) =>
+      video.title
+        .toLowerCase()
+        .includes(value)
+  );
 
-// ======================
-// INIT
-// ======================
+  grid.innerHTML = "";
+  currentPage = 1;
 
+  renderVideos();
+});
+
+// START
 fetchVideos();
