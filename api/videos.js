@@ -114,7 +114,7 @@ export default async function handler(req, res) {
             "https://placehold.co/400x600",
 
           url:
-            `https://vizey.net/watch/${video.id}`,
+            `https://vizey.net/view/${video.id}`,
 
           source:
             "vizey"
