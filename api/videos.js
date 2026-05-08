@@ -63,7 +63,7 @@ export default async function handler(req, res) {
 
             // LINK VIDEO
             url:
-              `https://vizey.net/d/${video.id}`,
+              `https://vizey.net/v/${video.id}`,
 
             source:
               "vizey"
