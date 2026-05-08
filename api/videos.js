@@ -1,4 +1,4 @@
-      export default async function handler(req, res) {
+ export default async function handler(req, res) {
 
   try {
 
@@ -109,33 +109,4 @@
   }
 
       }
-    // ======================
-    // CACHE
-    // ======================
-
-    res.setHeader(
-      "Cache-Control",
-      "s-maxage=300, stale-while-revalidate"
-    );
-
-console.log(videos);
-
-    return res
-      .status(200)
-      .json(videos);
-  
-
-  } catch(err){
-
-    return res
-      .status(500)
-      .json({
-
-        error:
-          err.message
-
-      });
-
-  }
-
-}
+    
