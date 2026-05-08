@@ -1,29 +1,20 @@
-async function fetchWithTimeout(url, timeout = 8000) {
+async function fetchWithTimeout(url, timeout = 10000) {
 
-  const controller =
-    new AbortController();
+  const controller = new AbortController();
 
-  const id =
-    setTimeout(
-      () => controller.abort(),
-      timeout
-    );
+  const id = setTimeout(
+    () => controller.abort(),
+    timeout
+  );
 
-  const response =
-    await fetch(url, {
-
-      signal:
-        controller.signal
-
-    });
+  const response = await fetch(url, {
+    signal: controller.signal
+  });
 
   clearTimeout(id);
 
   return response;
-
 }
-
-
 
 export default async function handler(req, res) {
 
@@ -35,60 +26,12 @@ export default async function handler(req, res) {
     const VIZEY_API =
       process.env.VIZEY_API_KEY;
 
-    let videos = [];
+    let vizeyVideos = [];
+    let doodVideos = [];
 
-
-
-    // ======================
-    // DOODSTREAM
-    // ======================
-
-    try {
-
-      const doodRes =
-        await fetchWithTimeout(
-          `https://doodapi.co/api/file/list?key=${DOOD_API}&page=1`
-        );
-
-      const doodJson =
-        await doodRes.json();
-
-      const doodVideos =
-        (doodJson.result?.files || [])
-        .map(video => ({
-
-          title:
-            video.title ||
-            "No Title",
-
-          thumbnail:
-            video.splash_img ||
-            video.single_img ||
-            "https://placehold.co/400x600",
-
-          url:
-            video.download_url ||
-            video.protected_embed ||
-            "#",
-
-          source:
-            "doodstream"
-
-        }));
-
-      videos.push(...doodVideos);
-
-    } catch(err){
-
-      console.log("DOOD ERROR");
-
-    }
-
-
-
-    // ======================
-    // VIZEY
-    // ======================
+    // ====================
+    // VIZEY FIRST
+    // ====================
 
     try {
 
@@ -100,62 +43,97 @@ export default async function handler(req, res) {
       const vizeyJson =
         await vizeyRes.json();
 
-      const vizeyVideos =
+      console.log("VIZEY:", vizeyJson);
+
+      vizeyVideos =
         (vizeyJson.data || [])
-        .filter(v => v.id)
-        .map(video => ({
+          .filter(v => v.id)
+          .map(video => ({
 
-          title:
-            video.title ||
-            "No Title",
+            title:
+              video.title || "No Title",
 
-          thumbnail:
-            video.thumbnail ||
-            "https://placehold.co/400x600",
+            thumbnail:
+              video.thumbnail ||
+              "https://placehold.co/400x600",
 
-          url:
-            `https://vizey.net/view/${video.id}`,
+            // LINK VIDEO
+            url:
+              `https://vizey.net/v/${video.id}`,
 
-          source:
-            "vizey"
+            source:
+              "vizey"
 
-        }));
+          }));
 
-      videos.push(...vizeyVideos);
+    } catch(err) {
 
-    } catch(err){
-
-      console.log("VIZEY ERROR");
+      console.log("VIZEY ERROR:", err);
 
     }
 
+    // ====================
+    // DOODSTREAM
+    // ====================
 
+    try {
 
-    // ======================
-    // CACHE
-    // ======================
+      const doodRes =
+        await fetchWithTimeout(
+          `https://doodapi.co/api/file/list?key=${DOOD_API}&page=1`
+        );
 
-    res.setHeader(
-      "Cache-Control",
-      "s-maxage=300, stale-while-revalidate"
-    );
+      const doodJson =
+        await doodRes.json();
 
+      console.log("DOOD:", doodJson);
 
+      doodVideos =
+        (doodJson.result?.files || [])
+          .map(video => ({
 
-    return res
-      .status(200)
-      .json(videos);
+            title:
+              video.title || "No Title",
 
-  } catch(err){
+            thumbnail:
+              video.splash_img ||
+              video.single_img ||
+              "https://placehold.co/400x600",
 
-    return res
-      .status(500)
-      .json({
+            url:
+              video.download_url ||
+              video.protected_embed ||
+              "#",
 
-        error:
-          err.message
+            source:
+              "dood"
 
-      });
+          }));
+
+    } catch(err) {
+
+      console.log("DOOD ERROR:", err);
+
+    }
+
+    // ====================
+    // VIZEY PALING ATAS
+    // ====================
+
+    const videos = [
+      ...vizeyVideos,
+      ...doodVideos
+    ];
+
+    return res.status(200).json(videos);
+
+  } catch(err) {
+
+    console.log("SERVER ERROR:", err);
+
+    return res.status(500).json({
+      error: err.message
+    });
 
   }
 
