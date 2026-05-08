@@ -1,20 +1,29 @@
-async function fetchWithTimeout(url, timeout = 10000) {
+async function fetchWithTimeout(url, timeout = 8000) {
 
-  const controller = new AbortController();
+  const controller =
+    new AbortController();
 
-  const id = setTimeout(
-    () => controller.abort(),
-    timeout
-  );
+  const id =
+    setTimeout(
+      () => controller.abort(),
+      timeout
+    );
 
-  const response = await fetch(url, {
-    signal: controller.signal
-  });
+  const response =
+    await fetch(url, {
+
+      signal:
+        controller.signal
+
+    });
 
   clearTimeout(id);
 
   return response;
+
 }
+
+
 
 export default async function handler(req, res) {
 
@@ -28,9 +37,11 @@ export default async function handler(req, res) {
 
     let videos = [];
 
-    // ====================
+
+
+    // ======================
     // DOODSTREAM
-    // ====================
+    // ======================
 
     try {
 
@@ -44,37 +55,40 @@ export default async function handler(req, res) {
 
       const doodVideos =
         (doodJson.result?.files || [])
-          .map(video => ({
+        .map(video => ({
 
-            title:
-              video.title || "No Title",
+          title:
+            video.title ||
+            "No Title",
 
-            thumbnail:
-              video.splash_img ||
-              video.single_img ||
-              "https://placehold.co/400x600",
+          thumbnail:
+            video.splash_img ||
+            video.single_img ||
+            "https://placehold.co/400x600",
 
-            url:
-              video.download_url ||
-              video.protected_embed ||
-              "#",
+          url:
+            video.download_url ||
+            video.protected_embed ||
+            "#",
 
-            source:
-              "dood"
+          source:
+            "doodstream"
 
-          }));
+        }));
 
       videos.push(...doodVideos);
 
-    } catch (err) {
+    } catch(err){
 
-      console.log("DOOD ERROR:", err);
+      console.log("DOOD ERROR");
 
     }
 
-    // ====================
+
+
+    // ======================
     // VIZEY
-    // ====================
+    // ======================
 
     try {
 
@@ -86,47 +100,63 @@ export default async function handler(req, res) {
       const vizeyJson =
         await vizeyRes.json();
 
-      console.log(vizeyJson);
-
       const vizeyVideos =
         (vizeyJson.data || [])
-          .map(video => ({
+        .filter(v => v.id)
+        .map(video => ({
 
-            title:
-              video.title || "No Title",
+          title:
+            video.title ||
+            "No Title",
 
-            thumbnail:
-              video.thumbnail ||
-              "https://placehold.co/400x600",
+          thumbnail:
+            video.thumbnail ||
+            "https://placehold.co/400x600",
 
-            url:
-              video.url ||
-              `https://vizey.net/d/${video.id}`,
+          url:
+            `https://vizey.net/watch/${video.id}`,
 
-            source:
-              "vizey"
+          source:
+            "vizey"
 
-          }));
+        }));
 
       videos.push(...vizeyVideos);
 
-    } catch (err) {
+    } catch(err){
 
-      console.log("VIZEY ERROR:", err);
+      console.log("VIZEY ERROR");
 
     }
 
-    return res.status(200).json(videos);
 
-  } catch (err) {
 
-    console.log("SERVER ERROR:", err);
+    // ======================
+    // CACHE
+    // ======================
 
-    return res.status(500).json({
-      error: err.message
-    });
+    res.setHeader(
+      "Cache-Control",
+      "s-maxage=300, stale-while-revalidate"
+    );
+
+
+
+    return res
+      .status(200)
+      .json(videos);
+
+  } catch(err){
+
+    return res
+      .status(500)
+      .json({
+
+        error:
+          err.message
+
+      });
 
   }
 
 }
-
