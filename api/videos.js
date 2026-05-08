@@ -58,7 +58,7 @@ try {
         // FIX LINK
         url:
           video.url ||
-          `https://vizey.net/e/${video.id}`,
+          `https://vizey.net/d/${video.id}`,
 
         source:
           "vizey"
