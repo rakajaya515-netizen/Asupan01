@@ -60,7 +60,7 @@ export default async function handler(req, res) {
 
             // LINK VIDEO
             url:
-              `https://vizey.net/e/${video.id}`,
+              `https://vizey.net/embed/${video.id}`,
 
             source:
               "vizey"
