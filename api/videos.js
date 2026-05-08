@@ -20,11 +20,11 @@ export default async function handler(req, res) {
 
   try {
 
-    const DOOD_API =
-      process.env.DOOD_API_KEY;
-
     const VIZEY_API =
       process.env.VIZEY_API_KEY;
+
+    const DOOD_API =
+      process.env.DOOD_API_KEY;
 
     let vizeyVideos = [];
     let doodVideos = [];
