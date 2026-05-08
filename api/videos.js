@@ -86,89 +86,48 @@ export default async function handler(req, res) {
 
 
 
-    // ==// ======================
+    /// ======================
 // VIZEY
 // ======================
 
 try {
 
-  if (VIZEY_API) {
+  const vizeyRes =
+    await fetchWithTimeout(
+      `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=1`
+    );
 
-    const endpoints = [
+  const vizeyJson =
+    await vizeyRes.json();
 
-      `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=1`,
+  console.log("VIZEY:", vizeyJson);
 
-      `https://vizey.net/api/v1/files?key=${VIZEY_API}`,
+  const vizeyVideos =
+    (vizeyJson.data || []).map(video => ({
 
-      
+      title:
+        video.title ||
+        "No Title",
 
-    ];
+      thumbnail:
+        video.thumbnail ||
+        "https://placehold.co/400x600",
 
-    for (const endpoint of endpoints) {
+      url:
+        `https://vizey.net/watch/${video.id}`,
 
-      try {
+      source:
+        "vizey"
 
-        const res =
-          await fetchWithTimeout(endpoint);
+    }));
 
-        const json =
-          await res.json();
+  videos.push(...vizeyVideos);
 
-        console.log("VIZEY RESPONSE:", json);
-
-        const files =
-          json.result ||
-          json.files ||
-          json.data ||
-          [];
-
-        if (Array.isArray(files)) {
-
-          const parsed =
-            files.map((video) => ({
-
-              title:
-                video.title ||
-                "No title",
-
-              thumbnail:
-                video.splash_img ||
-                video.single_img ||
-                video.thumbnail ||
-                "https://placehold.co/400x600",
-
-              url:
-                video.download_url ||
-                video.protected_embed ||
-                video.url ||
-                "#",
-
-              source:
-                "vizey"
-
-            }));
-
-          videos.push(...parsed);
-
-          break;
-        }
-
-      } catch (e) {
-
-        console.log("ENDPOINT FAILED");
-
-      }
-
-    }
-
-  }
-
-} catch (err) {
+} catch(err) {
 
   console.log("VIZEY ERROR:", err);
 
 }
-
     // ======================
     // CACHE
     // ======================
