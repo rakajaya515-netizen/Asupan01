@@ -116,25 +116,21 @@ export default async function handler(req, res) {
 
     }
 
-    // ====================
-    // VIZEY PALING ATAS
-    // ====================
+    // =====================
+// GABUNGKAN VIDEO
+// =====================
 
-    const videos = [
-      ...vizeyVideos,
-      ...doodVideos
-    ];
+// VIZEY DI ATAS
+videos = [
+  ...vizeyVideos,
+  ...doodVideos
+];
 
-    return res.status(200).json(videos);
+// hapus duplicate url
+const uniqueVideos = videos.filter(
+  (video, index, self) =>
+    index ===
+    self.findIndex(v => v.url === video.url)
+);
 
-  } catch(err) {
-
-    console.log("SERVER ERROR:", err);
-
-    return res.status(500).json({
-      error: err.message
-    });
-
-  }
-
-}
+res.status(200).json(uniqueVideos);
