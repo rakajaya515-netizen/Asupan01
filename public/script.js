@@ -73,18 +73,17 @@ function renderVideos() {
     a.href = video.url;
     a.target = "_blank";
 
-    card.innerHTML = `
-  <img
-    loading="lazy"
-    src="${video.thumbnail}"
-    alt="${video.title}"
-  />
+    a.innerHTML = `
+      <img src="${video.thumbnail}" alt="">
+      <div class="overlay"></div>
+      <h3>${video.title || "No title"}</h3>
+    `;
 
-  <div class="video-info">
-    <h3>${video.title || "No title"}</h3>
-    <p>${video.source || "unknown"}</p>
-  </div>
-`;
+    grid.appendChild(a);
+  });
+
+  isLoading = false;
+}
 
 // INFINITE SCROLL
 window.addEventListener("scroll", () => {
