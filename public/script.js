@@ -1,52 +1,40 @@
-const grid = document.getElementById("videos");
-const search = document.getElementById("search");
-const loading = document.getElementById("loading");
+const videosContainer =
+  document.getElementById("videos");
+
+const loading =
+  document.getElementById("loading");
+
+const searchInput =
+  document.getElementById("search");
 
 let allVideos = [];
-let filteredVideos = [];
 
-let currentPage = 1;
-const LIMIT = 20;
+// ======================
+// LOAD VIDEOS
+// ======================
 
-let isLoading = false;
+async function loadVideos() {
 
-// FETCH VIDEOS
-async function fetchVideos() {
   try {
-    loading.innerHTML = "Loading videos...";
 
-    const res = await fetch("/api/videos");
+    loading.innerHTML =
+      "Loading videos...";
 
-    if (!res.ok) {
-      throw new Error("API ERROR");
-    }
+    const response =
+      await fetch("/api/videos");
 
-    const data = await res.json();
+    const data =
+      await response.json();
 
     console.log(data);
 
-    // pastikan array
-    if (!Array.isArray(data)) {
-      throw new Error("Invalid API response");
-    }
+    // FIX IMPORTANT
+    allVideos = data.videos || [];
 
-    // filter video valid
-    allVideos = data.filter(
-      (v) =>
-        v &&
-        v.url &&
-        v.thumbnail
-    );
+    renderVideos(allVideos);
 
-    filteredVideos = allVideos;
-
-    grid.innerHTML = "";
-    currentPage = 1;
-
-    renderVideos();
-
-    loading.innerHTML = "";
   } catch (err) {
+
     console.log(err);
 
     loading.innerHTML =
@@ -54,70 +42,82 @@ async function fetchVideos() {
   }
 }
 
+// ======================
 // RENDER
-function renderVideos() {
-  if (isLoading) return;
+// ======================
 
-  isLoading = true;
+function renderVideos(videos) {
 
-  const start = (currentPage - 1) * LIMIT;
-  const end = start + LIMIT;
+  videosContainer.innerHTML = "";
 
-  const videos =
-    filteredVideos.slice(start, end);
+  if (!videos.length) {
+
+    loading.innerHTML =
+      "No videos";
+
+    return;
+  }
+
+  loading.style.display = "none";
 
   videos.forEach((video) => {
-    const a = document.createElement("a");
 
-    a.className = "card";
-    a.href = video.url;
-    a.target = "_blank";
+    const card =
+      document.createElement("a");
 
-    a.innerHTML = `
-      <img src="${video.thumbnail}" alt="">
-      <div class="overlay"></div>
-      <h3>${video.title || "No title"}</h3>
+    card.className = "card";
+
+    card.href = video.url;
+
+    card.target = "_blank";
+
+    card.innerHTML = `
+      <img
+        src="${video.thumbnail}"
+        alt="${video.title}"
+      />
+
+      <div class="info">
+
+        <div class="title">
+          ${video.title}
+        </div>
+
+        <div class="source">
+          ${video.source}
+        </div>
+
+      </div>
     `;
 
-    grid.appendChild(a);
+    videosContainer.appendChild(card);
   });
-
-  isLoading = false;
 }
 
-// INFINITE SCROLL
-window.addEventListener("scroll", () => {
-  if (
-    window.innerHeight + window.scrollY >=
-    document.body.offsetHeight - 500
-  ) {
-    if (
-      currentPage * LIMIT <
-      filteredVideos.length
-    ) {
-      currentPage++;
-      renderVideos();
-    }
-  }
-});
-
+// ======================
 // SEARCH
-search.addEventListener("input", (e) => {
-  const value =
-    e.target.value.toLowerCase();
+// ======================
 
-  filteredVideos = allVideos.filter(
-    (video) =>
-      video.title
-        .toLowerCase()
-        .includes(value)
-  );
+searchInput.addEventListener(
+  "input",
+  (e) => {
 
-  grid.innerHTML = "";
-  currentPage = 1;
+    const keyword =
+      e.target.value.toLowerCase();
 
-  renderVideos();
-});
+    const filtered =
+      allVideos.filter((video) =>
+        video.title
+          .toLowerCase()
+          .includes(keyword)
+      );
 
+    renderVideos(filtered);
+  }
+);
+
+// ======================
 // START
-fetchVideos();
+// ======================
+
+loadVideos();
