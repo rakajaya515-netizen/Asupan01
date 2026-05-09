@@ -1,126 +1,132 @@
-const grid = document.getElementById("videos");
-const search = document.getElementById("search");
-const loading = document.getElementById("loading");
+const grid =
+  document.getElementById("videos");
+
+const loading =
+  document.getElementById("loading");
+
+const search =
+  document.getElementById("search");
 
 let allVideos = [];
-let filteredVideos = [];
 
-let currentIndex = 0;
-const LOAD_COUNT = 30;
+let page = 1;
 
-let rendering = false;
+let loadingData = false;
 
-// FETCH VIDEOS
+let hasMore = true;
+
 async function fetchVideos() {
+
+  if (loadingData || !hasMore)
+    return;
+
+  loadingData = true;
+
+  loading.innerHTML =
+    "Loading videos...";
+
   try {
-    loading.innerHTML = "Loading videos...";
 
-    const res = await fetch("/api/videos");
+    const res =
+      await fetch(
+        `/api/videos?page=${page}`
+      );
 
-    if (!res.ok) {
-      throw new Error("API ERROR");
-    }
-
-    const json = await res.json();
+    const json =
+      await res.json();
 
     console.log(json);
 
-    // SUPPORT ARRAY / OBJECT
-    let videos = [];
+    const videos =
+      json.videos || [];
 
-    if (Array.isArray(json)) {
-      videos = json;
-    } else if (json.videos) {
-      videos = json.videos;
-    }
+    hasMore = json.hasMore;
 
-    // FILTER VALID
-    allVideos = videos.filter(
-      (v) =>
-        v &&
-        v.title &&
-        v.thumbnail &&
-        v.url
-    );
+    allVideos.push(...videos);
 
-    filteredVideos = [...allVideos];
+    renderVideos(videos);
 
-    grid.innerHTML = "";
-    currentIndex = 0;
-
-    renderVideos();
+    page++;
 
     loading.innerHTML = "";
+
   } catch (err) {
+
     console.log(err);
 
-    loading.innerHTML = "Failed load videos";
+    loading.innerHTML =
+      "Failed load videos";
+
   }
+
+  loadingData = false;
+
 }
 
-// RENDER
-function renderVideos() {
-  if (rendering) return;
+function renderVideos(videos){
 
-  rendering = true;
+  videos.forEach(video => {
 
-  const nextVideos = filteredVideos.slice(
-    currentIndex,
-    currentIndex + LOAD_COUNT
-  );
-
-  nextVideos.forEach((video) => {
-    const card = document.createElement("a");
+    const card =
+      document.createElement("a");
 
     card.className = "card";
 
     card.href = video.url;
+
     card.target = "_blank";
 
     card.innerHTML = `
-      <img 
-        src="${video.thumbnail}" 
-        alt="${video.title}"
-        loading="lazy"
-      />
-
+      <img src="${video.thumbnail}">
       <div class="info">
-        <h3>${video.title}</h3>
-        <p>${video.source}</p>
+
+        <div class="title">
+          ${video.title}
+        </div>
+
+        <div class="source">
+          ${video.source}
+        </div>
+
       </div>
     `;
 
     grid.appendChild(card);
+
   });
 
-  currentIndex += LOAD_COUNT;
-
-  rendering = false;
 }
 
-// SEARCH
-search.addEventListener("input", (e) => {
-  const value = e.target.value.toLowerCase();
+window.addEventListener("scroll", () => {
 
-  filteredVideos = allVideos.filter((v) =>
-    v.title.toLowerCase().includes(value)
-  );
+  if (
+    window.innerHeight +
+    window.scrollY >=
+    document.body.offsetHeight - 1000
+  ) {
+
+    fetchVideos();
+
+  }
+
+});
+
+search.addEventListener("input", e => {
+
+  const value =
+    e.target.value.toLowerCase();
 
   grid.innerHTML = "";
-  currentIndex = 0;
 
-  renderVideos();
+  const filtered =
+    allVideos.filter(v =>
+      v.title
+        .toLowerCase()
+        .includes(value)
+    );
+
+  renderVideos(filtered);
+
 });
 
-// INFINITE SCROLL
-window.addEventListener("scroll", () => {
-  if (
-    window.innerHeight + window.scrollY >=
-    document.body.offsetHeight - 1200
-  ) {
-    renderVideos();
-  }
-});
-
-// START
 fetchVideos();
