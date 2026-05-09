@@ -2,12 +2,10 @@ async function fetchJson(url) {
   try {
     const res = await fetch(url);
 
-    if (!res.ok) {
-      return null;
-    }
+    if (!res.ok) return null;
 
     return await res.json();
-  } catch (e) {
+  } catch (err) {
     return null;
   }
 }
@@ -19,27 +17,32 @@ export default async function handler(req, res) {
 
     let allVideos = [];
 
-    // =========================
-    // VIZEY FIRST
-    // =========================
+    // ====================================
+    // VIZEY
+    // ====================================
 
     try {
-      // AMBIL 20 HALAMAN SEKALIGUS
-      const pages = Array.from(
-        { length: 20 },
-        (_, i) => i + 1
-      );
+      let page = 1;
+      let finished = false;
 
-      const responses = await Promise.all(
-        pages.map((page) =>
-          fetchJson(
-            `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
-          )
-        )
-      );
+      while (!finished) {
+        console.log("VIZEY PAGE:", page);
 
-      responses.forEach((json) => {
-        if (!json?.data) return;
+        const json = await fetchJson(
+          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
+        );
+
+        // stop kalau gagal
+        if (!json || !json.data) {
+          finished = true;
+          break;
+        }
+
+        // stop kalau kosong
+        if (json.data.length === 0) {
+          finished = true;
+          break;
+        }
 
         const videos = json.data
           .filter((v) => v.id)
@@ -58,37 +61,45 @@ export default async function handler(req, res) {
           }));
 
         allVideos.push(...videos);
-      });
 
-      console.log(
-        "TOTAL VIZEY:",
-        allVideos.length
-      );
+        page++;
+
+        // delay kecil anti rate limit
+        await new Promise((r) =>
+          setTimeout(r, 150)
+        );
+
+        // safety limit
+        if (page > 1000) {
+          finished = true;
+        }
+      }
     } catch (err) {
       console.log("VIZEY ERROR:", err);
     }
 
-    // =========================
-    // DOODSTREAM BELOW
-    // =========================
+    // ====================================
+    // DOODSTREAM
+    // ====================================
 
     try {
-      const pages = Array.from(
-        { length: 20 },
-        (_, i) => i + 1
-      );
+      let page = 1;
+      let finished = false;
 
-      const responses = await Promise.all(
-        pages.map((page) =>
-          fetchJson(
-            `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
-          )
-        )
-      );
+      while (!finished) {
+        console.log("DOOD PAGE:", page);
 
-      responses.forEach((json) => {
+        const json = await fetchJson(
+          `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
+        );
+
         const files =
           json?.result?.files || [];
+
+        if (files.length === 0) {
+          finished = true;
+          break;
+        }
 
         const videos = files.map(
           (video) => ({
@@ -110,24 +121,36 @@ export default async function handler(req, res) {
         );
 
         allVideos.push(...videos);
-      });
 
-      console.log(
-        "TOTAL ALL:",
-        allVideos.length
-      );
+        page++;
+
+        await new Promise((r) =>
+          setTimeout(r, 150)
+        );
+
+        // safety limit
+        if (page > 1000) {
+          finished = true;
+        }
+      }
     } catch (err) {
       console.log("DOOD ERROR:", err);
     }
 
+    // ====================================
     // HAPUS DUPLIKAT
+    // ====================================
+
     const uniqueVideos = [
       ...new Map(
         allVideos.map((v) => [v.url, v])
       ).values(),
     ];
 
+    // ====================================
     // VIZEY PALING ATAS
+    // ====================================
+
     uniqueVideos.sort((a, b) => {
       if (
         a.source === "vizey" &&
@@ -146,7 +169,10 @@ export default async function handler(req, res) {
       return 0;
     });
 
-    res.status(200).json(uniqueVideos);
+    res.status(200).json({
+      total: uniqueVideos.length,
+      videos: uniqueVideos,
+    });
   } catch (err) {
     console.log(err);
 
@@ -154,4 +180,4 @@ export default async function handler(req, res) {
       error: "FAILED_LOAD_VIDEOS",
     });
   }
-        }
+}
