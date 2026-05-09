@@ -1,32 +1,45 @@
-const grid = document.getElementById("videos");
-const search = document.getElementById("search");
-const loading = document.getElementById("loading");
+ const grid =
+  document.getElementById("videos");
+
+const search =
+  document.getElementById("search");
+
+const loading =
+  document.getElementById("loading");
 
 let allVideos = [];
 
+// =========================
 // FETCH VIDEO
+// =========================
+
 async function fetchVideos() {
 
   try {
 
-    loading.innerHTML = "Loading videos...";
+    loading.innerHTML =
+      "Loading videos...";
 
-    const res = await fetch("/api/videos");
+    const res =
+      await fetch("/api/videos");
 
-    const data = await res.json();
+    if (!res.ok) {
+      throw new Error("API ERROR");
+    }
+
+    const data =
+      await res.json();
 
     console.log(data);
 
-    // AMBIL ARRAY VIDEOS
-    allVideos = data.videos || [];
-
-    // FILTER VIDEO VALID
-    allVideos = allVideos.filter(
-      video =>
+    // AMBIL VIDEO
+    allVideos =
+      (data.videos || [])
+      .filter(video =>
         video &&
         video.url &&
         video.thumbnail
-    );
+      );
 
     // RENDER
     renderVideos(allVideos);
@@ -37,13 +50,17 @@ async function fetchVideos() {
 
     console.log(err);
 
-    loading.innerHTML = "Failed load videos";
+    loading.innerHTML =
+      "Failed load videos";
 
   }
 
 }
 
+// =========================
 // RENDER VIDEO
+// =========================
+
 function renderVideos(videos) {
 
   grid.innerHTML = "";
@@ -53,19 +70,34 @@ function renderVideos(videos) {
     const card =
       document.createElement("a");
 
-    card.className = "card";
+    card.className =
+      "card";
 
-    card.href = video.url;
+    card.href =
+      video.url;
 
-    card.target = "_blank";
+    card.target =
+      "_blank";
 
     card.innerHTML = `
-      <img src="${video.thumbnail}" />
+    
+      <img
+        loading="lazy"
+        src="${video.thumbnail}"
+      />
 
       <div class="info">
-        <h3>${video.title}</h3>
-        <p>${video.source}</p>
+
+        <h3>
+          ${video.title}
+        </h3>
+
+        <p>
+          ${video.source}
+        </p>
+
       </div>
+
     `;
 
     grid.appendChild(card);
@@ -74,22 +106,32 @@ function renderVideos(videos) {
 
 }
 
+// =========================
 // SEARCH
-search.addEventListener("input", e => {
+// =========================
 
-  const keyword =
-    e.target.value.toLowerCase();
+search.addEventListener(
+  "input",
+  e => {
 
-  const filtered =
-    allVideos.filter(video =>
-      video.title
-        .toLowerCase()
-        .includes(keyword)
-    );
+    const keyword =
+      e.target.value
+      .toLowerCase();
 
-  renderVideos(filtered);
+    const filtered =
+      allVideos.filter(video =>
+        video.title
+          .toLowerCase()
+          .includes(keyword)
+      );
 
-});
+    renderVideos(filtered);
 
+  }
+);
+
+// =========================
 // START
+// =========================
+
 fetchVideos();
