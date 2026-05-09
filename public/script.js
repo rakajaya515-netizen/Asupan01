@@ -1,137 +1,118 @@
- const grid =
-  document.getElementById("videos");
-
-const search =
-  document.getElementById("search");
-
-const loading =
-  document.getElementById("loading");
+const grid = document.getElementById("videos");
+const search = document.getElementById("search");
+const loading = document.getElementById("loading");
 
 let allVideos = [];
+let filteredVideos = [];
 
-// =========================
-// FETCH VIDEO
-// =========================
+let currentIndex = 0;
+const LOAD_COUNT = 50;
 
+let loadingMore = false;
+
+// FETCH API
 async function fetchVideos() {
-
   try {
+    loading.innerHTML = "Loading videos...";
 
-    loading.innerHTML =
-      "Loading videos...";
-
-    const res =
-      await fetch("/api/videos");
+    const res = await fetch("/api/videos");
 
     if (!res.ok) {
       throw new Error("API ERROR");
     }
 
-    const data =
-      await res.json();
+    const json = await res.json();
 
-    console.log(data);
+    console.log(json);
 
-    // AMBIL VIDEO
-    allVideos =
-      (data.videos || [])
-      .filter(video =>
-        video &&
-        video.url &&
-        video.thumbnail
-      );
+    // SUPPORT FORMAT ARRAY / OBJECT
+    const videos = Array.isArray(json)
+      ? json
+      : json.videos || [];
 
-    // RENDER
-    renderVideos(allVideos);
+    // FILTER VIDEO VALID
+    allVideos = videos.filter(
+      (v) =>
+        v &&
+        v.title &&
+        v.thumbnail &&
+        v.url
+    );
+
+    filteredVideos = [...allVideos];
+
+    grid.innerHTML = "";
+    currentIndex = 0;
+
+    renderMore();
 
     loading.innerHTML = "";
-
   } catch (err) {
-
     console.log(err);
 
-    loading.innerHTML =
-      "Failed load videos";
-
+    loading.innerHTML = "Failed load videos";
   }
-
 }
 
-// =========================
 // RENDER VIDEO
-// =========================
+function renderMore() {
+  if (loadingMore) return;
 
-function renderVideos(videos) {
+  loadingMore = true;
 
-  grid.innerHTML = "";
+  const nextVideos = filteredVideos.slice(
+    currentIndex,
+    currentIndex + LOAD_COUNT
+  );
 
-  videos.forEach(video => {
+  nextVideos.forEach((video) => {
+    const card = document.createElement("a");
 
-    const card =
-      document.createElement("a");
+    card.className = "card";
 
-    card.className =
-      "card";
-
-    card.href =
-      video.url;
-
-    card.target =
-      "_blank";
+    card.href = video.url;
+    card.target = "_blank";
 
     card.innerHTML = `
-    
-      <img
-        loading="lazy"
-        src="${video.thumbnail}"
-      />
+      <img src="${video.thumbnail}" alt="${video.title}" />
 
       <div class="info">
-
-        <h3>
-          ${video.title}
-        </h3>
-
-        <p>
-          ${video.source}
-        </p>
-
+        <h3>${video.title}</h3>
+        <p>${video.source}</p>
       </div>
-
     `;
 
     grid.appendChild(card);
-
   });
 
+  currentIndex += LOAD_COUNT;
+
+  loadingMore = false;
 }
 
-// =========================
 // SEARCH
-// =========================
+search.addEventListener("input", (e) => {
+  const value = e.target.value.toLowerCase();
 
-search.addEventListener(
-  "input",
-  e => {
+  filteredVideos = allVideos.filter((v) =>
+    v.title.toLowerCase().includes(value)
+  );
 
-    const keyword =
-      e.target.value
-      .toLowerCase();
+  grid.innerHTML = "";
+  currentIndex = 0;
 
-    const filtered =
-      allVideos.filter(video =>
-        video.title
-          .toLowerCase()
-          .includes(keyword)
-      );
+  renderMore();
+});
 
-    renderVideos(filtered);
-
+// INFINITE SCROLL
+window.addEventListener("scroll", () => {
+  if (
+    window.innerHeight + window.scrollY >=
+    document.body.offsetHeight - 1000
+  ) {
+    renderMore();
   }
-);
+});
 
-// =========================
 // START
-// =========================
-
 fetchVideos();
