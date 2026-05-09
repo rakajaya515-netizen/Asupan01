@@ -1,184 +1,135 @@
-async function fetchWithTimeout(url, timeout = 15000) {
-
-  const controller = new AbortController();
-
-  const id = setTimeout(() => {
-    controller.abort();
-  }, timeout);
-
-  const response = await fetch(url, {
-    signal: controller.signal,
-  });
-
-  clearTimeout(id);
-
-  return response;
-}
-
 export default async function handler(req, res) {
 
+  const VIZEY_KEY =
+    process.env.VIZEY_API_KEY;
+
+  const DOOD_KEY =
+    process.env.DOOD_API_KEY;
+
+  const page =
+    Number(req.query.page || 1);
+
   try {
-
-    const VIZEY_API =
-      process.env.VIZEY_API_KEY;
-
-    const DOOD_API =
-      process.env.DOOD_API_KEY;
 
     let allVideos = [];
 
     // =========================
-    // VIZEY FIRST
+    // VIZEY
     // =========================
 
-    for (let page = 1; page <= 100; page++) {
+    try {
 
-      try {
-
-        console.log("VIZEY PAGE:", page);
-
-        const response =
-          await fetchWithTimeout(
-            `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
-          );
-
-        const json =
-          await response.json();
-
-        const videos =
-          (json.data || [])
-          .filter(v => v.id)
-          .map(video => ({
-
-            title:
-              video.title || "No Title",
-
-            thumbnail:
-              video.thumbnail ||
-              "https://placehold.co/400x600",
-
-            url:
-              `https://vizey.net/d/${video.id}`,
-
-            source:
-              "vizey"
-
-          }));
-
-        // MASUKKAN VIDEO
-        allVideos.push(...videos);
-
-        // STOP JIKA HABIS
-        if (!videos.length) {
-          break;
-        }
-
-      } catch (err) {
-
-        console.log(
-          "VIZEY ERROR PAGE:",
-          page
+      const vizeyRes =
+        await fetch(
+          `https://vizey.net/api/v1/list?apikey=${VIZEY_KEY}&page=${page}`
         );
 
-      }
+      const vizeyJson =
+        await vizeyRes.json();
 
+      const vizeyVideos =
+        (vizeyJson.data || []).map(v => ({
+
+          title:
+            v.title || "No Title",
+
+          thumbnail:
+            v.thumbnail ||
+            v.preview ||
+            "",
+
+          url:
+            `https://vizey.net/d/${v.id}`,
+
+          source:"vizey"
+
+        }));
+
+      allVideos.push(...vizeyVideos);
+
+    } catch (e) {
+      console.log("VIZEY ERROR");
     }
 
     // =========================
-    // DOOD BELOW
+    // DOOD
     // =========================
 
-    for (let page = 1; page <= 50; page++) {
+    try {
 
-      try {
-
-        console.log("DOOD PAGE:", page);
-
-        const response =
-          await fetchWithTimeout(
-            `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
-          );
-
-        const json =
-          await response.json();
-
-        const videos =
-          (json.result?.files || [])
-          .map(video => ({
-
-            title:
-              video.title || "No Title",
-
-            thumbnail:
-              video.splash_img ||
-              video.single_img ||
-              "https://placehold.co/400x600",
-
-            url:
-              video.download_url ||
-              video.protected_embed ||
-              "#",
-
-            source:
-              "dood"
-
-          }));
-
-        // MASUKKAN VIDEO
-        allVideos.push(...videos);
-
-        // STOP JIKA HABIS
-        if (!videos.length) {
-          break;
-        }
-
-      } catch (err) {
-
-        console.log(
-          "DOOD ERROR PAGE:",
-          page
+      const doodRes =
+        await fetch(
+          `https://doodapi.com/api/file/list?key=${DOOD_KEY}&page=${page}`
         );
 
-      }
+      const doodJson =
+        await doodRes.json();
 
+      const doodVideos =
+        (doodJson.result?.files || []).map(v => ({
+
+          title:
+            v.title || "No Title",
+
+          thumbnail:
+            v.splash_img ||
+            v.single_img ||
+            "",
+
+          url:
+            `https://dood.so/e/${v.file_code}`,
+
+          source:"dood"
+
+        }));
+
+      allVideos.push(...doodVideos);
+
+    } catch (e) {
+      console.log("DOOD ERROR");
     }
 
     // =========================
-    // HAPUS DUPLIKAT
+    // REMOVE DUPLICATE
     // =========================
 
-    const uniqueVideos =
+    const unique =
       Array.from(
         new Map(
-          allVideos.map(v => [v.url, v])
+          allVideos.map(v =>
+            [v.url, v]
+          )
         ).values()
       );
 
-    // =========================
-    // RESPONSE
-    // =========================
+    // cache
+    res.setHeader(
+      "Cache-Control",
+      "s-maxage=300, stale-while-revalidate=600"
+    );
 
-    return res.status(200).json({
+    res.status(200).json({
 
-      success: true,
+      success:true,
 
-      total:
-        uniqueVideos.length,
+      page,
 
-      videos:
-        uniqueVideos
+      videos:unique,
+
+      hasMore:
+        unique.length > 0
 
     });
 
   } catch (err) {
 
-    console.log(err);
+    res.status(500).json({
 
-    return res.status(200).json({
-  success: true,
-  total: allVideos.length,
-  videos: allVideos
-});
+      success:false,
+
+      error:"Failed fetch videos"
+
+    });
 
   }
 
