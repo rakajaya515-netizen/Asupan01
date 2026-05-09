@@ -1,86 +1,123 @@
-const videosContainer = document.getElementById("videos");
+const grid = document.getElementById("videos");
+const search = document.getElementById("search");
 const loading = document.getElementById("loading");
-const searchInput = document.getElementById("search");
 
 let allVideos = [];
+let filteredVideos = [];
 
-// LOAD VIDEO
-async function loadVideos() {
+let currentPage = 1;
+const LIMIT = 20;
+
+let isLoading = false;
+
+// FETCH VIDEOS
+async function fetchVideos() {
   try {
-    loading.innerText = "Loading videos...";
+    loading.innerHTML = "Loading videos...";
 
-    // API
     const res = await fetch("/api/videos");
 
-    // DEBUG
-    console.log("STATUS:", res.status);
+    if (!res.ok) {
+      throw new Error("API ERROR");
+    }
 
     const data = await res.json();
 
-    console.log("DATA API:", data);
+    console.log(data);
 
-    // AMBIL VIDEO
-    allVideos = data.videos || [];
-
-    // KALAU KOSONG
-    if (!allVideos.length) {
-      loading.innerText = "No videos found";
-      return;
+    // pastikan array
+    if (!Array.isArray(data)) {
+      throw new Error("Invalid API response");
     }
 
-    // TAMPILKAN
-    renderVideos(allVideos);
+    // filter video valid
+    allVideos = data.filter(
+      (v) =>
+        v &&
+        v.url &&
+        v.thumbnail
+    );
 
-    loading.style.display = "none";
+    filteredVideos = allVideos;
 
+    grid.innerHTML = "";
+    currentPage = 1;
+
+    renderVideos();
+
+    loading.innerHTML = "";
   } catch (err) {
-    console.error(err);
+    console.log(err);
 
-    loading.innerText = "Failed load videos";
+    loading.innerHTML =
+      "Failed load videos";
   }
 }
 
-// RENDER VIDEO
-function renderVideos(videos) {
+// RENDER
+function renderVideos() {
+  if (isLoading) return;
 
-  videosContainer.innerHTML = "";
+  isLoading = true;
+
+  const start = (currentPage - 1) * LIMIT;
+  const end = start + LIMIT;
+
+  const videos =
+    filteredVideos.slice(start, end);
 
   videos.forEach((video) => {
+    const a = document.createElement("a");
 
-    const card = document.createElement("a");
+    a.className = "card";
+    a.href = video.url;
+    a.target = "_blank";
 
-    card.className = "card";
-
-    card.href = video.url;
-
-    card.target = "_blank";
-
-    card.innerHTML = `
-      <img src="${video.thumbnail}" alt="${video.title}">
-      
-      <div class="info">
-        <h3>${video.title}</h3>
-        <p>${video.source}</p>
-      </div>
+    a.innerHTML = `
+      <img src="${video.thumbnail}" alt="">
+      <div class="overlay"></div>
+      <h3>${video.title || "No title"}</h3>
     `;
 
-    videosContainer.appendChild(card);
-
+    grid.appendChild(a);
   });
+
+  isLoading = false;
 }
 
+// INFINITE SCROLL
+window.addEventListener("scroll", () => {
+  if (
+    window.innerHeight + window.scrollY >=
+    document.body.offsetHeight - 500
+  ) {
+    if (
+      currentPage * LIMIT <
+      filteredVideos.length
+    ) {
+      currentPage++;
+      renderVideos();
+    }
+  }
+});
+
 // SEARCH
-searchInput.addEventListener("input", (e) => {
+search.addEventListener("input", (e) => {
+  const value =
+    e.target.value.toLowerCase();
 
-  const keyword = e.target.value.toLowerCase();
-
-  const filtered = allVideos.filter((video) =>
-    video.title.toLowerCase().includes(keyword)
+  filteredVideos = allVideos.filter(
+    (video) =>
+      video.title
+        .toLowerCase()
+        .includes(value)
   );
 
-  renderVideos(filtered);
+  grid.innerHTML = "";
+  currentPage = 1;
 
+  renderVideos();
 });
 
 // START
-loadVideos();
+fetchVideos();
