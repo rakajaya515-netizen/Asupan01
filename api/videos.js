@@ -1,129 +1,212 @@
-async function fetchJson(url, timeout = 10000) {
+async function fetchWithTimeout(url, timeout = 10000) {
   const controller = new AbortController();
 
   const id = setTimeout(() => {
     controller.abort();
   }, timeout);
 
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        Accept: "application/json",
-      },
-    });
+  const response = await fetch(url, {
+    signal: controller.signal,
+  });
 
-    clearTimeout(id);
+  clearTimeout(id);
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-
-    return await res.json();
-  } catch (err) {
-    clearTimeout(id);
-    console.log("FETCH ERROR:", err.message);
-    return null;
-  }
+  return response;
 }
 
 export default async function handler(req, res) {
   try {
-    const VIZEY_API = process.env.VIZEY_API_KEY;
-    const DOOD_API = process.env.DOOD_API_KEY;
-
-    let allVideos = [];
 
     // =========================
-    // VIZEY FIRST
+    // API KEYS
     // =========================
 
-    try {
-      for (let page = 1; page <= 20; page++) {
-        const data = await fetchJson(
-          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
+    const VIZEY_API =
+      process.env.VIZEY_API_KEY;
+
+    const DOOD_API =
+      process.env.DOOD_API_KEY;
+
+
+
+    // =========================
+    // VIDEO STORAGE
+    // =========================
+
+    let vizeyVideos = [];
+    let doodVideos = [];
+
+
+
+    // =========================
+    // VIZEY MULTI PAGE
+    // =========================
+
+    for (let page = 1; page <= 10; page++) {
+
+      try {
+
+        const vizeyRes =
+          await fetchWithTimeout(
+            `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
+          );
+
+        const vizeyJson =
+          await vizeyRes.json();
+
+        console.log(
+          "VIZEY PAGE:",
+          page
         );
 
-        if (!data || !data.data || data.data.length === 0) {
-          break;
-        }
+        const newVideos =
+          (vizeyJson.data || [])
+            .filter(v => v.id)
+            .map(video => ({
 
-        const videos = data.data.map((video) => ({
-          title: video.title || "No Title",
+              title:
+                video.title || "No Title",
 
-          thumbnail:
-            video.thumbnail ||
-            "https://placehold.co/400x600",
+              thumbnail:
+                video.thumbnail ||
+                "https://placehold.co/400x600",
 
-          url: `https://vizey.net/v/${video.id}`,
+              url:
+                `https://vizey.net/d/${video.id}`,
 
-          source: "vizey",
-        }));
+              source:
+                "vizey"
 
-        allVideos.push(...videos);
+            }));
+
+        vizeyVideos.push(
+          ...newVideos
+        );
+
+      } catch (err) {
+
+        console.log(
+          "VIZEY ERROR PAGE:",
+          page,
+          err
+        );
+
       }
-    } catch (err) {
-      console.log("VIZEY ERROR:", err.message);
+
     }
 
+
+
     // =========================
-    // DOODSTREAM BELOW
+    // DOODSTREAM MULTI PAGE
     // =========================
 
-    try {
-      const dood = await fetchJson(
-        `https://doodapi.co/api/file/list?key=${DOOD_API}&page=1`
-      );
+    for (let page = 1; page <= 10; page++) {
 
-      if (dood?.result?.files) {
-        const doodVideos = dood.result.files.map((video) => ({
-          title: video.title || "No Title",
+      try {
 
-          thumbnail:
-            video.splash_img ||
-            video.single_img ||
-            "https://placehold.co/400x600",
+        const doodRes =
+          await fetchWithTimeout(
+            `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
+          );
 
-          url:
-            video.download_url ||
-            video.protected_embed ||
-            "#",
+        const doodJson =
+          await doodRes.json();
 
-          source: "dood",
-        }));
+        console.log(
+          "DOOD PAGE:",
+          page
+        );
 
-        allVideos.push(...doodVideos);
+        const newVideos =
+          (doodJson.result?.files || [])
+            .map(video => ({
+
+              title:
+                video.title || "No Title",
+
+              thumbnail:
+                video.splash_img ||
+                video.single_img ||
+                "https://placehold.co/400x600",
+
+              url:
+                video.download_url ||
+                video.protected_embed ||
+                "#",
+
+              source:
+                "doodstream"
+
+            }));
+
+        doodVideos.push(
+          ...newVideos
+        );
+
+      } catch (err) {
+
+        console.log(
+          "DOOD ERROR PAGE:",
+          page,
+          err
+        );
+
       }
-    } catch (err) {
-      console.log("DOOD ERROR:", err.message);
+
     }
+
+
+
+    // =========================
+    // FINAL VIDEO LIST
+    // VIZEY PALING ATAS
+    // =========================
+
+    const videos = [
+
+      ...vizeyVideos,
+
+      ...doodVideos
+
+    ];
+
+
 
     // =========================
     // REMOVE DUPLICATE
     // =========================
 
-    const unique = [];
-    const urls = new Set();
+    const uniqueVideos =
+      videos.filter(
+        (video, index, self) =>
+          index ===
+          self.findIndex(
+            v => v.url === video.url
+          )
+      );
 
-    for (const video of allVideos) {
-      if (!urls.has(video.url)) {
-        urls.add(video.url);
-        unique.push(video);
-      }
-    }
 
-    return res.status(200).json({
-      success: true,
-      total: unique.length,
-      videos: unique,
-    });
+
+    // =========================
+    // RESPONSE
+    // =========================
+
+    return res.status(200).json(
+      uniqueVideos
+    );
+
   } catch (err) {
-    console.log("SERVER ERROR:", err.message);
+
+    console.log(
+      "SERVER ERROR:",
+      err
+    );
 
     return res.status(500).json({
-      success: false,
-      error: err.message,
-      videos: [],
+      error:
+        "Internal Server Error"
     });
+
   }
 }
