@@ -1,4 +1,4 @@
-async function fetchWithTimeout(url, timeout = 10000) {
+async function fetchWithTimeout(url, timeout = 15000) {
   const controller = new AbortController();
 
   const id = setTimeout(() => {
@@ -15,88 +15,82 @@ async function fetchWithTimeout(url, timeout = 10000) {
 }
 
 export default async function handler(req, res) {
-
   try {
+    const VIZEY_API = process.env.VIZEY_API_KEY;
+    const DOOD_API = process.env.DOOD_API_KEY;
 
-    const page =
-      Number(req.query.page || 1);
+    let allVideos = [];
 
-    const VIZEY_API =
-      process.env.VIZEY_API_KEY;
-
-    const DOOD_API =
-      process.env.DOOD_API_KEY;
-
-    let vizeyVideos = [];
-    let doodVideos = [];
-
-
-
-    // =====================
-    // VIZEY
-    // =====================
+    // =========================
+    // VIZEY FIRST
+    // =========================
 
     try {
+      let page = 1;
+      let hasMore = true;
 
-      const vizeyRes =
-        await fetchWithTimeout(
+      while (hasMore) {
+        const vizeyRes = await fetchWithTimeout(
           `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
         );
 
-      const vizeyJson =
-        await vizeyRes.json();
+        const vizeyJson = await vizeyRes.json();
 
-      vizeyVideos =
-        (vizeyJson.data || [])
-          .filter(v => v.id)
-          .map(video => ({
-
-            title:
-              video.title || "No Title",
+        const videos = (vizeyJson.data || [])
+          .filter((v) => v.id)
+          .map((video) => ({
+            title: video.title || "No Title",
 
             thumbnail:
               video.thumbnail ||
               "https://placehold.co/400x600",
 
-            url:
-              `https://vizey.net/d/${video.id}`,
+            // LINK ASLI VIZEY
+            url: `https://vizey.net/v/${video.id}`,
 
-            source:
-              "vizey"
-
+            source: "vizey",
           }));
 
+        allVideos.push(...videos);
+
+        console.log(
+          `VIZEY PAGE ${page}: ${videos.length}`
+        );
+
+        // kalau data kosong stop
+        if (!vizeyJson.data || vizeyJson.data.length === 0) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+
+        // LIMIT BIAR SERVER VERSEL TIDAK CRASH
+        if (page > 100) {
+          hasMore = false;
+        }
+      }
     } catch (err) {
-
-      console.log(
-        "VIZEY ERROR:",
-        err
-      );
-
+      console.log("VIZEY ERROR:", err);
     }
 
-
-
-    // =====================
-    // DOODSTREAM
-    // =====================
+    // =========================
+    // DOODSTREAM BELOW
+    // =========================
 
     try {
+      let page = 1;
+      let hasMore = true;
 
-      const doodRes =
-        await fetchWithTimeout(
+      while (hasMore) {
+        const doodRes = await fetchWithTimeout(
           `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
         );
 
-      const doodJson =
-        await doodRes.json();
+        const doodJson = await doodRes.json();
 
-      doodVideos =
-        (doodJson.result?.files || [])
-          .map(video => ({
-
-            title:
-              video.title || "No Title",
+        const videos = (doodJson.result?.files || [])
+          .map((video) => ({
+            title: video.title || "No Title",
 
             thumbnail:
               video.splash_img ||
@@ -108,48 +102,60 @@ export default async function handler(req, res) {
               video.protected_embed ||
               "#",
 
-            source:
-              "doodstream"
-
+            source: "doodstream",
           }));
 
+        allVideos.push(...videos);
+
+        console.log(
+          `DOOD PAGE ${page}: ${videos.length}`
+        );
+
+        // stop kalau kosong
+        if (
+          !doodJson.result?.files ||
+          doodJson.result.files.length === 0
+        ) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+
+        // limit biar tidak timeout
+        if (page > 100) {
+          hasMore = false;
+        }
+      }
     } catch (err) {
-
-      console.log(
-        "DOOD ERROR:",
-        err
-      );
-
+      console.log("DOOD ERROR:", err);
     }
 
-
-
-    // =====================
-    // FINAL
-    // =====================
-
-    const videos = [
-
-      ...vizeyVideos,
-
-      ...doodVideos
-
+    // HAPUS DUPLIKAT
+    const uniqueVideos = [
+      ...new Map(
+        allVideos.map((item) => [item.url, item])
+      ).values(),
     ];
 
+    // VIZEY PALING ATAS
+    uniqueVideos.sort((a, b) => {
+      if (a.source === "vizey" && b.source !== "vizey") {
+        return -1;
+      }
 
+      if (a.source !== "vizey" && b.source === "vizey") {
+        return 1;
+      }
 
-    return res.status(200).json(
-      videos
-    );
-
-  } catch (err) {
-
-    console.log(err);
-
-    return res.status(500).json({
-      error: "Server Error"
+      return 0;
     });
 
-  }
+    res.status(200).json(uniqueVideos);
+  } catch (err) {
+    console.log(err);
 
+    res.status(500).json({
+      error: "FAILED_LOAD_VIDEOS",
+    });
+  }
 }
