@@ -1,69 +1,53 @@
-const videosContainer =
-  document.getElementById("videos");
-
-const loading =
-  document.getElementById("loading");
-
-const searchInput =
-  document.getElementById("search");
+const videosContainer = document.getElementById("videos");
+const loading = document.getElementById("loading");
+const searchInput = document.getElementById("search");
 
 let allVideos = [];
 
-// ======================
-// LOAD VIDEOS
-// ======================
-
+// LOAD VIDEO
 async function loadVideos() {
-
   try {
+    loading.innerText = "Loading videos...";
 
-    loading.innerHTML =
-      "Loading videos...";
+    // API
+    const res = await fetch("/api/videos");
 
-    const response =
-      await fetch("/api/videos");
+    // DEBUG
+    console.log("STATUS:", res.status);
 
-    const data =
-      await response.json();
+    const data = await res.json();
 
-    console.log(data);
+    console.log("DATA API:", data);
 
-    // FIX IMPORTANT
+    // AMBIL VIDEO
     allVideos = data.videos || [];
 
+    // KALAU KOSONG
+    if (!allVideos.length) {
+      loading.innerText = "No videos found";
+      return;
+    }
+
+    // TAMPILKAN
     renderVideos(allVideos);
 
+    loading.style.display = "none";
+
   } catch (err) {
+    console.error(err);
 
-    console.log(err);
-
-    loading.innerHTML =
-      "Failed load videos";
+    loading.innerText = "Failed load videos";
   }
 }
 
-// ======================
-// RENDER
-// ======================
-
+// RENDER VIDEO
 function renderVideos(videos) {
 
   videosContainer.innerHTML = "";
 
-  if (!videos.length) {
-
-    loading.innerHTML =
-      "No videos";
-
-    return;
-  }
-
-  loading.style.display = "none";
-
   videos.forEach((video) => {
 
-    const card =
-      document.createElement("a");
+    const card = document.createElement("a");
 
     card.className = "card";
 
@@ -72,52 +56,31 @@ function renderVideos(videos) {
     card.target = "_blank";
 
     card.innerHTML = `
-      <img
-        src="${video.thumbnail}"
-        alt="${video.title}"
-      />
-
+      <img src="${video.thumbnail}" alt="${video.title}">
+      
       <div class="info">
-
-        <div class="title">
-          ${video.title}
-        </div>
-
-        <div class="source">
-          ${video.source}
-        </div>
-
+        <h3>${video.title}</h3>
+        <p>${video.source}</p>
       </div>
     `;
 
     videosContainer.appendChild(card);
+
   });
 }
 
-// ======================
 // SEARCH
-// ======================
+searchInput.addEventListener("input", (e) => {
 
-searchInput.addEventListener(
-  "input",
-  (e) => {
+  const keyword = e.target.value.toLowerCase();
 
-    const keyword =
-      e.target.value.toLowerCase();
+  const filtered = allVideos.filter((video) =>
+    video.title.toLowerCase().includes(keyword)
+  );
 
-    const filtered =
-      allVideos.filter((video) =>
-        video.title
-          .toLowerCase()
-          .includes(keyword)
-      );
+  renderVideos(filtered);
 
-    renderVideos(filtered);
-  }
-);
+});
 
-// ======================
 // START
-// ======================
-
 loadVideos();
