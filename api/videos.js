@@ -1,11 +1,28 @@
-async function fetchJson(url) {
-  try {
-    const res = await fetch(url);
+async function fetchJson(url, timeout = 10000) {
+  const controller = new AbortController();
 
-    if (!res.ok) return null;
+  const id = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    clearTimeout(id);
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
 
     return await res.json();
-  } catch {
+  } catch (err) {
+    clearTimeout(id);
+    console.log("FETCH ERROR:", err.message);
     return null;
   }
 }
@@ -15,110 +32,98 @@ export default async function handler(req, res) {
     const VIZEY_API = process.env.VIZEY_API_KEY;
     const DOOD_API = process.env.DOOD_API_KEY;
 
-    // PAGE DARI FRONTEND
-    const page = Number(req.query.page || 1);
-
-    let videos = [];
+    let allVideos = [];
 
     // =========================
-    // VIZEY
+    // VIZEY FIRST
     // =========================
 
     try {
-      const vizeyJson = await fetchJson(
-        `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
-      );
+      for (let page = 1; page <= 20; page++) {
+        const data = await fetchJson(
+          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
+        );
 
-      const vizeyVideos = (vizeyJson?.data || [])
-        .filter((v) => v.id)
-        .map((video) => ({
-          title:
-            video.title || "No Title",
+        if (!data || !data.data || data.data.length === 0) {
+          break;
+        }
+
+        const videos = data.data.map((video) => ({
+          title: video.title || "No Title",
 
           thumbnail:
             video.thumbnail ||
             "https://placehold.co/400x600",
 
-          url:
-            `https://vizey.net/v/${video.id}`,
+          url: `https://vizey.net/v/${video.id}`,
 
           source: "vizey",
         }));
 
-      videos.push(...vizeyVideos);
+        allVideos.push(...videos);
+      }
     } catch (err) {
-      console.log("VIZEY ERROR:", err);
+      console.log("VIZEY ERROR:", err.message);
     }
 
     // =========================
-    // DOOD
+    // DOODSTREAM BELOW
     // =========================
 
     try {
-      const doodJson = await fetchJson(
-        `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
+      const dood = await fetchJson(
+        `https://doodapi.co/api/file/list?key=${DOOD_API}&page=1`
       );
 
-      const doodVideos = (
-        doodJson?.result?.files || []
-      ).map((video) => ({
-        title:
-          video.title || "No Title",
+      if (dood?.result?.files) {
+        const doodVideos = dood.result.files.map((video) => ({
+          title: video.title || "No Title",
 
-        thumbnail:
-          video.splash_img ||
-          video.single_img ||
-          "https://placehold.co/400x600",
+          thumbnail:
+            video.splash_img ||
+            video.single_img ||
+            "https://placehold.co/400x600",
 
-        url:
-          video.download_url ||
-          video.protected_embed ||
-          "#",
+          url:
+            video.download_url ||
+            video.protected_embed ||
+            "#",
 
-        source: "doodstream",
-      }));
+          source: "dood",
+        }));
 
-      videos.push(...doodVideos);
+        allVideos.push(...doodVideos);
+      }
     } catch (err) {
-      console.log("DOOD ERROR:", err);
+      console.log("DOOD ERROR:", err.message);
     }
 
-    // HAPUS DUPLIKAT
-    const uniqueVideos = [
-      ...new Map(
-        videos.map((v) => [v.url, v])
-      ).values(),
-    ];
+    // =========================
+    // REMOVE DUPLICATE
+    // =========================
 
-    // VIZEY DI ATAS
-    uniqueVideos.sort((a, b) => {
-      if (
-        a.source === "vizey" &&
-        b.source !== "vizey"
-      ) {
-        return -1;
+    const unique = [];
+    const urls = new Set();
+
+    for (const video of allVideos) {
+      if (!urls.has(video.url)) {
+        urls.add(video.url);
+        unique.push(video);
       }
+    }
 
-      if (
-        a.source !== "vizey" &&
-        b.source === "vizey"
-      ) {
-        return 1;
-      }
-
-      return 0;
-    });
-
-    res.status(200).json({
-      page,
-      total: uniqueVideos.length,
-      videos: uniqueVideos,
+    return res.status(200).json({
+      success: true,
+      total: unique.length,
+      videos: unique,
     });
   } catch (err) {
-    console.log(err);
+    console.log("SERVER ERROR:", err.message);
 
-    res.status(500).json({
-      error: "FAILED_LOAD_VIDEOS",
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+      videos: [],
     });
   }
 }
