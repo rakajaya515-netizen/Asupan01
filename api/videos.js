@@ -1,4 +1,4 @@
-async function fetchWithTimeout(url, timeout = 10000) {
+async function fetchWithTimeout(url, timeout = 15000) {
 
   const controller = new AbortController();
 
@@ -28,10 +28,10 @@ export default async function handler(req, res) {
     let allVideos = [];
 
     // =========================
-    // VIZEY
+    // VIZEY FIRST
     // =========================
 
-    for (let page = 1; page <= 20; page++) {
+    for (let page = 1; page <= 100; page++) {
 
       try {
 
@@ -65,10 +65,11 @@ export default async function handler(req, res) {
 
           }));
 
+        // MASUKKAN VIDEO
         allVideos.push(...videos);
 
-        // stop kalau kosong
-        if (!json.data || json.data.length === 0) {
+        // STOP JIKA HABIS
+        if (!videos.length) {
           break;
         }
 
@@ -84,10 +85,10 @@ export default async function handler(req, res) {
     }
 
     // =========================
-    // DOOD
+    // DOOD BELOW
     // =========================
 
-    for (let page = 1; page <= 10; page++) {
+    for (let page = 1; page <= 50; page++) {
 
       try {
 
@@ -123,7 +124,13 @@ export default async function handler(req, res) {
 
           }));
 
+        // MASUKKAN VIDEO
         allVideos.push(...videos);
+
+        // STOP JIKA HABIS
+        if (!videos.length) {
+          break;
+        }
 
       } catch (err) {
 
@@ -136,7 +143,10 @@ export default async function handler(req, res) {
 
     }
 
+    // =========================
     // HAPUS DUPLIKAT
+    // =========================
+
     const uniqueVideos =
       Array.from(
         new Map(
@@ -144,13 +154,19 @@ export default async function handler(req, res) {
         ).values()
       );
 
+    // =========================
+    // RESPONSE
+    // =========================
+
     return res.status(200).json({
 
       success: true,
 
-      total: uniqueVideos.length,
+      total:
+        uniqueVideos.length,
 
-      videos: uniqueVideos
+      videos:
+        uniqueVideos
 
     });
 
