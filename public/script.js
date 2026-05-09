@@ -5,9 +5,6 @@ const loading = document.getElementById("loading");
 let allVideos = [];
 let filteredVideos = [];
 
-let currentPage = 1;
-const LIMIT = 20;
-
 let isLoading = false;
 
 // FETCH VIDEOS
