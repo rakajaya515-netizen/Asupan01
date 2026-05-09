@@ -6,11 +6,11 @@ let allVideos = [];
 let filteredVideos = [];
 
 let currentIndex = 0;
-const LOAD_COUNT = 50;
+const LOAD_COUNT = 30;
 
-let loadingMore = false;
+let rendering = false;
 
-// FETCH API
+// FETCH VIDEOS
 async function fetchVideos() {
   try {
     loading.innerHTML = "Loading videos...";
@@ -25,12 +25,16 @@ async function fetchVideos() {
 
     console.log(json);
 
-    // SUPPORT FORMAT ARRAY / OBJECT
-    const videos = Array.isArray(json)
-      ? json
-      : json.videos || [];
+    // SUPPORT ARRAY / OBJECT
+    let videos = [];
 
-    // FILTER VIDEO VALID
+    if (Array.isArray(json)) {
+      videos = json;
+    } else if (json.videos) {
+      videos = json.videos;
+    }
+
+    // FILTER VALID
     allVideos = videos.filter(
       (v) =>
         v &&
@@ -44,7 +48,7 @@ async function fetchVideos() {
     grid.innerHTML = "";
     currentIndex = 0;
 
-    renderMore();
+    renderVideos();
 
     loading.innerHTML = "";
   } catch (err) {
@@ -54,11 +58,11 @@ async function fetchVideos() {
   }
 }
 
-// RENDER VIDEO
-function renderMore() {
-  if (loadingMore) return;
+// RENDER
+function renderVideos() {
+  if (rendering) return;
 
-  loadingMore = true;
+  rendering = true;
 
   const nextVideos = filteredVideos.slice(
     currentIndex,
@@ -74,7 +78,11 @@ function renderMore() {
     card.target = "_blank";
 
     card.innerHTML = `
-      <img src="${video.thumbnail}" alt="${video.title}" />
+      <img 
+        src="${video.thumbnail}" 
+        alt="${video.title}"
+        loading="lazy"
+      />
 
       <div class="info">
         <h3>${video.title}</h3>
@@ -87,7 +95,7 @@ function renderMore() {
 
   currentIndex += LOAD_COUNT;
 
-  loadingMore = false;
+  rendering = false;
 }
 
 // SEARCH
@@ -101,16 +109,16 @@ search.addEventListener("input", (e) => {
   grid.innerHTML = "";
   currentIndex = 0;
 
-  renderMore();
+  renderVideos();
 });
 
 // INFINITE SCROLL
 window.addEventListener("scroll", () => {
   if (
     window.innerHeight + window.scrollY >=
-    document.body.offsetHeight - 1000
+    document.body.offsetHeight - 1200
   ) {
-    renderMore();
+    renderVideos();
   }
 });
 
