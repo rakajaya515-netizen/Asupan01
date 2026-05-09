@@ -5,8 +5,6 @@ const loading = document.getElementById("loading");
 let allVideos = [];
 let filteredVideos = [];
 
-let isLoading = false;
-
 // FETCH VIDEOS
 async function fetchVideos() {
   try {
