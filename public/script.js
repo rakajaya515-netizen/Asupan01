@@ -1,49 +1,72 @@
 const grid = document.getElementById("videos");
-const search = document.getElementById("search");
 const loading = document.getElementById("loading");
 
-let allVideos = [];
+let currentBatch = 1;
+
+let isLoading = false;
+
+let hasMore = true;
+
+const renderedUrls = new Set();
 
 async function fetchVideos() {
+  if (isLoading || !hasMore) return;
+
+  isLoading = true;
+
+  loading.innerHTML = "Loading videos...";
 
   try {
-
-    loading.innerHTML = "Loading videos...";
-
-    const res = await fetch("/api/videos");
+    const res = await fetch(
+      `/api/videos?batch=${currentBatch}`
+    );
 
     const data = await res.json();
 
-    allVideos = data;
+    const videos = data.videos || [];
 
-    renderVideos(allVideos);
+    if (videos.length === 0) {
+      hasMore = false;
+
+      loading.innerHTML = "No more videos";
+
+      return;
+    }
+
+    const uniqueVideos = videos.filter((video) => {
+      if (renderedUrls.has(video.url)) {
+        return false;
+      }
+
+      renderedUrls.add(video.url);
+
+      return true;
+    });
+
+    renderVideos(uniqueVideos);
+
+    currentBatch++;
 
     loading.innerHTML = "";
-
   } catch (err) {
-
-    console.log(err);
-
     loading.innerHTML = "Failed load videos";
-
   }
 
+  isLoading = false;
 }
 
 function renderVideos(videos) {
-
-  grid.innerHTML = "";
-
-  videos.forEach(video => {
-
-    const card = document.createElement("div");
+  videos.forEach((video) => {
+    const card = document.createElement("a");
 
     card.className = "card";
 
+    card.href = video.url;
+
+    card.target = "_blank";
+
     card.innerHTML = `
-      <a href="${video.url}" target="_blank">
-        <img src="${video.thumbnail}">
-      </a>
+      <img src="${video.thumbnail}" alt="${video.title}">
 
       <div class="info">
         <h3>${video.title}</h3>
@@ -52,21 +75,16 @@ function renderVideos(videos) {
     `;
 
     grid.appendChild(card);
-
   });
-
 }
 
-search.addEventListener("input", e => {
-
-  const value = e.target.value.toLowerCase();
-
-  const filtered = allVideos.filter(v =>
-    v.title.toLowerCase().includes(value)
-  );
-
-  renderVideos(filtered);
-
+window.addEventListener("scroll", () => {
+  if (
+    window.innerHeight + window.scrollY >=
+    document.body.offsetHeight - 1000
+  ) {
+    fetchVideos();
+  }
 });
 
 fetchVideos();
