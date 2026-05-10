@@ -15,6 +15,9 @@ export default async function handler(req, res) {
 
     let allVideos = [];
 
+    // untuk filter duplicate
+    const usedUrls = new Set();
+
     // =========================
     // VIZEY
     // =========================
@@ -26,20 +29,27 @@ export default async function handler(req, res) {
         );
 
         const videos = (data.data || [])
-          .slice(0, 12) // ambil 12 video tiap page
+          .slice(0, 12)
           .map((v) => ({
             id: `vizey-${v.id}`,
             title: v.title || "No title",
             thumbnail: v.thumbnail,
-            url: `https://vizey.net/v/${v.id}`,
+            url: `https://vizey.net/d/${v.id}`,
             source: "vizey",
           }));
 
         if (videos.length === 0) break;
 
-        allVideos.push(...videos);
+        videos.forEach((video) => {
+          // skip duplicate
+          if (usedUrls.has(video.url)) return;
+
+          usedUrls.add(video.url);
+
+          allVideos.push(video);
+        });
       } catch (err) {
-        console.log("VIZEY PAGE ERROR:", page);
+        console.log("VIZEY ERROR PAGE:", page);
       }
     }
 
@@ -50,7 +60,7 @@ export default async function handler(req, res) {
     for (let page = 1; page <= 30; page++) {
       try {
         const data = await fetchPage(
-          `https://doodapi.com/api/file/list?key=${DOOD_API}&page=${page}`
+          `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
         );
 
         const videos = (data.result?.files || [])
@@ -65,14 +75,18 @@ export default async function handler(req, res) {
 
         if (videos.length === 0) break;
 
-        allVideos.push(...videos);
+        videos.forEach((video) => {
+          // skip duplicate
+          if (usedUrls.has(video.url)) return;
+
+          usedUrls.add(video.url);
+
+          allVideos.push(video);
+        });
       } catch (err) {
-        console.log("DOOD PAGE ERROR:", page);
+        console.log("DOOD ERROR PAGE:", page);
       }
     }
-
-    // TANPA ACAK
-    // urutan tetap sesuai page
 
     res.setHeader(
       "Cache-Control",
