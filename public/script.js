@@ -1,15 +1,12 @@
 const grid = document.getElementById("videos");
 const loading = document.getElementById("loading");
-const search = document.getElementById("search");
 
-let currentPage = 1;
+let currentBatch = 1;
 
 let isLoading = false;
+
 let hasMore = true;
 
-let allVideos = [];
-
-// GLOBAL DUPLICATE FILTER
 const renderedUrls = new Set();
 
 async function fetchVideos() {
@@ -20,13 +17,14 @@ async function fetchVideos() {
   loading.innerHTML = "Loading videos...";
 
   try {
-    const res = await fetch(`/api/videos?page=${currentPage}`);
+    const res = await fetch(
+      `/api/videos?batch=${currentBatch}`
+    );
 
     const data = await res.json();
 
     const videos = data.videos || [];
 
-    // jika kosong stop
     if (videos.length === 0) {
       hasMore = false;
 
@@ -35,7 +33,6 @@ async function fetchVideos() {
       return;
     }
 
-    // FILTER DUPLICATE GLOBAL
     const uniqueVideos = videos.filter((video) => {
       if (renderedUrls.has(video.url)) {
         return false;
@@ -46,22 +43,9 @@ async function fetchVideos() {
       return true;
     });
 
-    // jika semua duplicate
-    if (uniqueVideos.length === 0) {
-      currentPage++;
-
-      isLoading = false;
-
-      fetchVideos();
-
-      return;
-    }
-
-    allVideos.push(...uniqueVideos);
-
     renderVideos(uniqueVideos);
 
-    currentPage++;
+    currentBatch++;
 
     loading.innerHTML = "";
   } catch (err) {
@@ -94,31 +78,13 @@ function renderVideos(videos) {
   });
 }
 
-// SEARCH
-search.addEventListener("input", (e) => {
-  const keyword = e.target.value.toLowerCase();
-
-  grid.innerHTML = "";
-
-  const filtered = allVideos.filter((video) =>
-    video.title.toLowerCase().includes(keyword)
-  );
-
-  renderVideos(filtered);
-});
-
-// INFINITE SCROLL
 window.addEventListener("scroll", () => {
-  const scrollPosition =
-    window.innerHeight + window.scrollY;
-
-  const bottom =
-    document.body.offsetHeight - 1200;
-
-  if (scrollPosition >= bottom) {
+  if (
+    window.innerHeight + window.scrollY >=
+    document.body.offsetHeight - 1000
+  ) {
     fetchVideos();
   }
 });
 
-// START
 fetchVideos();
