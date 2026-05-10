@@ -1,6 +1,16 @@
-async function fetchJson(url) {
+async function fetchJson(url, timeout = 15000) {
 
-  const res = await fetch(url);
+  const controller = new AbortController();
+
+  const id = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  const res = await fetch(url, {
+    signal: controller.signal
+  });
+
+  clearTimeout(id);
 
   return res.json();
 
@@ -10,8 +20,11 @@ export default async function handler(req, res) {
 
   try {
 
-    const VIZEY_API = process.env.VIZEY_API_KEY;
-    const DOOD_API = process.env.DOOD_API_KEY;
+    const VIZEY_API =
+      process.env.VIZEY_API_KEY;
+
+    const DOOD_API =
+      process.env.DOOD_API_KEY;
 
     let videos = [];
 
@@ -21,93 +34,119 @@ export default async function handler(req, res) {
     // VIZEY
     // =========================
 
-    for (let page = 1; page <= 30; page++) {
+    const vizeyPromises = [];
 
-      try {
+    for (let page = 1; page <= 100; page++) {
 
-        const data = await fetchJson(
+      vizeyPromises.push(
+
+        fetchJson(
           `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
-        );
+        ).catch(() => null)
 
-        const pageVideos = (data.data || []).map(v => ({
+      );
+
+    }
+
+    const vizeyResults =
+      await Promise.all(vizeyPromises);
+
+    vizeyResults.forEach(data => {
+
+      if (!data) return;
+
+      const pageVideos =
+        (data.data || []).map(v => ({
 
           id: `v-${v.id}`,
 
-          title: v.title || "No title",
+          title:
+            v.title || "No title",
 
-          thumbnail: v.thumbnail,
+          thumbnail:
+            v.thumbnail,
 
-          url: `https://vizey.net/v/${v.id}`,
+          url:
+            `https://vizey.net/d/${v.id}`,
 
           source: "vizey"
 
         }));
 
-        pageVideos.forEach(video => {
+      pageVideos.forEach(video => {
 
-          if (!video.url) return;
+        if (!video.url) return;
 
-          if (used.has(video.url)) return;
+        if (used.has(video.url)) return;
 
-          used.add(video.url);
+        used.add(video.url);
 
-          videos.push(video);
+        videos.push(video);
 
-        });
+      });
 
-      } catch (err) {
-
-        console.log("VIZEY ERROR PAGE:", page);
-
-      }
-
-    }
+    });
 
     // =========================
     // DOOD
     // =========================
 
-    for (let page = 1; page <= 30; page++) {
+    const doodPromises = [];
 
-      try {
+    for (let page = 1; page <= 50; page++) {
 
-        const data = await fetchJson(
-          `https://doodapi.com/api/file/list?key=${DOOD_API}&page=${page}`
-        );
+      doodPromises.push(
 
-        const pageVideos = (data.result?.files || []).map(v => ({
+        fetchJson(
+          `https://doodapi.co/api/file/list?key=${DOOD_API}&page=${page}`
+        ).catch(() => null)
+
+      );
+
+    }
+
+    const doodResults =
+      await Promise.all(doodPromises);
+
+    doodResults.forEach(data => {
+
+      if (!data) return;
+
+      const pageVideos =
+        (data.result?.files || []).map(v => ({
 
           id: `d-${v.file_code}`,
 
-          title: v.title || "No title",
+          title:
+            v.title || "No title",
 
-          thumbnail: v.splash_img,
+          thumbnail:
+            v.splash_img,
 
-          url: `https://dood.so/e/${v.file_code}`,
+          url:
+            `https://dood.so/e/${v.file_code}`,
 
           source: "dood"
 
         }));
 
-        pageVideos.forEach(video => {
+      pageVideos.forEach(video => {
 
-          if (!video.url) return;
+        if (!video.url) return;
 
-          if (used.has(video.url)) return;
+        if (used.has(video.url)) return;
 
-          used.add(video.url);
+        used.add(video.url);
 
-          videos.push(video);
+        videos.push(video);
 
-        });
+      });
 
-      } catch (err) {
+    });
 
-        console.log("DOOD ERROR PAGE:", page);
-
-      }
-
-    }
+    // =========================
+    // RESPONSE
+    // =========================
 
     res.setHeader(
       "Cache-Control",
