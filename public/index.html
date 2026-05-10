@@ -11,12 +11,13 @@
       margin:0;
       padding:0;
       box-sizing:border-box;
-      font-family:Arial, sans-serif;
+      font-family:Arial,sans-serif;
     }
 
     body{
       background:#000;
       color:#fff;
+      overflow-x:hidden;
     }
 
     .navbar{
@@ -24,19 +25,19 @@
       top:0;
       z-index:999;
       background:#000;
-      padding:20px 15px;
+      padding:15px;
     }
 
     .title{
       font-size:42px;
       font-weight:900;
       color:#ff39c6;
-      margin-bottom:15px;
+      margin-bottom:14px;
     }
 
     .search{
       width:100%;
-      padding:16px;
+      padding:15px;
       border:none;
       border-radius:18px;
       background:#111;
@@ -55,7 +56,7 @@
     .card,
     .ad-card{
       background:#111;
-      border-radius:20px;
+      border-radius:18px;
       overflow:hidden;
       position:relative;
     }
@@ -80,14 +81,15 @@
 
       padding:10px;
 
-      background:linear-gradient(
+      background:
+      linear-gradient(
         transparent,
         rgba(0,0,0,.95)
       );
 
+      color:#fff;
       font-size:14px;
       font-weight:bold;
-      color:white;
 
       display:-webkit-box;
       -webkit-line-clamp:2;
@@ -99,14 +101,14 @@
       min-height:250px;
     }
 
-    .loading,
-    .nomore{
+    .loading{
       text-align:center;
       padding:25px;
       font-size:20px;
     }
 
     @media(max-width:500px){
+
       .container{
         grid-template-columns:repeat(2,1fr);
       }
@@ -116,7 +118,7 @@
       }
 
       .title{
-        font-size:34px;
+        font-size:36px;
       }
     }
   </style>
@@ -125,225 +127,290 @@
 <body>
 
   <div class="navbar">
-    <div class="title">Asupanmu</div>
+
+    <div class="title">
+      Asupanmu
+    </div>
 
     <input
       id="search"
       class="search"
       placeholder="Search video..."
     />
+
   </div>
 
-  <div id="videos" class="container"></div>
+  <div
+    id="videos"
+    class="container">
+  </div>
 
-  <div id="loading" class="loading">
+  <div
+    id="loading"
+    class="loading">
     Loading videos...
   </div>
 
   <script>
-let videosGlobal = [];
-let filteredVideos = [];
 
-let page = 1;
-let loading = false;
-let hasMore = true;
+    let videosGlobal = [];
 
-const container =
-  document.getElementById("videos");
+    let page = 1;
 
-const loadingText =
-  document.getElementById("loading");
+    let loading = false;
 
-const searchInput =
-  document.getElementById("search");
+    let hasMore = true;
 
-// 🔥 Popunder sekali
-function triggerPopunder() {
+    const container =
+      document.getElementById(
+        "videos"
+      );
 
-  if (!localStorage.getItem("popShown")) {
+    const loadingText =
+      document.getElementById(
+        "loading"
+      );
 
-    localStorage.setItem("popShown", "true");
+    const searchInput =
+      document.getElementById(
+        "search"
+      );
 
-    window.open(
-      "https://www.profitableratecpm.com/s65zeryji1?key=67a910e3b4387aa420b25f4a4bfa41b1",
-      "_blank"
-    );
-  }
-}
+    // 🔥 Popunder sekali
+    function triggerPopunder(){
 
-// 🔥 Native ads
-function createNativeAd() {
+      if(
+        !localStorage.getItem(
+          "popShown"
+        )
+      ){
 
-  const ad = document.createElement("div");
+        localStorage.setItem(
+          "popShown",
+          "true"
+        );
 
-  ad.className = "ad-card";
+        window.open(
+          "https://www.profitableratecpm.com/s65zeryji1?key=67a910e3b4387aa420b25f4a4bfa41b1",
+          "_blank"
+        );
+      }
+    }
 
-  const script =
-    document.createElement("script");
+    // 🔥 Native ads
+    function createNativeAd(){
 
-  script.async = true;
+      const ad =
+        document.createElement(
+          "div"
+        );
 
-  script.src =
-    "https://pl29343712.profitableratecpm.com/d6c7cfa2fbe3ee841c92a4f50371bf35/invoke.js";
+      ad.className =
+        "ad-card";
 
-  const nativeContainer =
-    document.createElement("div");
+      const script =
+        document.createElement(
+          "script"
+        );
 
-  nativeContainer.id =
-    "container-d6c7cfa2fbe3ee841c92a4f50371bf35-" +
-    Math.random();
+      script.async = true;
 
-  ad.appendChild(script);
+      script.src =
+        "https://pl29343712.profitableratecpm.com/d6c7cfa2fbe3ee841c92a4f50371bf35/invoke.js";
 
-  ad.appendChild(nativeContainer);
+      const nativeContainer =
+        document.createElement(
+          "div"
+        );
 
-  return ad;
-}
+      nativeContainer.id =
+        "container-" +
+        Math.random();
 
-// 🔥 Render cards
-function renderVideos(videos, reset = false) {
+      ad.appendChild(script);
 
-  if (reset) {
-    container.innerHTML = "";
-  }
+      ad.appendChild(
+        nativeContainer
+      );
 
-  videos.forEach((v, i) => {
+      return ad;
+    }
 
-    // ads tiap 6 video
-    if ((container.children.length + 1) % 6 === 0) {
+    // 🔥 Render
+    function renderVideos(
+      videos,
+      reset = false
+    ){
 
-      container.appendChild(
-        createNativeAd()
+      if(reset){
+
+        container.innerHTML =
+          "";
+      }
+
+      videos.forEach(
+        (v,index)=>{
+
+        // native ads tiap 6 video
+        if(
+          (
+            container.children.length + 1
+          ) % 6 === 0
+        ){
+
+          container.appendChild(
+            createNativeAd()
+          );
+        }
+
+        const el =
+          document.createElement(
+            "div"
+          );
+
+        el.className =
+          "card";
+
+        el.innerHTML = `
+          <img
+            src="${v.thumbnail}"
+            loading="lazy"
+          />
+
+          <div class="card-title">
+            ${v.title || "Untitled Video"}
+          </div>
+        `;
+
+        el.onclick = ()=>{
+
+          triggerPopunder();
+
+          window.location.href =
+            \`https://vizey.net/v/\${v.id}\`;
+        };
+
+        container.appendChild(el);
+      });
+    }
+
+    // 🔥 Load videos
+    async function loadVideos(){
+
+      if(
+        loading ||
+        !hasMore
+      ) return;
+
+      loading = true;
+
+      loadingText.innerHTML =
+        "Loading videos...";
+
+      try{
+
+        const res =
+          await fetch(
+            \`/api/videos?page=\${page}\`
+          );
+
+        const data =
+          await res.json();
+
+        const videos =
+          data.videos || [];
+
+        videosGlobal.push(
+          ...videos
+        );
+
+        // kalau search kosong
+        if(
+          !searchInput.value.trim()
+        ){
+
+          renderVideos(
+            videos
+          );
+
+        }else{
+
+          filterVideos();
+        }
+
+        hasMore =
+          Boolean(
+            data.hasMore
+          );
+
+        page++;
+
+        if(!hasMore){
+
+          loadingText.innerHTML =
+            "No more videos";
+        }
+
+      }catch(err){
+
+        loadingText.innerHTML =
+          "Failed load videos";
+      }
+
+      loading = false;
+    }
+
+    // 🔥 Search
+    function filterVideos(){
+
+      const q =
+        searchInput.value
+        .toLowerCase();
+
+      const filtered =
+        videosGlobal.filter(
+          v =>
+
+          (
+            v.title || ""
+          )
+          .toLowerCase()
+          .includes(q)
+        );
+
+      renderVideos(
+        filtered,
+        true
       );
     }
 
-    const el =
-      document.createElement("div");
-
-    el.className = "card";
-
-    el.innerHTML = `
-      <img
-        src="${v.thumbnail}"
-        loading="lazy"
-      />
-
-      <div class="card-title">
-        ${v.title || "Untitled Video"}
-      </div>
-    `;
-
-    el.onclick = () => {
-
-      triggerPopunder();
-
-      window.location.href =
-        \`https://vizey.net/v/\${v.id}\`;
-    };
-
-    container.appendChild(el);
-  });
-}
-
-// 🔥 Load videos
-async function loadVideos() {
-
-  if (loading || !hasMore) return;
-
-  loading = true;
-
-  loadingText.innerHTML =
-    "Loading videos...";
-
-  try {
-
-    const res =
-      await fetch(`/api/videos?page=${page}`);
-
-    const data =
-      await res.json();
-
-    const videos =
-      data.videos || [];
-
-    videosGlobal.push(...videos);
-
-    // jika search kosong
-    if (!searchInput.value.trim()) {
-
-      renderVideos(videos);
-
-    } else {
-
-      filterVideos();
-    }
-
-    hasMore = data.hasMore;
-
-    page++;
-
-    if (!hasMore) {
-
-      loadingText.innerHTML =
-        "No more videos";
-    }
-
-  } catch (err) {
-
-    loadingText.innerHTML =
-      "Failed load videos";
-  }
-
-  loading = false;
-}
-
-// 🔥 Search
-function filterVideos() {
-
-  const q =
-    searchInput.value.toLowerCase();
-
-  filteredVideos =
-    videosGlobal.filter(v =>
-
-      (v.title || "")
-      .toLowerCase()
-      .includes(q)
+    searchInput.addEventListener(
+      "input",
+      filterVideos
     );
 
-  renderVideos(filteredVideos, true);
-}
+    // 🔥 Infinite scroll
+    window.addEventListener(
+      "scroll",
+      ()=>{
 
-searchInput.addEventListener(
-  "input",
-  filterVideos
-);
+      if(
+        window.innerHeight +
+        window.scrollY >=
+        document.body.offsetHeight - 1200
+      ){
 
-// 🔥 Infinite scroll
-window.addEventListener(
-  "scroll",
-  () => {
+        loadVideos();
+      }
+    });
 
-    if (
-      window.innerHeight +
-      window.scrollY >=
-      document.body.offsetHeight - 1000
-    ) {
+    // init
+    loadVideos();
 
-      loadVideos();
-    }
-  }
-);
-
-// init
-loadVideos();
-</script>
   </script>
 
   <!-- 🔥 SOCIAL BAR -->
-  <script
-    src="https://pl29343713.profitableratecpm.com/9a/69/24/9a6924d62fcb5f212667f72bfbb2378f.js">
-  </script>
+  <script src="https://pl29343713.profitableratecpm.com/9a/69/24/9a6924d62fcb5f212667f72bfbb2378f.js"></script>
 
 </body>
 </html>
