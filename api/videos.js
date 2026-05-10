@@ -4,63 +4,30 @@ async function fetchJson(url) {
 }
 
 export default async function handler(req, res) {
+
   try {
+
     const API_KEY = process.env.VIZEY_API_KEY;
 
-    // batch:
-    // 1 = page 1-5
-    // 2 = page 6-10
-    // dst
+    const page = Number(req.query.page || 1);
 
-    const batch = Number(req.query.batch || 1);
-
-    const startPage = (batch - 1) * 5 + 1;
-    const endPage = startPage + 4;
-
-    let videos = [];
-    const used = new Set();
-
-    for (let page = startPage; page <= endPage; page++) {
-
-      try {
-
-        const data = await fetchJson(
-          `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}`
-        );
-
-        const pageVideos = data.data || [];
-
-        pageVideos.forEach(v => {
-
-          const video = {
-            id: v.id,
-            title: v.title || "No title",
-            thumbnail: v.thumbnail,
-            url: `https://vizey.net/d/${v.id}`,
-            source: "vizey"
-          };
-
-          // hapus duplicate
-          if (!used.has(video.url)) {
-            used.add(video.url);
-            videos.push(video);
-          }
-
-        });
-
-      } catch (err) {
-        console.log("PAGE ERROR", page);
-      }
-    }
-
-    res.setHeader(
-      "Cache-Control",
-      "s-maxage=300, stale-while-revalidate"
+    const data = await fetchJson(
+      `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}`
     );
+
+    const videos = (data.data || []).map(v => ({
+      id: v.id,
+      title: v.title || "No title",
+      thumbnail: v.thumbnail,
+      url: `https://vizey.net/d/${v.id}`,
+      source: "vizey"
+    }));
 
     return res.status(200).json({
       success: true,
-      batch,
+      page,
+      hasNext: data.pagination?.hasNext || false,
+      totalPages: data.pagination?.totalPages || 1,
       videos
     });
 
