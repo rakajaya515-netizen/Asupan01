@@ -1,16 +1,39 @@
-<main>
-  <div id="videos" class="grid"></div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asupanindo</title>
 
-  <div id="loading">
-    Loading videos...
-  </div>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
 
-  <!-- PAGINATION -->
-  <div class="pagination">
-    <button id="prevBtn">Prev</button>
+  <header class="navbar">
+    <h1 class="logo">Asupanindo</h1>
 
-    <span id="pageNum">1</span>
+    <input
+      type="text"
+      id="search"
+      placeholder="Search..."
+    />
+  </header>
 
-    <button id="nextBtn">Next</button>
-  </div>
-</main>
+  <main>
+    <div id="videos" class="grid"></div>
+
+    <div id="loading">
+      Loading videos...
+    </div>
+
+    <div class="pagination">
+      <button id="prev">Prev</button>
+      <span id="page">1</span>
+      <button id="next">Next</button>
+    </div>
+  </main>
+
+  <script src="/script.js"></script>
+
+</body>
+</html>
