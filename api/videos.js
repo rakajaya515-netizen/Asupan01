@@ -1,83 +1,75 @@
 async function fetchJson(url) {
-  try {
-    const res = await fetch(url, {
-      headers: {
-        Accept: "application/json"
-      }
-    });
-
-    if (!res.ok) return null;
-
-    return await res.json();
-
-  } catch {
-    return null;
-  }
+  const res = await fetch(url);
+  return res.json();
 }
 
 export default async function handler(req, res) {
+  try {
+    const API_KEY = process.env.VIZEY_API_KEY;
 
-  const API_KEY = process.env.VIZEY_API_KEY;
+    // batch:
+    // 1 = page 1-5
+    // 2 = page 6-10
+    // dst
 
-  let videos = [];
-  const used = new Set();
+    const batch = Number(req.query.batch || 1);
 
-  let currentPage = 1;
-  let totalPages = 1;
+    const startPage = (batch - 1) * 5 + 1;
+    const endPage = startPage + 4;
 
-  // LOOP SEMUA PAGE
-  while (currentPage <= totalPages) {
+    let videos = [];
+    const used = new Set();
 
-    const data = await fetchJson(
-      `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${currentPage}`
+    for (let page = startPage; page <= endPage; page++) {
+
+      try {
+
+        const data = await fetchJson(
+          `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}`
+        );
+
+        const pageVideos = data.data || [];
+
+        pageVideos.forEach(v => {
+
+          const video = {
+            id: v.id,
+            title: v.title || "No title",
+            thumbnail: v.thumbnail,
+            url: `https://vizey.net/d/${v.id}`,
+            source: "vizey"
+          };
+
+          // hapus duplicate
+          if (!used.has(video.url)) {
+            used.add(video.url);
+            videos.push(video);
+          }
+
+        });
+
+      } catch (err) {
+        console.log("PAGE ERROR", page);
+      }
+    }
+
+    res.setHeader(
+      "Cache-Control",
+      "s-maxage=300, stale-while-revalidate"
     );
 
-    if (!data) {
-      currentPage++;
-      continue;
-    }
+    return res.status(200).json({
+      success: true,
+      batch,
+      videos
+    });
 
-    // update total page dari API
-    totalPages =
-      data.pagination?.totalPages || 1;
+  } catch (err) {
 
-    const list = data.data || [];
+    return res.status(500).json({
+      success: false,
+      error: err.message
+    });
 
-    // ambil semua video
-    for (const item of list) {
-
-      if (!item?.id) continue;
-
-      const url = `https://vizey.net/v/${item.id}`;
-
-      // hapus duplicate
-      if (used.has(url)) continue;
-
-      used.add(url);
-
-      videos.push({
-        id: item.id,
-        title: item.title || "No title",
-        thumbnail: item.thumbnail,
-        url,
-        source: "vizey",
-        createdAt: item.createdAt || ""
-      });
-    }
-
-    currentPage++;
   }
-
-  // video terbaru di atas
-  videos.sort((a, b) => {
-    return new Date(b.createdAt) - new Date(a.createdAt);
-  });
-
-  // cache vercel
-  res.setHeader(
-    "Cache-Control",
-    "s-maxage=300, stale-while-revalidate=600"
-  );
-
-  return res.status(200).json(videos);
 }
