@@ -93,7 +93,7 @@ export default async function handler(req, res) {
     );
 
     return res.status(200).json({
-      page,
+      batch,
       videos,
       hasMore: videos.length > 0,
     });
