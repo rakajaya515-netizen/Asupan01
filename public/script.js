@@ -1,58 +1,38 @@
 const grid = document.getElementById("videos");
 const loading = document.getElementById("loading");
 
-let currentBatch = 1;
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const pageNum = document.getElementById("pageNum");
 
-let isLoading = false;
+let currentPage = 1;
 
-let hasMore = true;
-
-const renderedUrls = new Set();
-
-async function fetchVideos() {
-  if (isLoading || !hasMore) return;
-
-  isLoading = true;
-
+async function fetchVideos(page = 1) {
   loading.innerHTML = "Loading videos...";
 
+  grid.innerHTML = "";
+
   try {
-    const res = await fetch(
-      `/api/videos?batch=${currentBatch}`
-    );
+    const res = await fetch(`/api/videos?page=${page}`);
 
     const data = await res.json();
 
     const videos = data.videos || [];
 
     if (videos.length === 0) {
-      hasMore = false;
-
-      loading.innerHTML = "No more videos";
+      loading.innerHTML = "No videos";
 
       return;
     }
 
-    const uniqueVideos = videos.filter((video) => {
-      if (renderedUrls.has(video.url)) {
-        return false;
-      }
+    renderVideos(videos);
 
-      renderedUrls.add(video.url);
-
-      return true;
-    });
-
-    renderVideos(uniqueVideos);
-
-    currentBatch++;
+    pageNum.innerHTML = page;
 
     loading.innerHTML = "";
   } catch (err) {
     loading.innerHTML = "Failed load videos";
   }
-
-  isLoading = false;
 }
 
 function renderVideos(videos) {
@@ -78,13 +58,30 @@ function renderVideos(videos) {
   });
 }
 
-window.addEventListener("scroll", () => {
-  if (
-    window.innerHeight + window.scrollY >=
-    document.body.offsetHeight - 1000
-  ) {
-    fetchVideos();
-  }
+// NEXT
+nextBtn.addEventListener("click", () => {
+  currentPage++;
+
+  fetchVideos(currentPage);
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
 });
 
-fetchVideos();
+// PREV
+prevBtn.addEventListener("click", () => {
+  if (currentPage <= 1) return;
+
+  currentPage--;
+
+  fetchVideos(currentPage);
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+});
+
+fetchVideos(currentPage);
