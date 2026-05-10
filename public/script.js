@@ -1,4 +1,4 @@
-  const grid = document.getElementById("videos");
+const grid = document.getElementById("videos");
 const loading = document.getElementById("loading");
 
 let currentPage = 1;
@@ -19,19 +19,15 @@ async function loadVideos() {
 
   try {
 
-    console.log("LOAD PAGE:", currentPage);
-
     const res = await fetch(
       `/api/videos?page=${currentPage}`
     );
 
     const data = await res.json();
 
-    console.log(data);
-
     const videos = data.videos || [];
 
-    // kalau kosong = selesai
+    // kalau kosong stop
     if (videos.length === 0) {
 
       finished = true;
@@ -58,7 +54,7 @@ async function loadVideos() {
       card.className = "card";
 
       card.innerHTML = `
-        <img src="${video.thumbnail}" />
+        <img src="${video.thumbnail}" alt="${video.title}">
 
         <div class="info">
           <h3>${video.title}</h3>
@@ -70,7 +66,6 @@ async function loadVideos() {
 
     });
 
-    // lanjut ke page berikutnya
     currentPage++;
 
     loading.innerHTML = "";
@@ -86,26 +81,24 @@ async function loadVideos() {
   isLoading = false;
 }
 
-// load awal
+
+// load pertama
 loadVideos();
 
 
-// auto load next page saat scroll bawah
+// infinite scroll
 window.addEventListener("scroll", () => {
 
-  if (isLoading || finished) return;
-
-  const scrollY = window.scrollY;
+  const scrollTop = window.scrollY;
 
   const screenHeight = window.innerHeight;
 
   const fullHeight = document.body.offsetHeight;
 
-  // kalau hampir bawah
-  if (scrollY + screenHeight >= fullHeight - 1000) {
-
+  if (
+    scrollTop + screenHeight >= fullHeight - 1000
+  ) {
     loadVideos();
-
   }
 
 });
