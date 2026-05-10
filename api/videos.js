@@ -65,10 +65,6 @@ export default async function handler(req, res) {
       } catch (err) {
         console.log("DOOD ERROR PAGE:", page);
       }
-    }
-
-    // acak video
-    allVideos.sort(() => Math.random() - 0.5);
 
     // cache vercel
     res.setHeader(
