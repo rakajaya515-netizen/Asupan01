@@ -25,8 +25,6 @@ const json = await res.json();
 
 allVideos = json.videos || [];
 
-    const videos = data.videos || [];
-
     console.log("PAGE:", currentPage);
 
     console.log(videos.length);
