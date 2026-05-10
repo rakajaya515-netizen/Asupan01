@@ -1,87 +1,98 @@
-const grid = document.getElementById("videos");
-const loading = document.getElementById("loading");
+const videosEl = document.getElementById("videos");
+const loadingEl = document.getElementById("loading");
+const pageEl = document.getElementById("page");
 
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
-const pageNum = document.getElementById("pageNum");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+const searchInput = document.getElementById("search");
 
 let currentPage = 1;
+let allVideos = [];
 
-async function fetchVideos(page = 1) {
-  loading.innerHTML = "Loading videos...";
+async function loadVideos(page = 1){
 
-  grid.innerHTML = "";
+  loadingEl.innerText = "Loading videos...";
 
-  try {
+  try{
+
     const res = await fetch(`/api/videos?page=${page}`);
 
     const data = await res.json();
 
-    const videos = data.videos || [];
+    allVideos = data;
 
-    if (videos.length === 0) {
-      loading.innerHTML = "No videos";
+    renderVideos(allVideos);
 
-      return;
-    }
+    pageEl.innerText = page;
 
-    renderVideos(videos);
+    loadingEl.innerText = "";
 
-    pageNum.innerHTML = page;
+  }catch(err){
 
-    loading.innerHTML = "";
-  } catch (err) {
-    loading.innerHTML = "Failed load videos";
+    console.log(err);
+
+    loadingEl.innerText = "Failed load videos";
+
   }
 }
 
-function renderVideos(videos) {
-  videos.forEach((video) => {
-    const card = document.createElement("a");
+function renderVideos(videos){
+
+  videosEl.innerHTML = "";
+
+  videos.forEach(video => {
+
+    const card = document.createElement("div");
 
     card.className = "card";
 
-    card.href = video.url;
-
-    card.target = "_blank";
-
     card.innerHTML = `
-      <img src="${video.thumbnail}" alt="${video.title}">
+      <a href="${video.url}" target="_blank">
+        <img src="${video.thumbnail}" />
+      </a>
 
-      <div class="info">
-        <h3>${video.title}</h3>
-        <p>${video.source}</p>
-      </div>
+      <h3>${video.title}</h3>
+
+      <p>${video.source}</p>
     `;
 
-    grid.appendChild(card);
+    videosEl.appendChild(card);
+
   });
+
 }
 
-// NEXT
-nextBtn.addEventListener("click", () => {
+nextBtn.onclick = () => {
+
   currentPage++;
 
-  fetchVideos(currentPage);
+  loadVideos(currentPage);
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  });
+};
+
+prevBtn.onclick = () => {
+
+  if(currentPage > 1){
+
+    currentPage--;
+
+    loadVideos(currentPage);
+
+  }
+
+};
+
+searchInput.addEventListener("input", e => {
+
+  const q = e.target.value.toLowerCase();
+
+  const filtered = allVideos.filter(v =>
+    v.title.toLowerCase().includes(q)
+  );
+
+  renderVideos(filtered);
+
 });
 
-// PREV
-prevBtn.addEventListener("click", () => {
-  if (currentPage <= 1) return;
-
-  currentPage--;
-
-  fetchVideos(currentPage);
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  });
-});
-
-fetchVideos(currentPage);
+loadVideos(currentPage);
