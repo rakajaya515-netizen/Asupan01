@@ -1,87 +1,73 @@
-async function fetchJson(url) {
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error("Fetch failed");
-  }
-
-  return res.json();
-}
-
 export default async function handler(req, res) {
-  try {
-    const page = Number(req.query.page || 1);
 
-    const VIZEY_API = process.env.VIZEY_API_KEY;
-    const DOOD_API = process.env.DOOD_API_KEY;
+  const page = req.query.page || 1;
+
+  const VIZEY_API = process.env.VIZEY_API_KEY;
+  const DOOD_API = process.env.DOOD_API_KEY;
+
+  try {
 
     let videos = [];
 
-    const used = new Set();
-
-    // =====================
     // VIZEY
-    // =====================
+    const vizeyRes = await fetch(
+      `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
+    );
 
-    try {
-      const data = await fetchJson(
-        `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
-      );
+    const vizeyData = await vizeyRes.json();
 
-      const vizeyVideos = (data.data || []).map((v) => ({
-        id: `v-${v.id}`,
-        title: v.title || "No title",
-        thumbnail: v.thumbnail,
-        url: `https://vizey.net/v/${v.id}`,
-        source: "vizey",
-      }));
+    const vizeyVideos = (vizeyData.data || []).map(v => ({
+      title: v.title || "No Title",
+      thumbnail: v.thumbnail,
+      url: v.url,
+      source: "vizey"
+    }));
 
-      vizeyVideos.forEach((video) => {
-        if (!used.has(video.url)) {
-          used.add(video.url);
+    videos.push(...vizeyVideos);
 
-          videos.push(video);
-        }
-      });
-    } catch (err) {
-      console.log("VIZEY ERROR");
-    }
-
-    // =====================
     // DOOD
-    // =====================
+    const doodRes = await fetch(
+      `https://doodapi.com/api/file/list?key=${DOOD_API}&page=${page}`
+    );
 
-    try {
-      const data = await fetchJson(
-        `https://doodapi.com/api/file/list?key=${DOOD_API}&page=${page}`
-      );
+    const doodData = await doodRes.json();
 
-      const doodVideos = (data.result?.files || []).map((v) => ({
-        id: `d-${v.file_code}`,
-        title: v.title || "No title",
-        thumbnail: v.splash_img,
-        url: `https://dood.so/e/${v.file_code}`,
-        source: "dood",
-      }));
+    const doodVideos = (doodData.result?.files || []).map(v => ({
+      title: v.title || "No Title",
+      thumbnail: v.splash_img,
+      url: `https://dood.so/e/${v.file_code}`,
+      source: "dood"
+    }));
 
-      doodVideos.forEach((video) => {
-        if (!used.has(video.url)) {
-          used.add(video.url);
+    videos.push(...doodVideos);
 
-          videos.push(video);
-        }
-      });
-    } catch (err) {
-      console.log("DOOD ERROR");
+    // hapus duplikat
+    const unique = [];
+
+    const seen = new Set();
+
+    for (const v of videos) {
+
+      if (!seen.has(v.url)) {
+
+        seen.add(v.url);
+
+        unique.push(v);
+
+      }
+
     }
 
-    return res.status(200).json({
-      page,
-      videos,
-    });
+    res.status(200).json(unique);
+
   } catch (err) {
-    return res.status(500).json({
-      error: "Failed load videos",
+
+    console.log(err);
+
+    res.status(500).json({
+      error: "Failed load videos"
     });
+
   }
+
 }
