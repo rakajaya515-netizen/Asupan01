@@ -18,7 +18,7 @@ async function fetchVideos() {
 
   try {
     const res = await fetch(
-      `/api/videos?batch=${currentBatch}`
+      `/api/videos")=${currentBatch}`
     );
 
     const data = await res.json();
