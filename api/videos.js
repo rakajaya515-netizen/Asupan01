@@ -2,7 +2,7 @@ async function fetchPage(url) {
   const res = await fetch(url);
 
   if (!res.ok) {
-    throw new Error("Failed fetch");
+    throw new Error("Fetch error");
   }
 
   return res.json();
@@ -15,74 +15,65 @@ export default async function handler(req, res) {
 
     let allVideos = [];
 
-    /// =========================
-// VIZEY RANDOM PAGE
-// =========================
+    // =========================
+    // VIZEY
+    // =========================
 
-for (let page = 1; page <= 50; page++) {
-  try {
-    const data = await fetchPage(
-      `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
-    );
+    for (let page = 1; page <= 30; page++) {
+      try {
+        const data = await fetchPage(
+          `https://vizey.net/api/v1/list?apikey=${VIZEY_API}&page=${page}`
+        );
 
-    let videos = (data.data || []).map((v) => ({
-      id: `vizey-${v.id}`,
-      title: v.title || "No title",
-      thumbnail: v.thumbnail,
-      url: `https://vizey.net/v/${v.id}`,
-      source: "vizey",
-    }));
+        const videos = (data.data || [])
+          .slice(0, 12) // ambil 12 video tiap page
+          .map((v) => ({
+            id: `vizey-${v.id}`,
+            title: v.title || "No title",
+            thumbnail: v.thumbnail,
+            url: `https://vizey.net/v/${v.id}`,
+            source: "vizey",
+          }));
 
-    // acak video per page
-    videos.sort(() => Math.random() - 0.5);
+        if (videos.length === 0) break;
 
-    // ambil sedikit tiap page
-    videos = videos.slice(0, 5);
+        allVideos.push(...videos);
+      } catch (err) {
+        console.log("VIZEY PAGE ERROR:", page);
+      }
+    }
 
-    if (videos.length === 0) break;
+    // =========================
+    // DOOD
+    // =========================
 
-    allVideos.push(...videos);
-  } catch (err) {
-    console.log("VIZEY ERROR PAGE:", page);
-  }
-}
+    for (let page = 1; page <= 30; page++) {
+      try {
+        const data = await fetchPage(
+          `https://doodapi.com/api/file/list?key=${DOOD_API}&page=${page}`
+        );
 
-// =========================
-// DOOD RANDOM PAGE
-// =========================
+        const videos = (data.result?.files || [])
+          .slice(0, 12)
+          .map((v) => ({
+            id: `dood-${v.file_code}`,
+            title: v.title || "No title",
+            thumbnail: v.splash_img,
+            url: `https://dood.so/e/${v.file_code}`,
+            source: "dood",
+          }));
 
-for (let page = 1; page <= 50; page++) {
-  try {
-    const data = await fetchPage(
-      `https://doodapi.com/api/file/list?key=${DOOD_API}&page=${page}`
-    );
+        if (videos.length === 0) break;
 
-    let videos = (data.result?.files || []).map((v) => ({
-      id: `dood-${v.file_code}`,
-      title: v.title || "No title",
-      thumbnail: v.splash_img,
-      url: `https://dood.so/e/${v.file_code}`,
-      source: "dood",
-    }));
+        allVideos.push(...videos);
+      } catch (err) {
+        console.log("DOOD PAGE ERROR:", page);
+      }
+    }
 
-    // acak video per page
-    videos.sort(() => Math.random() - 0.5);
+    // TANPA ACAK
+    // urutan tetap sesuai page
 
-    // ambil sedikit tiap page
-    videos = videos.slice(0, 5);
-
-    if (videos.length === 0) break;
-
-    allVideos.push(...videos);
-  } catch (err) {
-    console.log("DOOD ERROR PAGE:", page);
-  }
-}
-
-// acak semua video lagi
-allVideos.sort(() => Math.random() - 0.5);
-
-    // cache vercel
     res.setHeader(
       "Cache-Control",
       "s-maxage=300, stale-while-revalidate=600"
