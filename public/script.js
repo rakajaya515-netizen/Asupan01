@@ -20,11 +20,10 @@ async function loadVideos() {
 
   try {
 
-    const res = await fetch(
-      `/api/videos?page=${currentPage}`
-    );
+    const res = await fetch("/api/videos");
+const json = await res.json();
 
-    const data = await res.json();
+allVideos = json.videos || [];
 
     const videos = data.videos || [];
 
