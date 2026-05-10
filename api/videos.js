@@ -6,9 +6,7 @@ async function fetchJson(url) {
       }
     });
 
-    if (!res.ok) {
-      return null;
-    }
+    if (!res.ok) return null;
 
     return await res.json();
 
@@ -22,24 +20,30 @@ export default async function handler(req, res) {
   const API_KEY = process.env.VIZEY_API_KEY;
 
   let videos = [];
-  let used = new Set();
+  const used = new Set();
 
-  // ambil page banyak
-  for (let page = 1; page <= 100; page++) {
+  let currentPage = 1;
+  let totalPages = 1;
+
+  // LOOP SEMUA PAGE
+  while (currentPage <= totalPages) {
 
     const data = await fetchJson(
-      `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}`
+      `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${currentPage}`
     );
 
-    // skip jika gagal
-    if (!data) continue;
+    if (!data) {
+      currentPage++;
+      continue;
+    }
 
-    // cek array video
-    const list = data.data || data.result || [];
+    // update total page dari API
+    totalPages =
+      data.pagination?.totalPages || 1;
 
-    // kalau page kosong lanjut
-    if (!Array.isArray(list)) continue;
+    const list = data.data || [];
 
+    // ambil semua video
     for (const item of list) {
 
       if (!item?.id) continue;
@@ -56,13 +60,18 @@ export default async function handler(req, res) {
         title: item.title || "No title",
         thumbnail: item.thumbnail,
         url,
-        source: "vizey"
+        source: "vizey",
+        createdAt: item.createdAt || ""
       });
     }
+
+    currentPage++;
   }
 
-  // terbaru di atas
-  videos.reverse();
+  // video terbaru di atas
+  videos.sort((a, b) => {
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
 
   // cache vercel
   res.setHeader(
