@@ -1,29 +1,49 @@
-const grid = document.getElementById("videos");
+  const grid = document.getElementById("videos");
 const loading = document.getElementById("loading");
 
 let currentPage = 1;
 
-let loadingNow = false;
-let hasNext = true;
+let isLoading = false;
+
+let finished = false;
 
 const used = new Set();
 
 async function loadVideos() {
 
-  if (loadingNow || !hasNext) return;
+  if (isLoading || finished) return;
 
-  loadingNow = true;
+  isLoading = true;
 
   loading.innerHTML = "Loading videos...";
 
   try {
 
-    const res = await fetch(`/api/videos?page=${currentPage}`);
+    console.log("LOAD PAGE:", currentPage);
+
+    const res = await fetch(
+      `/api/videos?page=${currentPage}`
+    );
+
     const data = await res.json();
+
+    console.log(data);
 
     const videos = data.videos || [];
 
+    // kalau kosong = selesai
+    if (videos.length === 0) {
+
+      finished = true;
+
+      loading.innerHTML = "All videos loaded";
+
+      return;
+    }
+
     videos.forEach(video => {
+
+      if (!video.thumbnail) return;
 
       if (used.has(video.url)) return;
 
@@ -32,6 +52,7 @@ async function loadVideos() {
       const card = document.createElement("a");
 
       card.href = video.url;
+
       card.target = "_blank";
 
       card.className = "card";
@@ -49,39 +70,42 @@ async function loadVideos() {
 
     });
 
-    hasNext = data.hasNext;
-
+    // lanjut ke page berikutnya
     currentPage++;
 
-    if (!hasNext) {
-      loading.innerHTML = "All videos loaded";
-    } else {
-      loading.innerHTML = "";
-    }
+    loading.innerHTML = "";
 
   } catch (err) {
+
+    console.log(err);
 
     loading.innerHTML = "Failed load videos";
 
   }
 
-  loadingNow = false;
+  isLoading = false;
 }
 
+// load awal
 loadVideos();
 
+
+// auto load next page saat scroll bawah
 window.addEventListener("scroll", () => {
 
-  const {
-    scrollTop,
-    scrollHeight,
-    clientHeight
-  } = document.documentElement;
+  if (isLoading || finished) return;
 
-  if (
-    scrollTop + clientHeight >= scrollHeight - 500
-  ) {
+  const scrollY = window.scrollY;
+
+  const screenHeight = window.innerHeight;
+
+  const fullHeight = document.body.offsetHeight;
+
+  // kalau hampir bawah
+  if (scrollY + screenHeight >= fullHeight - 1000) {
+
     loadVideos();
+
   }
 
 });
