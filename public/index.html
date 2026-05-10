@@ -141,166 +141,203 @@
   </div>
 
   <script>
-    let videosGlobal = [];
-    let page = 1;
-    let loading = false;
-    let hasMore = true;
+let videosGlobal = [];
+let filteredVideos = [];
 
-    // 🔥 Popunder sekali
-    function triggerPopunder() {
-      if (!localStorage.getItem("popShown")) {
+let page = 1;
+let loading = false;
+let hasMore = true;
 
-        localStorage.setItem("popShown", "true");
+const container =
+  document.getElementById("videos");
 
-        window.open(
-          "https://www.profitableratecpm.com/s65zeryji1?key=67a910e3b4387aa420b25f4a4bfa41b1",
-          "_blank"
-        );
-      }
+const loadingText =
+  document.getElementById("loading");
+
+const searchInput =
+  document.getElementById("search");
+
+// 🔥 Popunder sekali
+function triggerPopunder() {
+
+  if (!localStorage.getItem("popShown")) {
+
+    localStorage.setItem("popShown", "true");
+
+    window.open(
+      "https://www.profitableratecpm.com/s65zeryji1?key=67a910e3b4387aa420b25f4a4bfa41b1",
+      "_blank"
+    );
+  }
+}
+
+// 🔥 Native ads
+function createNativeAd() {
+
+  const ad = document.createElement("div");
+
+  ad.className = "ad-card";
+
+  const script =
+    document.createElement("script");
+
+  script.async = true;
+
+  script.src =
+    "https://pl29343712.profitableratecpm.com/d6c7cfa2fbe3ee841c92a4f50371bf35/invoke.js";
+
+  const nativeContainer =
+    document.createElement("div");
+
+  nativeContainer.id =
+    "container-d6c7cfa2fbe3ee841c92a4f50371bf35-" +
+    Math.random();
+
+  ad.appendChild(script);
+
+  ad.appendChild(nativeContainer);
+
+  return ad;
+}
+
+// 🔥 Render cards
+function renderVideos(videos, reset = false) {
+
+  if (reset) {
+    container.innerHTML = "";
+  }
+
+  videos.forEach((v, i) => {
+
+    // ads tiap 6 video
+    if ((container.children.length + 1) % 6 === 0) {
+
+      container.appendChild(
+        createNativeAd()
+      );
     }
 
-    // 🔥 Native ads
-    function createNativeAd() {
+    const el =
+      document.createElement("div");
 
-      const ad = document.createElement("div");
-      ad.className = "ad-card";
+    el.className = "card";
 
-      const script = document.createElement("script");
+    el.innerHTML = `
+      <img
+        src="${v.thumbnail}"
+        loading="lazy"
+      />
 
-      script.async = true;
+      <div class="card-title">
+        ${v.title || "Untitled Video"}
+      </div>
+    `;
 
-      script.src =
-        "https://pl29343712.profitableratecpm.com/d6c7cfa2fbe3ee841c92a4f50371bf35/invoke.js";
+    el.onclick = () => {
 
-      const container = document.createElement("div");
+      triggerPopunder();
 
-      container.id =
-        "container-d6c7cfa2fbe3ee841c92a4f50371bf35";
+      window.location.href =
+        \`https://vizey.net/v/\${v.id}\`;
+    };
 
-      ad.appendChild(script);
-      ad.appendChild(container);
+    container.appendChild(el);
+  });
+}
 
-      return ad;
+// 🔥 Load videos
+async function loadVideos() {
+
+  if (loading || !hasMore) return;
+
+  loading = true;
+
+  loadingText.innerHTML =
+    "Loading videos...";
+
+  try {
+
+    const res =
+      await fetch(`/api/videos?page=${page}`);
+
+    const data =
+      await res.json();
+
+    const videos =
+      data.videos || [];
+
+    videosGlobal.push(...videos);
+
+    // jika search kosong
+    if (!searchInput.value.trim()) {
+
+      renderVideos(videos);
+
+    } else {
+
+      filterVideos();
     }
 
-    // 🔥 Load videos
-    async function loadVideos() {
+    hasMore = data.hasMore;
 
-      if (loading || !hasMore) return;
+    page++;
 
-      loading = true;
+    if (!hasMore) {
 
-      try {
-
-        const res = await fetch(`/api/videos?page=${page}`);
-
-        const data = await res.json();
-
-        const videos = data.videos || [];
-
-        videosGlobal.push(...videos);
-
-        render(videos);
-
-        hasMore = data.hasMore;
-
-        page++;
-
-        if (!hasMore) {
-          document.getElementById("loading").innerHTML =
-            "No more videos";
-        }
-
-      } catch (err) {
-
-        document.getElementById("loading").innerHTML =
-          "Failed load videos";
-
-      }
-
-      loading = false;
+      loadingText.innerHTML =
+        "No more videos";
     }
 
-    // 🔥 Render
-    function render(videos) {
+  } catch (err) {
 
-      const container =
-        document.getElementById("videos");
+    loadingText.innerHTML =
+      "Failed load videos";
+  }
 
-      videos.forEach((v, i) => {
+  loading = false;
+}
 
-        // native ads tiap 6 video
-        if ((videosGlobal.length + i) % 6 === 0) {
+// 🔥 Search
+function filterVideos() {
 
-          container.appendChild(
-            createNativeAd()
-          );
-        }
+  const q =
+    searchInput.value.toLowerCase();
 
-        const el = document.createElement("div");
+  filteredVideos =
+    videosGlobal.filter(v =>
 
-        el.className = "card";
+      (v.title || "")
+      .toLowerCase()
+      .includes(q)
+    );
 
-        el.innerHTML = `
-          <img
-            src="${v.thumbnail}"
-            loading="lazy"
-          />
+  renderVideos(filteredVideos, true);
+}
 
-          <div class="card-title">
-            ${v.title || "Untitled Video"}
-          </div>
-        `;
+searchInput.addEventListener(
+  "input",
+  filterVideos
+);
 
-        el.onclick = () => {
+// 🔥 Infinite scroll
+window.addEventListener(
+  "scroll",
+  () => {
 
-          triggerPopunder();
+    if (
+      window.innerHeight +
+      window.scrollY >=
+      document.body.offsetHeight - 1000
+    ) {
 
-          window.location.href =
-            `https://vizey.net/v/${v.id}`;
-        };
-
-        container.appendChild(el);
-      });
+      loadVideos();
     }
+  }
+);
 
-    // 🔥 Infinite scroll
-    window.addEventListener("scroll", () => {
-
-      if (
-        window.innerHeight + window.scrollY
-        >= document.body.offsetHeight - 700
-      ) {
-        loadVideos();
-      }
-    });
-
-    // 🔥 Search
-    document
-      .getElementById("search")
-      .addEventListener("input", e => {
-
-        const q =
-          e.target.value.toLowerCase();
-
-        const container =
-          document.getElementById("videos");
-
-        container.innerHTML = "";
-
-        const filtered =
-          videosGlobal.filter(v =>
-
-            (v.title || "")
-            .toLowerCase()
-            .includes(q)
-          );
-
-        render(filtered);
-      });
-
-    // init
-    loadVideos();
+// init
+loadVideos();
+</script>
   </script>
 
   <!-- 🔥 SOCIAL BAR -->
