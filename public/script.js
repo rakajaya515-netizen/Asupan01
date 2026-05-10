@@ -1,132 +1,48 @@
-const grid =
-  document.getElementById("videos");
-
-const loading =
-  document.getElementById("loading");
-
-const search =
-  document.getElementById("search");
+const grid = document.getElementById("videos");
+const search = document.getElementById("search");
 
 let allVideos = [];
 
-let page = 1;
-
-let loadingData = false;
-
-let hasMore = true;
-
 async function fetchVideos() {
-
-  if (loadingData || !hasMore)
-    return;
-
-  loadingData = true;
-
-  loading.innerHTML =
-    "Loading videos...";
-
   try {
+    const res = await fetch("/api/videos");
 
-    const res =
-      await fetch(
-        `/api/videos?page=${page}`
-      );
+    const data = await res.json();
 
-    const json =
-      await res.json();
+    allVideos = data;
 
-    console.log(json);
-
-    const videos =
-      json.videos || [];
-
-    hasMore = json.hasMore;
-
-    allVideos.push(...videos);
-
-    renderVideos(videos);
-
-    page++;
-
-    loading.innerHTML = "";
-
+    renderVideos(allVideos);
   } catch (err) {
-
-    console.log(err);
-
-    loading.innerHTML =
-      "Failed load videos";
-
+    grid.innerHTML =
+      "<h2 style='color:white'>Failed load videos</h2>";
   }
-
-  loadingData = false;
-
 }
 
-function renderVideos(videos){
-
-  videos.forEach(video => {
-
-    const card =
-      document.createElement("a");
-
-    card.className = "card";
-
-    card.href = video.url;
-
-    card.target = "_blank";
-
-    card.innerHTML = `
-      <img src="${video.thumbnail}">
-      <div class="info">
-
-        <div class="title">
-          ${video.title}
-        </div>
-
-        <div class="source">
-          ${video.source}
-        </div>
-
-      </div>
-    `;
-
-    grid.appendChild(card);
-
-  });
-
-}
-
-window.addEventListener("scroll", () => {
-
-  if (
-    window.innerHeight +
-    window.scrollY >=
-    document.body.offsetHeight - 1000
-  ) {
-
-    fetchVideos();
-
-  }
-
-});
-
-search.addEventListener("input", e => {
-
-  const value =
-    e.target.value.toLowerCase();
-
+function renderVideos(videos) {
   grid.innerHTML = "";
 
-  const filtered =
-    allVideos.filter(v =>
-      v.title
-        .toLowerCase()
-        .includes(value)
-    );
+  videos.forEach((video) => {
+    grid.innerHTML += `
+      <a href="${video.url}" target="_blank" class="card">
+        <img src="${video.thumbnail}" alt="${video.title}">
+        
+        <div class="info">
+          <h3>${video.title}</h3>
+          <p>${video.source}</p>
+        </div>
+      </a>
+    `;
+  });
+}
+
+search.addEventListener("input", (e) => {
+  const keyword = e.target.value.toLowerCase();
+
+  const filtered = allVideos.filter((v) =>
+    v.title.toLowerCase().includes(keyword)
+  );
 
   renderVideos(filtered);
-
 });
 
 fetchVideos();
