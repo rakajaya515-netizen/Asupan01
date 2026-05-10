@@ -1,112 +1,23 @@
-  *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+.pagination{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+  margin:40px 0;
 }
 
-body{
-  background:#000;
-  color:#fff;
-  font-family:Poppins,sans-serif;
+.pagination button{
+  background:#8a2be2;
+  color:white;
+  border:none;
+  padding:12px 20px;
+  border-radius:12px;
+  font-size:16px;
+  cursor:pointer;
 }
 
-.navbar{
-  padding:20px;
-  position:sticky;
-  top:0;
-  z-index:100;
-  background:#000;
-}
-
-.logo{
-  font-size:58px;
-  font-weight:800;
-  color:#ff3bc1;
-  margin-bottom:20px;
-}
-
-.search-wrapper{
-  width:100%;
-}
-
-#search{
-  width:100%;
-  padding:24px 30px;
-  border-radius:50px;
-  border:4px solid #9d00ff;
-  background:#000;
-  color:#fff;
-  font-size:22px;
-  outline:none;
-
-  box-shadow:
-    0 0 15px #9d00ff,
-    0 0 35px #9d00ff;
-}
-
-.ads-banner{
-  width:100%;
-  overflow:hidden;
-  margin:10px 0 20px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:16px;
-  padding:16px;
-}
-
-.card{
-  background:#111;
-  border-radius:25px;
-  overflow:hidden;
-  text-decoration:none;
-  color:#fff;
-}
-
-.card img{
-  width:100%;
-  aspect-ratio:9/16;
-  object-fit:cover;
-  display:block;
-}
-
-.info{
-  padding:14px;
-}
-
-.info h3{
-  font-size:22px;
-  font-weight:700;
-  line-height:1.4;
-  margin-bottom:10px;
-}
-
-.info p{
-  color:#999;
+.pagination span{
+  color:white;
   font-size:18px;
-}
-
-#loading{
-  text-align:center;
-  padding:40px;
-  font-size:22px;
-}
-
-@media(max-width:768px){
-
-  .logo{
-    font-size:48px;
-  }
-
-  #search{
-    font-size:20px;
-    padding:20px 24px;
-  }
-
-  .info h3{
-    font-size:18px;
-  }
-
+  font-weight:bold;
 }
