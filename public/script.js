@@ -1,9 +1,10 @@
 const grid = document.getElementById("videos");
+
 const loading = document.getElementById("loading");
 
 let currentPage = 1;
 
-let isLoading = false;
+let loadingNow = false;
 
 let finished = false;
 
@@ -11,9 +12,9 @@ const used = new Set();
 
 async function loadVideos() {
 
-  if (isLoading || finished) return;
+  if (loadingNow || finished) return;
 
-  isLoading = true;
+  loadingNow = true;
 
   loading.innerHTML = "Loading videos...";
 
@@ -27,15 +28,22 @@ async function loadVideos() {
 
     const videos = data.videos || [];
 
+    console.log("PAGE:", currentPage);
+
+    console.log(videos.length);
+
     // kalau kosong stop
     if (videos.length === 0) {
 
       finished = true;
 
-      loading.innerHTML = "All videos loaded";
+      loading.innerHTML =
+        "All videos loaded";
 
       return;
     }
+
+    let added = 0;
 
     videos.forEach(video => {
 
@@ -45,7 +53,10 @@ async function loadVideos() {
 
       used.add(video.url);
 
-      const card = document.createElement("a");
+      added++;
+
+      const card =
+        document.createElement("a");
 
       card.href = video.url;
 
@@ -54,7 +65,7 @@ async function loadVideos() {
       card.className = "card";
 
       card.innerHTML = `
-        <img src="${video.thumbnail}" alt="${video.title}">
+        <img src="${video.thumbnail}" alt="">
 
         <div class="info">
           <h3>${video.title}</h3>
@@ -66,6 +77,17 @@ async function loadVideos() {
 
     });
 
+    // kalau page duplicate semua
+    if (added === 0) {
+
+      finished = true;
+
+      loading.innerHTML =
+        "No more videos";
+
+      return;
+    }
+
     currentPage++;
 
     loading.innerHTML = "";
@@ -74,31 +96,35 @@ async function loadVideos() {
 
     console.log(err);
 
-    loading.innerHTML = "Failed load videos";
+    loading.innerHTML =
+      "Failed load videos";
 
   }
 
-  isLoading = false;
+  loadingNow = false;
 }
 
 
-// load pertama
+// load awal
 loadVideos();
 
 
-// infinite scroll
+// auto next page
 window.addEventListener("scroll", () => {
 
-  const scrollTop = window.scrollY;
+  if (loadingNow || finished) return;
 
-  const screenHeight = window.innerHeight;
+  const scrollBottom =
+    window.innerHeight +
+    window.scrollY;
 
-  const fullHeight = document.body.offsetHeight;
+  const fullHeight =
+    document.body.offsetHeight;
 
-  if (
-    scrollTop + screenHeight >= fullHeight - 1000
-  ) {
+  if (scrollBottom >= fullHeight - 800) {
+
     loadVideos();
+
   }
 
 });
