@@ -2,57 +2,59 @@ export async function GET() {
   try {
     const API_KEY = process.env.VIZEY_API_KEY;
 
-    let allVideos = [];
-    let seenIds = new Set();
+    let currentPage = 1;
+    let hasNext = true;
 
-    // ambil maksimal 20 halaman
-    for (let page = 1; page <= 20; page++) {
-      const res = await fetch(
-        `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}`,
+    let allVideos = [];
+
+    while (hasNext) {
+      const response = await fetch(
+        `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${currentPage}`,
         {
           cache: "no-store",
         }
       );
 
-      const json = await res.json();
+      const data = await response.json();
 
-      // stop kalau gagal
-      if (!json.success) {
+      if (!data.success) {
         break;
       }
 
-      // stop kalau data kosong
-      if (!json.data || json.data.length === 0) {
-        break;
-      }
+      const videos = data.data || [];
 
-      // filter duplicate
-      const uniqueVideos = json.data.filter((video) => {
-        if (seenIds.has(video.id)) {
-          return false;
-        }
-
-        seenIds.add(video.id);
-        return true;
-      });
-
-      // stop kalau page isinya duplicate semua
-      if (uniqueVideos.length === 0) {
-        break;
-      }
+      // hapus video duplicate
+      const uniqueVideos = videos.filter(
+        (video, index, self) =>
+          index ===
+          self.findIndex((v) => v.id === video.id)
+      );
 
       allVideos.push(...uniqueVideos);
 
-      // delay kecil biar tidak kena rate limit
+      // pagination
+      hasNext = data.pagination?.hasNext || false;
+
+      currentPage++;
+
+      // delay anti rate limit
       await new Promise((resolve) =>
         setTimeout(resolve, 300)
       );
     }
 
-    return Response.json(allVideos);
-  } catch (err) {
-    console.log(err);
+    // hapus duplicate global
+    const finalVideos = allVideos.filter(
+      (video, index, self) =>
+        index ===
+        self.findIndex((v) => v.id === video.id)
+    );
 
-    return Response.json([]);
+    return Response.json(finalVideos);
+  } catch (err) {
+    return Response.json({
+      success: false,
+      error: err.message,
+    });
   }
 }
