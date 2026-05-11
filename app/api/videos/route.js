@@ -1,32 +1,52 @@
-// app/api/videos/route.js
-
 export async function GET() {
   try {
     const API_KEY = process.env.VIZEY_API_KEY;
 
     let allVideos = [];
-    let currentPage = 1;
-    let hasNext = true;
+    let seenIds = new Set();
 
-    while (hasNext) {
+    // ambil maksimal 20 halaman
+    for (let page = 1; page <= 20; page++) {
       const res = await fetch(
-        `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${currentPage}`,
+        `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}`,
         {
           cache: "no-store",
         }
       );
 
-      const data = await res.json();
+      const json = await res.json();
 
-      if (!data.success) {
+      // stop kalau gagal
+      if (!json.success) {
         break;
       }
 
-      allVideos = [...allVideos, ...data.data];
+      // stop kalau data kosong
+      if (!json.data || json.data.length === 0) {
+        break;
+      }
 
-      hasNext = data.pagination?.hasNext || false;
+      // filter duplicate
+      const uniqueVideos = json.data.filter((video) => {
+        if (seenIds.has(video.id)) {
+          return false;
+        }
 
-      currentPage++;
+        seenIds.add(video.id);
+        return true;
+      });
+
+      // stop kalau page isinya duplicate semua
+      if (uniqueVideos.length === 0) {
+        break;
+      }
+
+      allVideos.push(...uniqueVideos);
+
+      // delay kecil biar tidak kena rate limit
+      await new Promise((resolve) =>
+        setTimeout(resolve, 300)
+      );
     }
 
     return Response.json(allVideos);
