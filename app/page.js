@@ -1,42 +1,89 @@
-// app/page.js
-
 "use client";
 
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
-  const [filtered, setFiltered] = useState([]);
+  const [visibleVideos, setVisibleVideos] = useState([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadVideos() {
       try {
         const res = await fetch("/api/videos");
-
         const data = await res.json();
 
         setVideos(data);
-        setFiltered(data);
+        setVisibleVideos(data.slice(0, 20));
+
+        // restore scroll
+        const savedScroll = sessionStorage.getItem("scrollY");
+
+        if (savedScroll) {
+          setTimeout(() => {
+            window.scrollTo(0, parseInt(savedScroll));
+          }, 100);
+        }
       } catch (err) {
         console.log(err);
       }
-
-      setLoading(false);
     }
 
     loadVideos();
   }, []);
 
+  // save scroll position
+  useEffect(() => {
+    const saveScroll = () => {
+      sessionStorage.setItem("scrollY", window.scrollY);
+    };
+
+    window.addEventListener("scroll", saveScroll);
+
+    return () => {
+      window.removeEventListener("scroll", saveScroll);
+    };
+  }, []);
+
+  // infinite scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 500
+      ) {
+        setVisibleVideos((prev) => {
+          const next = videos.slice(0, prev.length + 20);
+
+          if (next.length === prev.length) {
+            return prev;
+          }
+
+          return next;
+        });
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [videos]);
+
   function handleSearch(value) {
     setSearch(value);
 
-    const result = videos.filter((video) =>
+    if (!value) {
+      setVisibleVideos(videos.slice(0, 20));
+      return;
+    }
+
+    const filtered = videos.filter((video) =>
       video.title?.toLowerCase().includes(value.toLowerCase())
     );
 
-    setFiltered(result);
+    setVisibleVideos(filtered);
   }
 
   return (
@@ -54,17 +101,16 @@ export default function Home() {
       </div>
 
       <p className="count">
-        {loading
-          ? "Loading videos..."
-          : `${filtered.length} videos loaded`}
+        {visibleVideos.length} videos loaded
       </p>
 
       <div className="grid">
-        {filtered.map((video) => (
+        {visibleVideos.map((video) => (
           <a
             key={video.id}
             href={`https://videy.co/v/?id=${video.id}`}
             target="_blank"
+            rel="noopener noreferrer"
             className="card"
           >
             <img
@@ -91,4 +137,4 @@ export default function Home() {
       </div>
     </main>
   );
-}
+}        
