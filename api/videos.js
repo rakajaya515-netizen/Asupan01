@@ -1,31 +1,87 @@
-export default async function handler(req, res) {
-  const API_KEY = process.env.VIZEY_API_KEY;
+let cache = {};
 
-  const page = Number(req.query.page || 1);
+export default async function handler(req, res) {
+
+  const page =
+    Number(req.query.page || 1);
+
+  // 🔥 cache 60 detik
+  const cacheKey = `page-${page}`;
+
+  if (
+    cache[cacheKey] &&
+    Date.now() - cache[cacheKey].time < 60000
+  ) {
+
+    return res.status(200).json(
+      cache[cacheKey].data
+    );
+
+  }
 
   try {
+
     const response = await fetch(
-      `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}`
+      `https://api.vizey.com/video/list?page=${page}`,
+      {
+        headers: {
+          accept: "application/json"
+        }
+      }
     );
 
-    const data = await response.json();
+    const json =
+      await response.json();
 
-    const videos = data?.data || [];
+    // 🔥 ambil video saja
+    const videos =
+      (json.result || [])
+      .slice(0, 20)
+      .map(v => ({
 
+        id:
+          v.filecode ||
+          v.id,
+
+        title:
+          v.title ||
+          "Untitled Video",
+
+        thumbnail:
+          v.thumbnail ||
+          "",
+
+      }));
+
+    const result = {
+      videos,
+      hasMore:
+        videos.length > 0
+    };
+
+    // 🔥 simpan cache
+    cache[cacheKey] = {
+      time: Date.now(),
+      data: result
+    };
+
+    // 🔥 header cache browser
     res.setHeader(
       "Cache-Control",
-      "s-maxage=300, stale-while-revalidate=600"
+      "s-maxage=60, stale-while-revalidate=120"
     );
 
-    res.status(200).json({
-      page,
-      videos,
-      hasMore: data?.pagination?.hasNext || false,
-    });
+    return res
+      .status(200)
+      .json(result);
 
   } catch (err) {
-    res.status(500).json({
-      error: "Gagal ambil data Vizey",
+
+    return res.status(500).json({
+      videos: [],
+      hasMore: false
     });
+
   }
+
 }
