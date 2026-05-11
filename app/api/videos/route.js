@@ -1,22 +1,38 @@
+// app/api/videos/route.js
+
 export async function GET() {
   try {
     const API_KEY = process.env.VIZEY_API_KEY;
 
-    const res = await fetch(
-      `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=1`,
-      {
-        cache: "no-store",
+    let allVideos = [];
+    let currentPage = 1;
+    let hasNext = true;
+
+    while (hasNext) {
+      const res = await fetch(
+        `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${currentPage}`,
+        {
+          cache: "no-store",
+        }
+      );
+
+      const data = await res.json();
+
+      if (!data.success) {
+        break;
       }
-    );
 
-    const data = await res.json();
+      allVideos = [...allVideos, ...data.data];
 
-    if (!data.success) {
-      return Response.json([]);
+      hasNext = data.pagination?.hasNext || false;
+
+      currentPage++;
     }
 
-    return Response.json(data.data);
+    return Response.json(allVideos);
   } catch (err) {
+    console.log(err);
+
     return Response.json([]);
   }
 }
