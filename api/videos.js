@@ -5,45 +5,39 @@ export default async function handler(req, res) {
     const API_KEY =
       process.env.VIZEY_API_KEY;
 
-    // 🔥 folder id kamu
-    const FOLDER_ID = "089vwlwk";
+    const FOLDER_ID =
+      "089vwlwk";
 
     let allVideos = [];
 
-    // 🔥 ambil SEMUA halaman
     for (let page = 1; page <= 100; page++) {
 
-      const url =
-        `https://vizey.net/api/v1/folders/${FOLDER_ID}?apikey=${API_KEY}&page=${page}&t=${Date.now()}`;
-
-      console.log("FETCH:", url);
-
-      const response =
-        await fetch(url);
+      const response = await fetch(
+        `https://vizey.net/api/v1/folders/${FOLDER_ID}/videos?apikey=${API_KEY}&page=${page}&t=${Date.now()}`
+      );
 
       const json =
         await response.json();
 
+      console.log("PAGE:", page);
+
       console.log(json);
 
-      // 🔥 array video
       const videos =
         json.data || [];
 
-      // stop kalau kosong
       if (!videos.length) {
         break;
       }
 
       allVideos.push(...videos);
 
-      // delay anti rate limit
       await new Promise(r =>
-        setTimeout(r, 150)
+        setTimeout(r, 100)
       );
     }
 
-    // 🔥 remove duplicate
+    // remove duplicate
     const unique = [];
 
     const ids = new Set();
@@ -62,7 +56,7 @@ export default async function handler(req, res) {
 
     res.setHeader(
       "Cache-Control",
-      "no-store, max-age=0"
+      "no-store"
     );
 
     return res.status(200).json({
