@@ -1,121 +1,53 @@
-// api/videos.js
-
-let cache = {};
-
 export default async function handler(req, res) {
 
-  // 🔥 ambil page
-  const page =
-    Number(req.query.page || 1);
+try {
 
-  // 🔥 cache key
-  const cacheKey =
-    `page-${page}`;
+const page = req.query.page || 1;
 
-  // 🔥 cache 60 detik
-  if (
-    cache[cacheKey] &&
-    Date.now() - cache[cacheKey].time < 60000
-  ) {
+const response = await fetch(
+`https://vizey.net/api/videos?page=${page}`,
+{
+headers: {
+"User-Agent": "Mozilla/5.0"
+}
+}
+);
 
-    return res.status(200).json(
-      cache[cacheKey].data
-    );
+const text = await response.text();
 
-  }
+let data = {};
 
-  try {
+try {
+data = JSON.parse(text);
+} catch {
+return res.status(500).json({
+error: "Response bukan JSON",
+raw: text
+});
+}
 
-    // 🔥 fetch API Vizey
-    const response =
-      await fetch(
-        `https://vizey.net/api/v1/list?page=${page}`,
-        {
-          headers:{
-            accept:"application/json"
-          }
-        }
-      );
+const videos =
+data.videos ||
+data.result ||
+data.data ||
+[];
 
-    const json =
-      await response.json();
+res.setHeader(
+"Cache-Control",
+"s-maxage=60, stale-while-revalidate"
+);
 
-    // 🔥 data video
-    const rawVideos =
-      json?.data || [];
+return res.status(200).json({
+videos,
+hasMore: videos.length > 0
+});
 
-    // 🔥 limit biar ringan
-    const videos =
-      rawVideos
-      .slice(0,20)
-      .map(v => ({
+} catch (err) {
 
-        id:
-          v.id ||
-          v.filecode,
+return res.status(500).json({
+error: err.toString()
+});
 
-        title:
-          v.title ||
-          "Untitled Video",
-
-        thumbnail:
-          v.thumbnail ||
-          "",
-
-      }));
-
-
-    // 🔥 cek next page
-    const hasMore =
-      Boolean(
-        json?.pagination?.hasNext
-      );
-
-
-    // 🔥 result
-    const result = {
-
-      videos,
-
-      hasMore
-
-    };
-
-
-    // 🔥 simpan cache
-    cache[cacheKey] = {
-
-      time: Date.now(),
-
-      data: result
-
-    };
-
-
-    // 🔥 browser cache
-    res.setHeader(
-      "Cache-Control",
-      "s-maxage=60, stale-while-revalidate=120"
-    );
-
-
-    // 🔥 kirim response
-    return res
-      .status(200)
-      .json(result);
-
-  } catch (err) {
-
-    console.log(err);
-
-    return res.status(500).json({
-
-      videos: [],
-
-      hasMore: false
-
-    });
-
-  }
+}
 
 }
