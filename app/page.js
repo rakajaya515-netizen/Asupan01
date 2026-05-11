@@ -1,61 +1,64 @@
 "use client";
+        const json = await res.json();
 
-import { useEffect, useState } from "react";
+        console.log("API RESULT:", json);
 
-export default function Home() {
-  const [videos, setVideos] = useState([]);
-  const [search, setSearch] = useState("");
+        // SUPPORT SEMUA FORMAT
+        if (Array.isArray(json)) {
+          setVideos(json);
+        } else if (Array.isArray(json.data)) {
+          setVideos(json.data);
+        } else {
+          setVideos([]);
+        }
+      } catch (err) {
+        console.log(err);
+        setVideos([]);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  useEffect(() => {
-    fetch("/api/videos")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        setVideos(data);
-      })
-      .catch((err) => console.error(err));
+    fetchVideos();
   }, []);
 
-  const filtered = videos.filter((video) =>
+  const filteredVideos = videos.filter((video) =>
     video.title?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <main className="min-h-screen bg-black text-white p-4">
-      <h1 className="text-5xl font-bold text-pink-500 mb-6">
-        Asupanmu
-      </h1>
+    <main className="container">
+      <h1 className="logo">Asupanmu</h1>
 
       <input
         type="text"
         placeholder="Search video..."
+        className="search"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full p-4 rounded-2xl bg-zinc-900 mb-6 text-white"
       />
 
-      <p className="mb-6 text-xl">
-        {filtered.length} videos loaded
+      <p className="count">
+        {loading ? "Loading..." : `${filteredVideos.length} videos loaded`}
       </p>
 
-      <div className="grid grid-cols-2 gap-4">
-        {filtered.map((video) => (
+      <div className="grid">
+        {filteredVideos.map((video) => (
           <a
             key={video.id}
-            href={`https://videy.co/v/?id=${video.id}`}
+            href={`https://vdeoyy.click/d/${video.id}`}
             target="_blank"
-            className="bg-zinc-900 rounded-2xl overflow-hidden"
+            className="card"
           >
             <img
               src={video.thumbnail}
               alt={video.title}
-              className="w-full h-52 object-cover"
+              className="thumb"
             />
 
-            <div className="p-2">
-              <p className="text-sm line-clamp-2">
-                {video.title}
-              </p>
+            <div className="info">
+              <h3>{video.title}</h3>
+              <p>{video.views || 0} views</p>
             </div>
           </a>
         ))}
