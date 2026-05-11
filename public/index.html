@@ -138,6 +138,8 @@ let filteredMode = false;
 
 let videosGlobal = [];
 
+let nextPageCache = null;
+
 const container =
   document.getElementById("videos");
 
@@ -145,7 +147,7 @@ const loadingText =
   document.getElementById("loading");
 
 
-// 🔥 Popunder sekali
+// 🔥 Popunder
 function triggerPopunder(){
 
   if(localStorage.getItem("popShown"))
@@ -161,7 +163,7 @@ function triggerPopunder(){
 }
 
 
-// 🔥 Native ads
+// 🔥 Native Ads
 function createNativeAd(){
 
   const ad = document.createElement("div");
@@ -183,18 +185,16 @@ function createNativeAd(){
     "container-d6c7cfa2fbe3ee841c92a4f50371bf35";
 
   ad.appendChild(script);
+
   ad.appendChild(ins);
 
   return ad;
+
 }
 
 
 // 🔥 Render videos
-function renderVideos(videos, reset = false){
-
-  if(reset){
-    container.innerHTML = "";
-  }
+function renderVideos(videos){
 
   const fragment =
     document.createDocumentFragment();
@@ -205,9 +205,11 @@ function renderVideos(videos, reset = false){
     if(
       (container.children.length + i + 1) % 8 === 0
     ){
+
       fragment.appendChild(
         createNativeAd()
       );
+
     }
 
     const el =
@@ -234,19 +236,22 @@ function renderVideos(videos, reset = false){
 
       window.location.href =
         \`https://vizey.net/v/\${v.id}\`;
+
     };
 
     fragment.appendChild(el);
 
   });
 
-  container.appendChild(fragment);
+  requestAnimationFrame(() => {
+    container.appendChild(fragment);
+  });
 
 }
 
 
-// 🔥 Fetch API
-async function fetchVideos(pageNum){
+// 🔥 Fetch page
+async function fetchPage(pageNum){
 
   const res =
     await fetch(
@@ -254,6 +259,23 @@ async function fetchVideos(pageNum){
     );
 
   return await res.json();
+
+}
+
+
+// 🔥 Preload next page
+async function preloadNextPage(){
+
+  if(!hasMore) return;
+
+  try{
+
+    nextPageCache =
+      await fetchPage(page + 1);
+
+  }catch(err){
+    console.log(err);
+  }
 
 }
 
@@ -274,8 +296,21 @@ async function loadVideos(){
 
   try{
 
-    const data =
-      await fetchVideos(page);
+    let data;
+
+    // pakai cache
+    if(nextPageCache){
+
+      data = nextPageCache;
+
+      nextPageCache = null;
+
+    }else{
+
+      data =
+        await fetchPage(page);
+
+    }
 
     const videos =
       data.videos || [];
@@ -288,10 +323,17 @@ async function loadVideos(){
 
     page++;
 
+    // preload page berikutnya
+    preloadNextPage();
+
     if(!hasMore){
 
       loadingText.innerHTML =
         "No more videos";
+
+    }else{
+
+      loadingText.innerHTML = "";
 
     }
 
@@ -309,20 +351,24 @@ async function loadVideos(){
 }
 
 
-// 🔥 Infinite scroll
-window.addEventListener("scroll", () => {
+// 🔥 Infinite scroll ultra smooth
+window.addEventListener(
+  "scroll",
+  () => {
 
-  if(
-    window.innerHeight +
-    window.scrollY >=
-    document.body.offsetHeight - 1000
-  ){
+    if(
+      window.innerHeight +
+      window.scrollY >=
+      document.body.offsetHeight - 1800
+    ){
 
-    loadVideos();
+      loadVideos();
 
-  }
+    }
 
-});
+  },
+  { passive:true }
+);
 
 
 // 🔥 Search
@@ -333,7 +379,6 @@ document
   const q =
     e.target.value.toLowerCase();
 
-  // kosong
   if(q.length === 0){
 
     filteredMode = false;
@@ -343,6 +388,7 @@ document
     renderVideos(videosGlobal);
 
     return;
+
   }
 
   filteredMode = true;
@@ -367,9 +413,3 @@ document
 loadVideos();
 
 </script>
-
-<!-- SOCIAL BAR -->
-<script src="//pl29343713.profitableratecpm.com/9a/69/24/9a6924d62fcb5f212667f72bfbb2378f.js"></script>
-
-</body>
-</html>
