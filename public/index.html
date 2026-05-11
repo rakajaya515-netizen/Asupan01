@@ -1,127 +1,91 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
 <title>Asupanmu</title>
 
 <style>
+
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:Arial, sans-serif;
 }
 
 body{
 background:#000;
+font-family:Arial,sans-serif;
 color:#fff;
 }
 
-.navbar{
+.header{
+padding:24px 20px 10px;
 position:sticky;
 top:0;
-z-index:999;
 background:#000;
-padding:20px 15px;
+z-index:999;
 }
 
 .logo{
-font-size:52px;
+font-size:60px;
 font-weight:900;
-color:#ff3cc7;
-margin-bottom:15px;
+color:#ff33cc;
+margin-bottom:20px;
 }
 
 .search{
 width:100%;
-padding:18px 20px;
+padding:18px 22px;
 border:none;
-outline:none;
 border-radius:20px;
 background:#111;
 color:#fff;
 font-size:20px;
+outline:none;
 }
 
 .container{
+padding:10px;
 display:grid;
 grid-template-columns:repeat(2,1fr);
 gap:12px;
-padding:12px;
 }
 
 .card{
 background:#111;
-border-radius:20px;
+border-radius:18px;
 overflow:hidden;
 cursor:pointer;
-transition:.2s;
 }
 
-.card:active{
-transform:scale(.96);
-}
-
-.thumb{
+.card img{
 width:100%;
-aspect-ratio:9/14;
+height:270px;
 object-fit:cover;
-display:block;
 background:#222;
 }
 
-.info{
-padding:10px;
-}
-
 .title{
+padding:12px;
 font-size:16px;
-font-weight:700;
+font-weight:bold;
 line-height:1.4;
-display:-webkit-box;
--webkit-line-clamp:2;
--webkit-box-orient:vertical;
-overflow:hidden;
 }
 
-.source{
-margin-top:8px;
-color:#bb66ff;
-font-size:14px;
-}
-
-.loading,
-.end,
-.empty{
+.loading{
 text-align:center;
-padding:30px;
+padding:40px;
 font-size:22px;
+color:#aaa;
 }
 
-@media(max-width:500px){
-
-.logo{
-font-size:42px;
-}
-
-.title{
-font-size:14px;
-}
-
-.container{
-gap:10px;
-padding:10px;
-}
-
-}
 </style>
 </head>
-
 <body>
 
-<div class="navbar">
+<div class="header">
 <div class="logo">Asupanmu</div>
 
 <input
@@ -129,12 +93,12 @@ type="text"
 class="search"
 id="search"
 placeholder="Search video..."
-/>
+>
 </div>
 
-<div class="container" id="videos"></div>
+<div id="videos" class="container"></div>
 
-<div class="loading" id="loading">
+<div id="loading" class="loading">
 Loading videos...
 </div>
 
@@ -142,158 +106,76 @@ Loading videos...
 
 const container = document.getElementById("videos");
 const loading = document.getElementById("loading");
-const searchInput = document.getElementById("search");
+const search = document.getElementById("search");
 
 let allVideos = [];
-let page = 1;
-let loadingData = false;
-let hasMore = true;
 
-async function fetchVideos(pageNum){
+async function loadVideos(){
 
 try{
 
-const res = await fetch(`/api/videos?page=${pageNum}`);
+const response = await fetch("/api/videos");
 
-if(!res.ok){
-throw new Error("API Error");
-}
+const data = await response.json();
 
-return await res.json();
+allVideos = data.videos || [];
+
+renderVideos(allVideos);
+
+loading.innerHTML =
+allVideos.length > 0
+? ""
+: "No videos found";
 
 }catch(err){
 
-console.log(err);
-
-return {
-videos: [],
-hasMore: false
-};
+loading.innerHTML = "Failed load videos";
 
 }
 
 }
 
-function createCard(video){
+function renderVideos(videos){
+
+container.innerHTML = "";
+
+videos.forEach(video=>{
 
 const card = document.createElement("div");
+
 card.className = "card";
 
 card.innerHTML = `
-<img
-class="thumb"
-src="${video.thumbnail}"
-loading="lazy"
-referrerpolicy="no-referrer"
-/>
-
-<div class="info">
+<img loading="lazy" src="${video.thumbnail}" alt="">
 <div class="title">
-${video.title || "Untitled Video"}
-</div>
-
-<div class="source">
-vizey
-</div>
+${video.title || "Untitled"}
 </div>
 `;
 
-card.onclick = () => {
+card.onclick = ()=>{
 
 window.location.href =
 `https://vizey.net/v/${video.id}`;
 
 };
 
-return card;
-
-}
-
-function renderVideos(videos, reset=false){
-
-if(reset){
-container.innerHTML = "";
-}
-
-const fragment = document.createDocumentFragment();
-
-videos.forEach(video => {
-
-fragment.appendChild(
-createCard(video)
-);
+container.appendChild(card);
 
 });
 
-container.appendChild(fragment);
-
 }
 
-async function loadVideos(){
+search.addEventListener("input",(e)=>{
 
-if(loadingData || !hasMore) return;
+const q = e.target.value.toLowerCase();
 
-loadingData = true;
-
-loading.style.display = "block";
-
-const data = await fetchVideos(page);
-
-const videos = data.videos || [];
-
-if(videos.length > 0){
-
-allVideos.push(...videos);
-
-renderVideos(videos);
-
-page++;
-
-}else{
-
-hasMore = false;
-
-loading.innerHTML = "No more videos";
-
-}
-
-loadingData = false;
-
-}
-
-window.addEventListener("scroll", () => {
-
-const scrollTop =
-window.scrollY;
-
-const screenHeight =
-window.innerHeight;
-
-const fullHeight =
-document.body.offsetHeight;
-
-if(
-scrollTop + screenHeight >=
-fullHeight - 1000
-){
-loadVideos();
-}
-
-});
-
-searchInput.addEventListener("input", e => {
-
-const q =
-e.target.value.toLowerCase();
-
-const filtered =
-allVideos.filter(v =>
+const filtered = allVideos.filter(v=>
 (v.title || "")
 .toLowerCase()
 .includes(q)
 );
 
-renderVideos(filtered, true);
+renderVideos(filtered);
 
 });
 
