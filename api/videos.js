@@ -1,49 +1,85 @@
 export default async function handler(req, res) {
 
-try {
+  try {
 
-const page = Number(req.query.page || 1);
+    const page = Number(req.query.page || 1);
 
-const API_KEY = process.env.VIZEY_API_KEY;
+    const API_KEY = process.env.VIZEY_API_KEY;
 
-const url =
-`https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}&_=${Date.now()}`;
+    // 🔥 ambil semua folder
+    const folderRes = await fetch(
+      `https://vizey.net/api/v1/folders?apikey=${API_KEY}&_=${Date.now()}`,
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+          "Cache-Control": "no-cache"
+        }
+      }
+    );
 
-const response = await fetch(url,{
-headers:{
-"User-Agent":"Mozilla/5.0",
-"Cache-Control":"no-cache"
-}
-});
+    const folderData = await folderRes.json();
 
-const data = await response.json();
+    const folders = folderData.data || [];
 
-console.log("PAGE:", page);
+    let allVideos = [];
 
-console.log("API:", data.pagination);
+    // 🔥 loop semua folder
+    for (const folder of folders) {
 
-res.setHeader(
-"Cache-Control",
-"no-store, max-age=0"
-);
+      const folderId = folder.id;
 
-return res.status(200).json({
-success:true,
-page,
+      const videoRes = await fetch(
+        `https://vizey.net/api/v1/folders/${folderId}?apikey=${API_KEY}&page=${page}&_=${Date.now()}`,
+        {
+          headers: {
+            "User-Agent": "Mozilla/5.0",
+            "Cache-Control": "no-cache"
+          }
+        }
+      );
 
-videos:data.data || [],
+      const videoData = await videoRes.json();
 
-pagination:data.pagination || {}
+      const videos = videoData.data || [];
 
-});
+      allVideos.push(...videos);
+    }
 
-}catch(err){
+    // 🔥 hapus duplicate
+    const uniqueVideos = [];
 
-return res.status(500).json({
-success:false,
-error:err.toString()
-});
+    const ids = new Set();
 
-}
+    for (const v of allVideos) {
+
+      if (!ids.has(v.id)) {
+
+        ids.add(v.id);
+
+        uniqueVideos.push(v);
+      }
+    }
+
+    res.setHeader(
+      "Cache-Control",
+      "no-store, max-age=0"
+    );
+
+    return res.status(200).json({
+      success: true,
+      page,
+      total: uniqueVideos.length,
+      videos: uniqueVideos,
+      hasNext: uniqueVideos.length > 0
+    });
+
+  } catch (err) {
+
+    return res.status(500).json({
+      success: false,
+      error: err.toString()
+    });
+
+  }
 
 }
