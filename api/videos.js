@@ -10,30 +10,35 @@ export default async function handler(req, res) {
 
     let allVideos = [];
 
-    for (let page = 1; page <= 100; page++) {
+    let currentPage = 1;
+
+    let hasNext = true;
+
+    while (hasNext) {
 
       const response = await fetch(
-        `https://vizey.net/api/v1/folders/${FOLDER_ID}/videos?apikey=${API_KEY}&page=${page}&t=${Date.now()}`
+        `https://vizey.net/api/v1/folders/${FOLDER_ID}?apikey=${API_KEY}&page=${currentPage}&_=${Date.now()}`
       );
 
-      const json =
-        await response.json();
-
-      console.log("PAGE:", page);
+      const json = await response.json();
 
       console.log(json);
 
-      const videos =
-        json.data || [];
+      const videos = json.data || [];
 
-      if (!videos.length) {
-        break;
-      }
+      const pagination =
+        json.pagination || {};
 
       allVideos.push(...videos);
 
+      // 🔥 cek next page
+      hasNext =
+        pagination.hasNext || false;
+
+      currentPage++;
+
       await new Promise(r =>
-        setTimeout(r, 100)
+        setTimeout(r, 120)
       );
     }
 
