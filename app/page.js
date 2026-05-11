@@ -1,68 +1,64 @@
 "use client";
-        const json = await res.json();
 
-        console.log("API RESULT:", json);
+import { useEffect, useState } from "react";
 
-        // SUPPORT SEMUA FORMAT
-        if (Array.isArray(json)) {
-          setVideos(json);
-        } else if (Array.isArray(json.data)) {
-          setVideos(json.data);
+export default function Home() {
+  const [videos, setVideos] = useState([]);
+  const [search, setSearch] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/videos")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+
+        if (Array.isArray(data)) {
+          setVideos(data);
         } else {
           setVideos([]);
         }
-      } catch (err) {
+      })
+      .catch((err) => {
         console.log(err);
-        setVideos([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchVideos();
+      });
   }, []);
 
-  const filteredVideos = videos.filter((video) =>
-    video.title?.toLowerCase().includes(search.toLowerCase())
+  const filtered = videos.filter((v) =>
+    v.title?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <main className="container">
+    <div className="container">
       <h1 className="logo">Asupanmu</h1>
 
       <input
-        type="text"
-        placeholder="Search video..."
         className="search"
+        placeholder="Search video..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      <p className="count">
-        {loading ? "Loading..." : `${filteredVideos.length} videos loaded`}
-      </p>
+      <p className="count">{filtered.length} videos loaded</p>
 
       <div className="grid">
-        {filteredVideos.map((video) => (
+        {filtered.map((video) => (
           <a
             key={video.id}
-            href={`https://vdeoyy.click/d/${video.id}`}
+            href={`https://videy.co/v/?id=${video.id}`}
             target="_blank"
             className="card"
           >
             <img
               src={video.thumbnail}
-              alt={video.title}
               className="thumb"
             />
 
             <div className="info">
-              <h3>{video.title}</h3>
-              <p>{video.views || 0} views</p>
+              <p>{video.title}</p>
             </div>
           </a>
         ))}
       </div>
-    </main>
+    </div>
   );
 }
