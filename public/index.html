@@ -119,24 +119,48 @@ Loading videos...
 </div>
 
 <script>
+
 const container = document.getElementById("videos");
 const loading = document.getElementById("loading");
 const searchInput = document.getElementById("search");
 
-let page = 1;
-let loadingNow = false;
-let hasNext = true;
-
 let allVideos = [];
-let loadedIds = new Set();
 
-function createCard(video){
+async function loadVideos(){
 
-if(loadedIds.has(video.id)) return null;
+loading.innerText = "Loading videos...";
 
-loadedIds.add(video.id);
+try{
+
+const res = await fetch("/api/videos");
+
+const data = await res.json();
+
+allVideos = data.videos || [];
+
+renderVideos(allVideos);
+
+loading.innerText =
+`${allVideos.length} videos loaded`;
+
+}catch(err){
+
+loading.innerText = "Failed loading videos";
+
+console.log(err);
+
+}
+
+}
+
+function renderVideos(videos){
+
+container.innerHTML = "";
+
+videos.forEach(video=>{
 
 const card = document.createElement("div");
+
 card.className = "card";
 
 card.innerHTML = `
@@ -144,12 +168,11 @@ card.innerHTML = `
 class="thumb"
 src="${video.thumbnail}"
 loading="lazy"
-referrerpolicy="no-referrer"
-/>
+>
 
 <div class="info">
 <div class="title">
-${video.title || "Untitled Video"}
+${video.title || "Untitled"}
 </div>
 
 <div class="source">
@@ -158,112 +181,31 @@ vizey
 </div>
 `;
 
-card.onclick = () => {
-window.location.href = `https://vizey.net/v/${video.id}`;
+card.onclick = ()=>{
+window.location.href =
+`https://vizey.net/v/${video.id}`;
 };
 
-return card;
-}
+container.appendChild(card);
 
-function renderVideos(videos, reset=false){
-
-if(reset){
-container.innerHTML = "";
-loadedIds.clear();
-}
-
-const fragment = document.createDocumentFragment();
-
-videos.forEach(video => {
-const card = createCard(video);
-
-if(card){
-fragment.appendChild(card);
-}
 });
 
-container.appendChild(fragment);
 }
-
-async function loadVideos(){
-
-if(loadingNow || !hasNext) return;
-
-loadingNow = true;
-
-loading.innerText = "Loading videos...";
-
-try{
-
-const res = await fetch(`/api/videos?page=${page}`);
-
-const data = await res.json();
-
-console.log(data);
-
-const videos =
-data.videos ||
-data.data ||
-[];
-
-if(videos.length > 0){
-
-allVideos.push(...videos);
-
-renderVideos(videos);
-
-page++;
-
-hasNext =
-data.pagination?.hasNext ??
-(data.pagination?.currentPage <
-data.pagination?.totalPages);
-
-}else{
-
-hasNext = false;
-}
-
-if(!hasNext){
-loading.innerText = "No more videos";
-}
-
-}catch(err){
-
-console.log(err);
-
-loading.innerText = "Failed loading videos";
-}
-
-loadingNow = false;
-}
-
-window.addEventListener("scroll",()=>{
-
-const scrollTop = window.scrollY;
-const screenHeight = window.innerHeight;
-const fullHeight = document.body.offsetHeight;
-
-if(scrollTop + screenHeight >= fullHeight - 1200){
-loadVideos();
-}
-});
 
 searchInput.addEventListener("input",(e)=>{
 
 const value = e.target.value.toLowerCase();
 
-const filtered = allVideos.filter(v =>
+const filtered = allVideos.filter(v=>
 (v.title || "")
 .toLowerCase()
 .includes(value)
 );
 
-renderVideos(filtered,true);
+renderVideos(filtered);
+
 });
 
 loadVideos();
-</script>
 
-</body>
-</html>
+</script>
