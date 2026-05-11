@@ -1,51 +1,43 @@
 export async function GET() {
   try {
-    const API_KEY = process.env.VIZEY_API_KEY
+    const API_KEY = process.env.VIZEY_API_KEY;
 
-    if (!API_KEY) {
-      return Response.json({
-        success: false,
-        error: "API KEY NOT FOUND",
-      })
-    }
+    let allVideos = [];
 
-    let page = 1
-    let hasNext = true
-
-    let allVideos = []
-
-    while (hasNext) {
+    for (let page = 1; page <= 3; page++) {
       const res = await fetch(
         `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}`,
         {
           cache: "no-store",
+          headers: {
+            Accept: "application/json",
+          },
         }
-      )
+      );
 
-      const json = await res.json()
+      const data = await res.json();
 
-      console.log(json)
-
-      if (!json.success) {
-        return Response.json(json)
+      if (!data.success) {
+        return Response.json({
+          success: false,
+          error: data.message,
+        });
       }
 
-      allVideos.push(...json.data)
+      allVideos.push(...data.data);
 
-      hasNext = json.pagination?.hasNext || false
+      if (!data.pagination?.hasNext) {
+        break;
+      }
 
-      page++
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     }
 
-    return Response.json({
-      success: true,
-      total: allVideos.length,
-      videos: allVideos,
-    })
+    return Response.json(allVideos);
   } catch (err) {
     return Response.json({
       success: false,
       error: err.message,
-    })
+    });
   }
 }
