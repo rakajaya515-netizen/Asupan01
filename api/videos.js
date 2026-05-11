@@ -4,67 +4,42 @@ export default async function handler(req, res) {
 
     const API_KEY = process.env.VIZEY_API_KEY;
 
+    const FOLDER_ID = "089vwlwk";
+
     let allVideos = [];
 
-    // =========================
-    // 🔥 AMBIL VIDEO ROOT
-    // =========================
+    // 🔥 ambil semua halaman folder
+    for (let page = 1; page <= 100; page++) {
 
-    for (let page = 1; page <= 20; page++) {
+      console.log("LOAD PAGE:", page);
 
-      const rootRes = await fetch(
-        `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}&_=${Date.now()}`
+      const response = await fetch(
+        `https://vizey.net/api/v1/folders/${FOLDER_ID}?apikey=${API_KEY}&page=${page}&_=${Date.now()}`
       );
 
-      const rootData = await rootRes.json();
+      const data = await response.json();
 
-      const rootVideos = rootData.data || [];
+      const videos = data.data || [];
 
-      if (rootVideos.length === 0) break;
+      console.log(
+        "VIDEOS:",
+        videos.length
+      );
 
-      allVideos.push(...rootVideos);
-    }
-
-    // =========================
-    // 🔥 AMBIL SEMUA FOLDER
-    // =========================
-
-    const folderRes = await fetch(
-      `https://vizey.net/api/v1/folders?apikey=${API_KEY}&_=${Date.now()}`
-    );
-
-    const folderData = await folderRes.json();
-
-    const folders = folderData.data || [];
-
-    // =========================
-    // 🔥 LOOP SEMUA FOLDER
-    // =========================
-
-    for (const folder of folders) {
-
-      for (let page = 1; page <= 20; page++) {
-
-        const resFolderVideos = await fetch(
-          `https://vizey.net/api/v1/folders/${folder.id}?apikey=${API_KEY}&page=${page}&_=${Date.now()}`
-        );
-
-        const folderVideosData =
-          await resFolderVideos.json();
-
-        const videos =
-          folderVideosData.data || [];
-
-        if (videos.length === 0) break;
-
-        allVideos.push(...videos);
+      // stop kalau kosong
+      if (videos.length === 0) {
+        break;
       }
+
+      allVideos.push(...videos);
+
+      // anti rate limit
+      await new Promise(r =>
+        setTimeout(r, 100)
+      );
     }
 
-    // =========================
-    // 🔥 HAPUS DUPLICATE
-    // =========================
-
+    // 🔥 hapus duplicate
     const unique = [];
     const ids = new Set();
 
