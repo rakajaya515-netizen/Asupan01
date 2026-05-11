@@ -1,77 +1,65 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [videos, setVideos] = useState([])
-  const [search, setSearch] = useState("")
+  const [videos, setVideos] = useState([]);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    getVideos()
-  }, [])
+    fetch("/api/videos")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setVideos(data);
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
-  async function getVideos() {
-    try {
-      const res = await fetch("/api/videos")
-
-      const data = await res.json()
-
-      setVideos(data.videos || [])
-    } catch (err) {
-      console.log(err)
-    }
-  }
-
-  const filteredVideos = videos.filter((video) =>
+  const filtered = videos.filter((video) =>
     video.title?.toLowerCase().includes(search.toLowerCase())
-  )
+  );
 
   return (
-    <main className="min-h-screen bg-black px-5 py-6">
-      <h1 className="text-6xl font-black text-fuchsia-500 mb-8">
+    <main className="min-h-screen bg-black text-white p-4">
+      <h1 className="text-5xl font-bold text-pink-500 mb-6">
         Asupanmu
       </h1>
 
-      <div className="sticky top-0 z-50 bg-black pb-5">
-        <input
-          type="text"
-          placeholder="Search video..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-[#080811] text-white p-5 rounded-full outline-none text-2xl"
-        />
-      </div>
+      <input
+        type="text"
+        placeholder="Search video..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full p-4 rounded-2xl bg-zinc-900 mb-6 text-white"
+      />
+
+      <p className="mb-6 text-xl">
+        {filtered.length} videos loaded
+      </p>
 
       <div className="grid grid-cols-2 gap-4">
-        {filteredVideos.map((video) => (
+        {filtered.map((video) => (
           <a
             key={video.id}
-            href={`https://vdeeyy.click/d/${video.id}`}
+            href={`https://videy.co/v/?id=${video.id}`}
             target="_blank"
-            className="bg-[#0b0b12] rounded-[30px] overflow-hidden"
+            className="bg-zinc-900 rounded-2xl overflow-hidden"
           >
             <img
               src={video.thumbnail}
               alt={video.title}
-              className="w-full h-[320px] object-cover"
+              className="w-full h-52 object-cover"
             />
 
-            <div className="p-4">
-              <h2 className="text-white text-2xl font-bold line-clamp-2">
+            <div className="p-2">
+              <p className="text-sm line-clamp-2">
                 {video.title}
-              </h2>
-
-              <p className="text-fuchsia-400 mt-3 text-xl">
-                vizey
               </p>
             </div>
           </a>
         ))}
       </div>
-
-      <div className="text-center text-3xl py-10">
-        {filteredVideos.length} videos loaded
-      </div>
     </main>
-  )
-          }
+  );
+}
