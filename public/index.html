@@ -153,264 +153,270 @@
 
   <script>
 
-    let videosGlobal = [];
+let videosGlobal = [];
 
-    let page = 1;
+let page = 1;
 
-    let loading = false;
+let loading = false;
 
-    let hasMore = true;
+let hasMore = true;
 
-    const container =
-      document.getElementById(
-        "videos"
-      );
+let nextPageCache = null;
 
-    const loadingText =
-      document.getElementById(
-        "loading"
-      );
+const container =
+  document.getElementById("videos");
 
-    const searchInput =
-      document.getElementById(
-        "search"
-      );
+const loadingText =
+  document.getElementById("loading");
 
-    // 🔥 Popunder sekali
-    function triggerPopunder(){
+const searchInput =
+  document.getElementById("search");
 
-      if(
-        !localStorage.getItem(
-          "popShown"
-        )
-      ){
 
-        localStorage.setItem(
-          "popShown",
-          "true"
-        );
+// 🔥 Popunder sekali
+function triggerPopunder(){
 
-        window.open(
-          "https://www.profitableratecpm.com/s65zeryji1?key=67a910e3b4387aa420b25f4a4bfa41b1",
-          "_blank"
-        );
-      }
-    }
+  if(
+    !localStorage.getItem("popShown")
+  ){
 
-    // 🔥 Native ads
-    function createNativeAd(){
+    localStorage.setItem(
+      "popShown",
+      "true"
+    );
 
-      const ad =
-        document.createElement(
-          "div"
-        );
+    window.open(
+      "https://www.profitableratecpm.com/s65zeryji1?key=67a910e3b4387aa420b25f4a4bfa41b1",
+      "_blank"
+    );
+  }
+}
 
-      ad.className =
-        "ad-card";
 
-      const script =
-        document.createElement(
-          "script"
-        );
+// 🔥 Native Ads
+function createNativeAd(){
 
-      script.async = true;
+  const ad =
+    document.createElement("div");
 
-      script.src =
-        "https://pl29343712.profitableratecpm.com/d6c7cfa2fbe3ee841c92a4f50371bf35/invoke.js";
+  ad.className =
+    "ad-card";
 
-      const nativeContainer =
-        document.createElement(
-          "div"
-        );
+  ad.innerHTML = `
+    <script async
+    src="https://pl29343712.profitableratecpm.com/d6c7cfa2fbe3ee841c92a4f50371bf35/invoke.js"></script>
 
-      nativeContainer.id =
-        "container-" +
-        Math.random();
+    <div id="container-d6c7cfa2fbe3ee841c92a4f50371bf35"></div>
+  `;
 
-      ad.appendChild(script);
+  return ad;
+}
 
-      ad.appendChild(
-        nativeContainer
-      );
 
-      return ad;
-    }
+// 🔥 Render videos
+function renderVideos(
+  videos,
+  reset = false
+){
 
-    // 🔥 Render
-    function renderVideos(
-      videos,
-      reset = false
+  if(reset){
+
+    container.innerHTML = "";
+  }
+
+  const fragment =
+    document.createDocumentFragment();
+
+  videos.forEach((v,i)=>{
+
+    // ads tiap 8 video
+    if(
+      (
+        container.children.length +
+        i + 1
+      ) % 8 === 0
     ){
 
-      if(reset){
+      fragment.appendChild(
+        createNativeAd()
+      );
+    }
 
-        container.innerHTML =
-          "";
-      }
+    const el =
+      document.createElement("div");
 
-      videos.forEach(
-        (v,index)=>{
+    el.className =
+      "card";
 
-        // native ads tiap 6 video
-        if(
-          (
-            container.children.length + 1
-          ) % 6 === 0
-        ){
+    el.innerHTML = `
+      <img
+        src="${v.thumbnail}"
+        loading="lazy"
+        decoding="async"
+      />
 
-          container.appendChild(
-            createNativeAd()
-          );
-        }
+      <div class="card-title">
+        ${v.title || "Untitled Video"}
+      </div>
+    `;
 
-        const el =
-          document.createElement(
-            "div"
-          );
+    el.onclick = ()=>{
 
-        el.className =
-          "card";
+      triggerPopunder();
 
-        el.innerHTML = `
-          <img
-            src="${v.thumbnail}"
-            loading="lazy"
-          />
+      window.location.href =
+        \`https://vizey.net/v/\${v.id}\`;
+    };
 
-          <div class="card-title">
-            ${v.title || "Untitled Video"}
-          </div>
-        `;
+    fragment.appendChild(el);
+  });
 
-        el.onclick = ()=>{
+  container.appendChild(fragment);
+}
 
-          triggerPopunder();
 
-          window.location.href =
-            \`https://vizey.net/v/\${v.id}\`;
-        };
+// 🔥 Fetch page
+async function fetchPage(pageNum){
 
-        container.appendChild(el);
+  const res =
+    await fetch(
+      \`/api/videos?page=\${pageNum}\`
+    );
+
+  return await res.json();
+}
+
+
+// 🔥 Load videos
+async function loadVideos(){
+
+  if(
+    loading ||
+    !hasMore
+  ) return;
+
+  loading = true;
+
+  loadingText.innerHTML =
+    "Loading videos...";
+
+  try{
+
+    let data;
+
+    // pakai cache
+    if(nextPageCache){
+
+      data = nextPageCache;
+
+      nextPageCache = null;
+
+    }else{
+
+      data =
+        await fetchPage(page);
+    }
+
+    const videos =
+      data.videos || [];
+
+    videosGlobal.push(
+      ...videos
+    );
+
+    if(
+      !searchInput.value.trim()
+    ){
+
+      renderVideos(videos);
+
+    }else{
+
+      filterVideos();
+    }
+
+    hasMore =
+      Boolean(data.hasMore);
+
+    page++;
+
+    // preload next page
+    if(hasMore){
+
+      fetchPage(page)
+      .then(res=>{
+
+        nextPageCache = res;
       });
     }
 
-    // 🔥 Load videos
-    async function loadVideos(){
-
-      if(
-        loading ||
-        !hasMore
-      ) return;
-
-      loading = true;
+    if(!hasMore){
 
       loadingText.innerHTML =
-        "Loading videos...";
+        "No more videos";
 
-      try{
+    }else{
 
-        const res =
-          await fetch(
-            \`/api/videos?page=\${page}\`
-          );
-
-        const data =
-          await res.json();
-
-        const videos =
-          data.videos || [];
-
-        videosGlobal.push(
-          ...videos
-        );
-
-        // kalau search kosong
-        if(
-          !searchInput.value.trim()
-        ){
-
-          renderVideos(
-            videos
-          );
-
-        }else{
-
-          filterVideos();
-        }
-
-        hasMore =
-          Boolean(
-            data.hasMore
-          );
-
-        page++;
-
-        if(!hasMore){
-
-          loadingText.innerHTML =
-            "No more videos";
-        }
-
-      }catch(err){
-
-        loadingText.innerHTML =
-          "Failed load videos";
-      }
-
-      loading = false;
+      loadingText.innerHTML = "";
     }
 
-    // 🔥 Search
-    function filterVideos(){
+  }catch(err){
 
-      const q =
-        searchInput.value
-        .toLowerCase();
+    loadingText.innerHTML =
+      "Failed load videos";
+  }
 
-      const filtered =
-        videosGlobal.filter(
-          v =>
+  loading = false;
+}
 
-          (
-            v.title || ""
-          )
-          .toLowerCase()
-          .includes(q)
-        );
 
-      renderVideos(
-        filtered,
-        true
-      );
-    }
+// 🔥 Search
+function filterVideos(){
 
-    searchInput.addEventListener(
-      "input",
-      filterVideos
+  const q =
+    searchInput.value
+    .toLowerCase();
+
+  const filtered =
+    videosGlobal.filter(v=>
+
+      (
+        v.title || ""
+      )
+      .toLowerCase()
+      .includes(q)
     );
 
-    // 🔥 Infinite scroll
-    window.addEventListener(
-      "scroll",
-      ()=>{
+  renderVideos(
+    filtered,
+    true
+  );
+}
 
-      if(
-        window.innerHeight +
-        window.scrollY >=
-        document.body.offsetHeight - 1200
-      ){
+searchInput.addEventListener(
+  "input",
+  filterVideos
+);
 
-        loadVideos();
-      }
-    });
 
-    // init
-    loadVideos();
+// 🔥 Infinite scroll
+window.addEventListener(
+  "scroll",
+  ()=>{
 
-  </script>
+    if(
+      window.innerHeight +
+      window.scrollY >=
+      document.body.offsetHeight - 1800
+    ){
 
-  <!-- 🔥 SOCIAL BAR -->
-  <script src="https://pl29343713.profitableratecpm.com/9a/69/24/9a6924d62fcb5f212667f72bfbb2378f.js"></script>
+      loadVideos();
+    }
+  }
+);
 
-</body>
-</html>
+
+// init
+loadVideos();
+
+</script>
