@@ -1,43 +1,49 @@
 export default async function handler(req, res) {
 
-  const page = req.query.page || 1;
+try {
 
-  try {
+const page = Number(req.query.page || 1);
 
-    const response = await fetch(
-      `https://vizey.net/api/v1/list?apikey=${process.env.VIZEY_API_KEY}&page=${page}`
-    );
+const API_KEY = process.env.VIZEY_API_KEY;
 
-    const data = await response.json();
+const url =
+`https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}&_=${Date.now()}`;
 
-    if (!data.success) {
-      return res.status(500).json({
-        success: false,
-        message: "Vizey API Error",
-        error: data
-      });
-    }
+const response = await fetch(url,{
+headers:{
+"User-Agent":"Mozilla/5.0",
+"Cache-Control":"no-cache"
+}
+});
 
-    return res.status(200).json({
-      success: true,
+const data = await response.json();
 
-      videos: data.data || [],
+console.log("PAGE:", page);
 
-      pagination: {
-        currentPage: data.pagination?.currentPage || 1,
-        totalPages: data.pagination?.totalPages || 1,
-        totalItems: data.pagination?.totalItems || 0,
-        hasNext: data.pagination?.hasNext || false
-      }
-    });
+console.log("API:", data.pagination);
 
-  } catch (err) {
+res.setHeader(
+"Cache-Control",
+"no-store, max-age=0"
+);
 
-    return res.status(500).json({
-      success: false,
-      message: err.message
-    });
+return res.status(200).json({
+success:true,
+page,
 
-  }
+videos:data.data || [],
+
+pagination:data.pagination || {}
+
+});
+
+}catch(err){
+
+return res.status(500).json({
+success:false,
+error:err.toString()
+});
+
+}
 
 }
