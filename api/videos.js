@@ -6,8 +6,10 @@ export default async function handler(req, res) {
 
     let allVideos = [];
 
-    // 🔥 ambil banyak halaman sekaligus
-    for (let page = 1; page <= 20; page++) {
+    // 🔥 paksa ambil banyak halaman
+    for (let page = 1; page <= 50; page++) {
+
+      console.log("LOAD PAGE:", page);
 
       const response = await fetch(
         `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}&_=${Date.now()}`,
@@ -23,34 +25,28 @@ export default async function handler(req, res) {
 
       const videos = data.data || [];
 
-      // 🔥 stop kalau page kosong
+      // 🔥 kalau page kosong baru stop
       if (videos.length === 0) {
         break;
       }
 
       allVideos.push(...videos);
 
-      // 🔥 stop kalau tidak ada next page
-      if (
-        data.pagination &&
-        data.pagination.hasNext === false
-      ) {
-        break;
-      }
+      // 🔥 delay kecil anti rate limit
+      await new Promise(r => setTimeout(r, 150));
     }
 
     // 🔥 hapus duplicate
-    const uniqueVideos = [];
-
+    const unique = [];
     const ids = new Set();
 
-    for (const video of allVideos) {
+    for (const v of allVideos) {
 
-      if (!ids.has(video.id)) {
+      if (!ids.has(v.id)) {
 
-        ids.add(video.id);
+        ids.add(v.id);
 
-        uniqueVideos.push(video);
+        unique.push(v);
       }
     }
 
@@ -61,8 +57,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      total: uniqueVideos.length,
-      videos: uniqueVideos
+      total: unique.length,
+      videos: unique
     });
 
   } catch (err) {
