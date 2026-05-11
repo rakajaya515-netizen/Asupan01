@@ -1,387 +1,302 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <title>Asupanmu</title>
 
 <style>
-
 *{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, sans-serif;
 }
 
 body{
-  background:#000;
-  color:#fff;
-  font-family:Arial,sans-serif;
-  overflow-x:hidden;
+background:#000;
+color:#fff;
 }
 
 .navbar{
-  position:sticky;
-  top:0;
-  z-index:999;
-  background:#000;
-  padding:20px 16px;
+position:sticky;
+top:0;
+z-index:999;
+background:#000;
+padding:20px 15px;
 }
 
 .logo{
-  font-size:52px;
-  font-weight:900;
-  color:#ff2fcf;
-  margin-bottom:18px;
+font-size:52px;
+font-weight:900;
+color:#ff3cc7;
+margin-bottom:15px;
 }
 
 .search{
-  width:100%;
-  padding:18px;
-  border:none;
-  outline:none;
-  border-radius:20px;
-  background:#111;
-  color:#fff;
-  font-size:20px;
+width:100%;
+padding:18px 20px;
+border:none;
+outline:none;
+border-radius:20px;
+background:#111;
+color:#fff;
+font-size:20px;
 }
 
 .container{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:14px;
-  padding:14px;
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+padding:12px;
 }
 
 .card{
-  background:#111;
-  border-radius:20px;
-  overflow:hidden;
-  cursor:pointer;
-
-  contain:content;
-
-  transition:.2s;
+background:#111;
+border-radius:20px;
+overflow:hidden;
+cursor:pointer;
+transition:.2s;
 }
 
 .card:active{
-  transform:scale(.98);
+transform:scale(.96);
 }
 
-.card img{
-  width:100%;
-  height:220px;
-  object-fit:cover;
-  display:block;
-
-  background:#111;
-
-  content-visibility:auto;
+.thumb{
+width:100%;
+aspect-ratio:9/14;
+object-fit:cover;
+display:block;
+background:#222;
 }
 
-.card-title{
-  padding:12px;
-  font-size:15px;
-  font-weight:bold;
-  line-height:1.4;
-  word-break:break-word;
-
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
+.info{
+padding:10px;
 }
 
-.loading{
-  text-align:center;
-  padding:30px;
-  font-size:20px;
-  color:#aaa;
+.title{
+font-size:16px;
+font-weight:700;
+line-height:1.4;
+display:-webkit-box;
+-webkit-line-clamp:2;
+-webkit-box-orient:vertical;
+overflow:hidden;
 }
 
-@media(max-width:600px){
-
-  .logo{
-    font-size:46px;
-  }
-
-  .card img{
-    height:210px;
-  }
-
+.source{
+margin-top:8px;
+color:#bb66ff;
+font-size:14px;
 }
 
+.loading,
+.end,
+.empty{
+text-align:center;
+padding:30px;
+font-size:22px;
+}
+
+@media(max-width:500px){
+
+.logo{
+font-size:42px;
+}
+
+.title{
+font-size:14px;
+}
+
+.container{
+gap:10px;
+padding:10px;
+}
+
+}
 </style>
 </head>
 
 <body>
 
 <div class="navbar">
+<div class="logo">Asupanmu</div>
 
-  <div class="logo">
-    Asupanmu
-  </div>
-
-  <input
-    type="text"
-    id="search"
-    class="search"
-    placeholder="Search video..."
-  >
-
+<input
+type="text"
+class="search"
+id="search"
+placeholder="Search video..."
+/>
 </div>
 
-<div
-  id="videos"
-  class="container">
-</div>
+<div class="container" id="videos"></div>
 
-<div
-  id="loading"
-  class="loading">
-  Loading videos...
+<div class="loading" id="loading">
+Loading videos...
 </div>
 
 <script>
 
+const container = document.getElementById("videos");
+const loading = document.getElementById("loading");
+const searchInput = document.getElementById("search");
+
+let allVideos = [];
 let page = 1;
-
-let loading = false;
-
+let loadingData = false;
 let hasMore = true;
 
-let filteredMode = false;
+async function fetchVideos(pageNum){
 
-let videosGlobal = [];
+try{
 
-let nextPageCache = null;
+const res = await fetch(`/api/videos?page=${pageNum}`);
 
-const container =
-  document.getElementById(
-    "videos"
-  );
+if(!res.ok){
+throw new Error("API Error");
+}
 
-const loadingText =
-  document.getElementById(
-    "loading"
-  );
+return await res.json();
 
+}catch(err){
 
-// 🔥 Render videos
-function renderVideos(videos){
+console.log(err);
 
-  const fragment =
-    document.createDocumentFragment();
-
-  videos.forEach(v => {
-
-    const el =
-      document.createElement(
-        "div"
-      );
-
-    el.className = "card";
-
-    el.innerHTML = `
-      <img
-        src="${v.thumbnail}"
-        loading="lazy"
-        decoding="async"
-        fetchpriority="low"
-        referrerpolicy="no-referrer"
-      >
-
-      <div class="card-title">
-        ${v.title || "Untitled Video"}
-      </div>
-    `;
-
-    el.onclick = () => {
-
-      window.location.href =
-        \`https://vizey.net/v/\${v.id}\`;
-
-    };
-
-    fragment.appendChild(el);
-
-  });
-
-  requestAnimationFrame(() => {
-
-    container.appendChild(fragment);
-
-  });
+return {
+videos: [],
+hasMore: false
+};
 
 }
 
+}
 
-// 🔥 Fetch API
-async function fetchPage(pageNum){
+function createCard(video){
 
-  const res =
-    await fetch(
-      \`/api/videos?page=\${pageNum}\`
-    );
+const card = document.createElement("div");
+card.className = "card";
 
-  return await res.json();
+card.innerHTML = `
+<img
+class="thumb"
+src="${video.thumbnail}"
+loading="lazy"
+referrerpolicy="no-referrer"
+/>
+
+<div class="info">
+<div class="title">
+${video.title || "Untitled Video"}
+</div>
+
+<div class="source">
+vizey
+</div>
+</div>
+`;
+
+card.onclick = () => {
+
+window.location.href =
+`https://vizey.net/v/${video.id}`;
+
+};
+
+return card;
 
 }
 
+function renderVideos(videos, reset=false){
 
-// 🔥 Preload next page
-async function preloadNextPage(){
-
-  if(!hasMore) return;
-
-  try{
-
-    nextPageCache =
-      await fetchPage(page + 1);
-
-  }catch(err){
-
-    console.log(err);
-
-  }
-
+if(reset){
+container.innerHTML = "";
 }
 
+const fragment = document.createDocumentFragment();
 
-// 🔥 Load videos
-async function loadVideos(){
+videos.forEach(video => {
 
-  if(
-    loading ||
-    !hasMore ||
-    filteredMode
-  ) return;
-
-  loading = true;
-
-  loadingText.innerHTML =
-    "Loading videos...";
-
-  try{
-
-    let data;
-
-    // pakai cache preload
-    if(nextPageCache){
-
-      data = nextPageCache;
-
-      nextPageCache = null;
-
-    }else{
-
-      data =
-        await fetchPage(page);
-
-    }
-
-    const videos =
-      data.videos || [];
-
-    videosGlobal.push(...videos);
-
-    renderVideos(videos);
-
-    hasMore =
-      Boolean(data.hasMore);
-
-    page++;
-
-    // preload page berikutnya
-    preloadNextPage();
-
-    if(!hasMore){
-
-      loadingText.innerHTML =
-        "No more videos";
-
-    }else{
-
-      loadingText.innerHTML = "";
-
-    }
-
-  }catch(err){
-
-    console.log(err);
-
-    loadingText.innerHTML =
-      "Failed load videos";
-
-  }
-
-  loading = false;
-
-}
-
-
-// 🔥 Infinite scroll
-window.addEventListener(
-  "scroll",
-  () => {
-
-    if(
-      window.innerHeight +
-      window.scrollY >=
-      document.body.offsetHeight - 1800
-    ){
-
-      loadVideos();
-
-    }
-
-  },
-  { passive:true }
+fragment.appendChild(
+createCard(video)
 );
-
-
-// 🔥 Search
-document
-.getElementById("search")
-.addEventListener("input", e => {
-
-  const q =
-    e.target.value
-    .toLowerCase();
-
-  // kosong
-  if(q.length === 0){
-
-    filteredMode = false;
-
-    container.innerHTML = "";
-
-    renderVideos(videosGlobal);
-
-    return;
-
-  }
-
-  filteredMode = true;
-
-  const filtered =
-    videosGlobal.filter(v =>
-
-      (v.title || "")
-      .toLowerCase()
-      .includes(q)
-
-    );
-
-  container.innerHTML = "";
-
-  renderVideos(filtered);
 
 });
 
+container.appendChild(fragment);
 
-// 🔥 First load
+}
+
+async function loadVideos(){
+
+if(loadingData || !hasMore) return;
+
+loadingData = true;
+
+loading.style.display = "block";
+
+const data = await fetchVideos(page);
+
+const videos = data.videos || [];
+
+if(videos.length > 0){
+
+allVideos.push(...videos);
+
+renderVideos(videos);
+
+page++;
+
+}else{
+
+hasMore = false;
+
+loading.innerHTML = "No more videos";
+
+}
+
+loadingData = false;
+
+}
+
+window.addEventListener("scroll", () => {
+
+const scrollTop =
+window.scrollY;
+
+const screenHeight =
+window.innerHeight;
+
+const fullHeight =
+document.body.offsetHeight;
+
+if(
+scrollTop + screenHeight >=
+fullHeight - 1000
+){
+loadVideos();
+}
+
+});
+
+searchInput.addEventListener("input", e => {
+
+const q =
+e.target.value.toLowerCase();
+
+const filtered =
+allVideos.filter(v =>
+(v.title || "")
+.toLowerCase()
+.includes(q)
+);
+
+renderVideos(filtered, true);
+
+});
+
 loadVideos();
 
 </script>
