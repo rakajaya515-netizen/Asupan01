@@ -2,6 +2,13 @@ export async function GET() {
   try {
     const API_KEY = process.env.VIZEY_API_KEY
 
+    if (!API_KEY) {
+      return Response.json({
+        success: false,
+        error: "API KEY NOT FOUND",
+      })
+    }
+
     let page = 1
     let hasNext = true
 
@@ -17,9 +24,13 @@ export async function GET() {
 
       const json = await res.json()
 
-      const videos = json.data || []
+      console.log(json)
 
-      allVideos.push(...videos)
+      if (!json.success) {
+        return Response.json(json)
+      }
+
+      allVideos.push(...json.data)
 
       hasNext = json.pagination?.hasNext || false
 
