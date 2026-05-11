@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const [videos, setVideos] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadVideos() {
@@ -12,16 +13,34 @@ export default function Home() {
         const res = await fetch("/api/videos");
         const data = await res.json();
 
-        console.log(data);
+        const videosWithUrl = await Promise.all(
+          data.map(async (video) => {
+            try {
+              const detail = await fetch(
+                `https://vizey.net/api/v1/videos?apikey=${process.env.NEXT_PUBLIC_VIZEY_API_KEY}&id=${video.id}`
+              );
 
-        if (Array.isArray(data)) {
-          setVideos(data);
-        } else {
-          setVideos([]);
-        }
+              const detailData = await detail.json();
+
+              return {
+                ...video,
+                url: detailData?.data?.url || "#",
+              };
+            } catch {
+              return {
+                ...video,
+                url: "#",
+              };
+            }
+          })
+        );
+
+        setVideos(videosWithUrl);
       } catch (err) {
         console.log(err);
       }
+
+      setLoading(false);
     }
 
     loadVideos();
@@ -44,14 +63,16 @@ export default function Home() {
       />
 
       <p className="count">
-        {filtered.length} videos loaded
+        {loading
+          ? "Loading videos..."
+          : `${filtered.length} videos loaded`}
       </p>
 
       <div className="grid">
         {filtered.map((video) => (
           <a
             key={video.id}
-            href={`https://videy.co/v/?id=${video.id}`}
+            href={video.url}
             target="_blank"
             className="card"
           >
@@ -59,6 +80,7 @@ export default function Home() {
               src={video.thumbnail}
               alt={video.title}
               className="thumb"
+              loading="lazy"
             />
 
             <div className="info">
