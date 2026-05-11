@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
-  const [search, setSearch] = useState([]);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch("/api/videos")
-      .then((res) => res.json())
-      .then((data) => {
+    async function loadVideos() {
+      try {
+        const res = await fetch("/api/videos");
+        const data = await res.json();
+
         console.log(data);
 
         if (Array.isArray(data)) {
@@ -17,28 +19,33 @@ export default function Home() {
         } else {
           setVideos([]);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.log(err);
-      });
+      }
+    }
+
+    loadVideos();
   }, []);
 
-  const filtered = videos.filter((v) =>
-    v.title?.toLowerCase().includes(search.toLowerCase())
+  const filtered = videos.filter((video) =>
+    video.title?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div className="container">
+    <main className="container">
       <h1 className="logo">Asupanmu</h1>
 
       <input
-        className="search"
+        type="text"
         placeholder="Search video..."
+        className="search"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      <p className="count">{filtered.length} videos loaded</p>
+      <p className="count">
+        {filtered.length} videos loaded
+      </p>
 
       <div className="grid">
         {filtered.map((video) => (
@@ -50,6 +57,7 @@ export default function Home() {
           >
             <img
               src={video.thumbnail}
+              alt={video.title}
               className="thumb"
             />
 
@@ -59,6 +67,6 @@ export default function Home() {
           </a>
         ))}
       </div>
-    </div>
+    </main>
   );
 }
