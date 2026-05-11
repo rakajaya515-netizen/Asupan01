@@ -18,6 +18,7 @@ body{
   background:#000;
   color:#fff;
   font-family:Arial,sans-serif;
+  overflow-x:hidden;
 }
 
 .navbar{
@@ -60,43 +61,15 @@ body{
   cursor:pointer;
 
   contain:content;
+
+  transition:.2s;
+}
+
+.card:active{
+  transform:scale(.98);
 }
 
 .card img{
-  width:100%;
-  height:260px;
-  object-fit:cover;
-  display:block;
-}
-
-.card-title{
-  padding:12px;
-  font-size:15px;
-  font-weight:bold;
-  line-height:1.4;
-  word-break:break-word;
-}
-
-.loading{
-  text-align:center;
-  padding:30px;
-  font-size:22px;
-}
-
-.ad-box{
-  background:#111;
-  border-radius:20px;
-  overflow:hidden;
-  min-height:260px;
-}
-
-@media(max-width:600px){
-
-  .logo{
-    font-size:48px;
-  }
-
-  .card img{
   width:100%;
   height:220px;
   object-fit:cover;
@@ -105,7 +78,38 @@ body{
   background:#111;
 
   content-visibility:auto;
+}
+
+.card-title{
+  padding:12px;
+  font-size:15px;
+  font-weight:bold;
+  line-height:1.4;
+  word-break:break-word;
+
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.loading{
+  text-align:center;
+  padding:30px;
+  font-size:20px;
+  color:#aaa;
+}
+
+@media(max-width:600px){
+
+  .logo{
+    font-size:46px;
   }
+
+  .card img{
+    height:210px;
+  }
+
 }
 
 </style>
@@ -128,16 +132,23 @@ body{
 
 </div>
 
-<div id="videos" class="container"></div>
+<div
+  id="videos"
+  class="container">
+</div>
 
-<div id="loading" class="loading">
+<div
+  id="loading"
+  class="loading">
   Loading videos...
 </div>
 
 <script>
 
 let page = 1;
+
 let loading = false;
+
 let hasMore = true;
 
 let filteredMode = false;
@@ -147,56 +158,14 @@ let videosGlobal = [];
 let nextPageCache = null;
 
 const container =
-  document.getElementById("videos");
-
-const loadingText =
-  document.getElementById("loading");
-
-
-// 🔥 Popunder
-function triggerPopunder(){
-
-  if(localStorage.getItem("popShown"))
-    return;
-
-  localStorage.setItem("popShown","true");
-
-  window.open(
-    "https://www.profitableratecpm.com/s65zeryji1?key=67a910e3b4387aa420b25f4a4bfa41b1",
-    "_blank"
+  document.getElementById(
+    "videos"
   );
 
-}
-
-
-// 🔥 Native Ads
-function createNativeAd(){
-
-  const ad = document.createElement("div");
-
-  ad.className = "ad-box";
-
-  const script =
-    document.createElement("script");
-
-  script.async = true;
-
-  script.src =
-    "//pl29343712.profitableratecpm.com/d6c7cfa2fbe3ee841c92a4f50371bf35/invoke.js";
-
-  const ins =
-    document.createElement("div");
-
-  ins.id =
-    "container-d6c7cfa2fbe3ee841c92a4f50371bf35";
-
-  ad.appendChild(script);
-
-  ad.appendChild(ins);
-
-  return ad;
-
-}
+const loadingText =
+  document.getElementById(
+    "loading"
+  );
 
 
 // 🔥 Render videos
@@ -205,21 +174,12 @@ function renderVideos(videos){
   const fragment =
     document.createDocumentFragment();
 
-  videos.forEach((v, i) => {
-
-    // ads tiap 8 video
-    if(
-      (container.children.length + i + 1) % 8 === 0
-    ){
-
-      fragment.appendChild(
-        createNativeAd()
-      );
-
-    }
+  videos.forEach(v => {
 
     const el =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
     el.className = "card";
 
@@ -228,6 +188,7 @@ function renderVideos(videos){
         src="${v.thumbnail}"
         loading="lazy"
         decoding="async"
+        fetchpriority="low"
         referrerpolicy="no-referrer"
       >
 
@@ -237,8 +198,6 @@ function renderVideos(videos){
     `;
 
     el.onclick = () => {
-
-      triggerPopunder();
 
       window.location.href =
         \`https://vizey.net/v/\${v.id}\`;
@@ -250,13 +209,15 @@ function renderVideos(videos){
   });
 
   requestAnimationFrame(() => {
+
     container.appendChild(fragment);
+
   });
 
 }
 
 
-// 🔥 Fetch page
+// 🔥 Fetch API
 async function fetchPage(pageNum){
 
   const res =
@@ -280,7 +241,9 @@ async function preloadNextPage(){
       await fetchPage(page + 1);
 
   }catch(err){
+
     console.log(err);
+
   }
 
 }
@@ -304,7 +267,7 @@ async function loadVideos(){
 
     let data;
 
-    // pakai cache
+    // pakai cache preload
     if(nextPageCache){
 
       data = nextPageCache;
@@ -325,7 +288,8 @@ async function loadVideos(){
 
     renderVideos(videos);
 
-    hasMore = data.hasMore;
+    hasMore =
+      Boolean(data.hasMore);
 
     page++;
 
@@ -357,7 +321,7 @@ async function loadVideos(){
 }
 
 
-// 🔥 Infinite scroll ultra smooth
+// 🔥 Infinite scroll
 window.addEventListener(
   "scroll",
   () => {
@@ -383,8 +347,10 @@ document
 .addEventListener("input", e => {
 
   const q =
-    e.target.value.toLowerCase();
+    e.target.value
+    .toLowerCase();
 
+  // kosong
   if(q.length === 0){
 
     filteredMode = false;
@@ -419,3 +385,6 @@ document
 loadVideos();
 
 </script>
+
+</body>
+</html>
