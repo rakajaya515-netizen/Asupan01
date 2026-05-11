@@ -5,44 +5,42 @@ export default async function handler(req, res) {
     const API_KEY =
       process.env.VIZEY_API_KEY;
 
-    const FOLDER_ID =
-      "089vwlwk";
+    let page = 1;
 
     let allVideos = [];
-
-    let currentPage = 1;
 
     let hasNext = true;
 
     while (hasNext) {
 
       const response = await fetch(
-        `https://vizey.net/api/v1/folders/${FOLDER_ID}?apikey=${API_KEY}&page=${currentPage}&t=${Date.now()}`
+        `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}&t=${Date.now()}`
       );
 
       const json =
         await response.json();
 
+      console.log("PAGE:", page);
+
       console.log(json);
 
-      // 🔥 videos
       const videos =
         json.data || [];
 
       allVideos.push(...videos);
 
-      // 🔥 pagination FIX
+      // pagination
       hasNext =
-        json.meta?.pagination?.hasNext || false;
+        json.pagination?.hasNext || false;
 
-      currentPage++;
+      page++;
 
       await new Promise(r =>
-        setTimeout(r, 120)
+        setTimeout(r, 150)
       );
     }
 
-    // 🔥 remove duplicate
+    // remove duplicates
     const unique = [];
 
     const ids = new Set();
