@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <title>Asupanmu</title>
 
 <style>
-
 *{
 margin:0;
 padding:0;
@@ -17,37 +16,37 @@ box-sizing:border-box;
 body{
 background:#000;
 font-family:Arial,sans-serif;
-color:#fff;
+color:white;
 }
 
-.header{
-padding:24px 20px 10px;
+header{
+padding:20px;
 position:sticky;
 top:0;
+z-index:100;
 background:#000;
-z-index:999;
 }
 
 .logo{
 font-size:60px;
 font-weight:900;
-color:#ff33cc;
+color:#ff2dcf;
 margin-bottom:20px;
 }
 
 .search{
 width:100%;
-padding:18px 22px;
+padding:18px;
 border:none;
-border-radius:20px;
-background:#111;
-color:#fff;
-font-size:20px;
+border-radius:25px;
+background:#0f0f13;
+color:white;
+font-size:18px;
 outline:none;
 }
 
 .container{
-padding:10px;
+padding:12px;
 display:grid;
 grid-template-columns:repeat(2,1fr);
 gap:12px;
@@ -55,132 +54,215 @@ gap:12px;
 
 .card{
 background:#111;
-border-radius:18px;
+border-radius:20px;
 overflow:hidden;
 cursor:pointer;
 }
 
-.card img{
+.thumb{
 width:100%;
-height:270px;
+aspect-ratio:9/16;
 object-fit:cover;
 background:#222;
 }
 
-.title{
+.info{
 padding:12px;
+}
+
+.title{
 font-size:16px;
-font-weight:bold;
-line-height:1.4;
+font-weight:700;
+line-height:1.3;
+display:-webkit-box;
+-webkit-line-clamp:2;
+-webkit-box-orient:vertical;
+overflow:hidden;
+}
+
+.source{
+margin-top:8px;
+color:#b86cff;
+font-size:14px;
 }
 
 .loading{
 text-align:center;
-padding:40px;
-font-size:22px;
-color:#aaa;
+padding:30px;
+font-size:20px;
 }
 
+@media(max-width:600px){
+.logo{
+font-size:42px;
+}
+}
 </style>
 </head>
 <body>
 
-<div class="header">
+<header>
 <div class="logo">Asupanmu</div>
 
 <input
 type="text"
 class="search"
-id="search"
 placeholder="Search video..."
->
-</div>
+id="search"
+/>
+</header>
 
-<div id="videos" class="container"></div>
+<div class="container" id="videos"></div>
 
-<div id="loading" class="loading">
+<div class="loading" id="loading">
 Loading videos...
 </div>
 
 <script>
-
 const container = document.getElementById("videos");
 const loading = document.getElementById("loading");
-const search = document.getElementById("search");
+const searchInput = document.getElementById("search");
+
+let page = 1;
+let loadingNow = false;
+let hasNext = true;
 
 let allVideos = [];
+let loadedIds = new Set();
 
-async function loadVideos(){
+function createCard(video){
 
-try{
+if(loadedIds.has(video.id)) return null;
 
-const response = await fetch("/api/videos");
-
-const data = await response.json();
-
-allVideos = data.videos || [];
-
-renderVideos(allVideos);
-
-loading.innerHTML =
-allVideos.length > 0
-? ""
-: "No videos found";
-
-}catch(err){
-
-loading.innerHTML = "Failed load videos";
-
-}
-
-}
-
-function renderVideos(videos){
-
-container.innerHTML = "";
-
-videos.forEach(video=>{
+loadedIds.add(video.id);
 
 const card = document.createElement("div");
-
 card.className = "card";
 
 card.innerHTML = `
-<img loading="lazy" src="${video.thumbnail}" alt="">
+<img
+class="thumb"
+src="${video.thumbnail}"
+loading="lazy"
+referrerpolicy="no-referrer"
+/>
+
+<div class="info">
 <div class="title">
-${video.title || "Untitled"}
+${video.title || "Untitled Video"}
+</div>
+
+<div class="source">
+vizey
+</div>
 </div>
 `;
 
-card.onclick = ()=>{
-
-window.location.href =
-`https://vizey.net/v/${video.id}`;
-
+card.onclick = () => {
+window.location.href = `https://vizey.net/v/${video.id}`;
 };
 
-container.appendChild(card);
-
-});
-
+return card;
 }
 
-search.addEventListener("input",(e)=>{
+function renderVideos(videos, reset=false){
 
-const q = e.target.value.toLowerCase();
+if(reset){
+container.innerHTML = "";
+loadedIds.clear();
+}
 
-const filtered = allVideos.filter(v=>
+const fragment = document.createDocumentFragment();
+
+videos.forEach(video => {
+const card = createCard(video);
+
+if(card){
+fragment.appendChild(card);
+}
+});
+
+container.appendChild(fragment);
+}
+
+async function loadVideos(){
+
+if(loadingNow || !hasNext) return;
+
+loadingNow = true;
+
+loading.innerText = "Loading videos...";
+
+try{
+
+const res = await fetch(`/api/videos?page=${page}`);
+
+const data = await res.json();
+
+console.log(data);
+
+const videos =
+data.videos ||
+data.data ||
+[];
+
+if(videos.length > 0){
+
+allVideos.push(...videos);
+
+renderVideos(videos);
+
+page++;
+
+hasNext =
+data.pagination?.hasNext ??
+(data.pagination?.currentPage <
+data.pagination?.totalPages);
+
+}else{
+
+hasNext = false;
+}
+
+if(!hasNext){
+loading.innerText = "No more videos";
+}
+
+}catch(err){
+
+console.log(err);
+
+loading.innerText = "Failed loading videos";
+}
+
+loadingNow = false;
+}
+
+window.addEventListener("scroll",()=>{
+
+const scrollTop = window.scrollY;
+const screenHeight = window.innerHeight;
+const fullHeight = document.body.offsetHeight;
+
+if(scrollTop + screenHeight >= fullHeight - 1200){
+loadVideos();
+}
+});
+
+searchInput.addEventListener("input",(e)=>{
+
+const value = e.target.value.toLowerCase();
+
+const filtered = allVideos.filter(v =>
 (v.title || "")
 .toLowerCase()
-.includes(q)
+.includes(value)
 );
 
-renderVideos(filtered);
-
+renderVideos(filtered,true);
 });
 
 loadVideos();
-
 </script>
 
 </body>
