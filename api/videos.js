@@ -6,53 +6,81 @@ export default async function handler(req, res) {
 
     let allVideos = [];
 
-    // 🔥 paksa ambil banyak halaman
-    for (let page = 1; page <= 50; page++) {
+    // =========================
+    // 🔥 AMBIL VIDEO ROOT
+    // =========================
 
-      console.log("LOAD PAGE:", page);
+    for (let page = 1; page <= 20; page++) {
 
-      const response = await fetch(
-        `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}&_=${Date.now()}`,
-        {
-          headers: {
-            "User-Agent": "Mozilla/5.0",
-            "Cache-Control": "no-cache"
-          }
-        }
+      const rootRes = await fetch(
+        `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}&_=${Date.now()}`
       );
 
-      const data = await response.json();
+      const rootData = await rootRes.json();
 
-      const videos = data.data || [];
+      const rootVideos = rootData.data || [];
 
-      // 🔥 kalau page kosong baru stop
-      if (videos.length === 0) {
-        break;
-      }
+      if (rootVideos.length === 0) break;
 
-      allVideos.push(...videos);
-
-      // 🔥 delay kecil anti rate limit
-      await new Promise(r => setTimeout(r, 150));
+      allVideos.push(...rootVideos);
     }
 
-    // 🔥 hapus duplicate
+    // =========================
+    // 🔥 AMBIL SEMUA FOLDER
+    // =========================
+
+    const folderRes = await fetch(
+      `https://vizey.net/api/v1/folders?apikey=${API_KEY}&_=${Date.now()}`
+    );
+
+    const folderData = await folderRes.json();
+
+    const folders = folderData.data || [];
+
+    // =========================
+    // 🔥 LOOP SEMUA FOLDER
+    // =========================
+
+    for (const folder of folders) {
+
+      for (let page = 1; page <= 20; page++) {
+
+        const resFolderVideos = await fetch(
+          `https://vizey.net/api/v1/folders/${folder.id}?apikey=${API_KEY}&page=${page}&_=${Date.now()}`
+        );
+
+        const folderVideosData =
+          await resFolderVideos.json();
+
+        const videos =
+          folderVideosData.data || [];
+
+        if (videos.length === 0) break;
+
+        allVideos.push(...videos);
+      }
+    }
+
+    // =========================
+    // 🔥 HAPUS DUPLICATE
+    // =========================
+
     const unique = [];
     const ids = new Set();
 
-    for (const v of allVideos) {
+    for (const video of allVideos) {
 
-      if (!ids.has(v.id)) {
+      if (!ids.has(video.id)) {
 
-        ids.add(v.id);
+        ids.add(video.id);
 
-        unique.push(v);
+        unique.push(video);
       }
     }
 
     res.setHeader(
       "Cache-Control",
-      "no-store, max-age=0"
+      "no-store"
     );
 
     return res.status(200).json({
