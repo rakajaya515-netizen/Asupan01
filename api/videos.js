@@ -2,45 +2,50 @@ export default async function handler(req, res) {
 
   try {
 
-    const API_KEY = process.env.VIZEY_API_KEY;
+    const API_KEY =
+      process.env.VIZEY_API_KEY;
 
+    // 🔥 folder id kamu
     const FOLDER_ID = "089vwlwk";
 
     let allVideos = [];
 
-    // 🔥 ambil semua halaman folder
+    // 🔥 ambil SEMUA halaman
     for (let page = 1; page <= 100; page++) {
 
-      console.log("LOAD PAGE:", page);
+      const url =
+        `https://vizey.net/api/v1/folders/${FOLDER_ID}?apikey=${API_KEY}&page=${page}&t=${Date.now()}`;
 
-      const response = await fetch(
-        `https://vizey.net/api/v1/folders/${FOLDER_ID}?apikey=${API_KEY}&page=${page}&_=${Date.now()}`
-      );
+      console.log("FETCH:", url);
 
-      const data = await response.json();
+      const response =
+        await fetch(url);
 
-      const videos = data.data || [];
+      const json =
+        await response.json();
 
-      console.log(
-        "VIDEOS:",
-        videos.length
-      );
+      console.log(json);
+
+      // 🔥 array video
+      const videos =
+        json.data || [];
 
       // stop kalau kosong
-      if (videos.length === 0) {
+      if (!videos.length) {
         break;
       }
 
       allVideos.push(...videos);
 
-      // anti rate limit
+      // delay anti rate limit
       await new Promise(r =>
-        setTimeout(r, 100)
+        setTimeout(r, 150)
       );
     }
 
-    // 🔥 hapus duplicate
+    // 🔥 remove duplicate
     const unique = [];
+
     const ids = new Set();
 
     for (const video of allVideos) {
@@ -50,12 +55,14 @@ export default async function handler(req, res) {
         ids.add(video.id);
 
         unique.push(video);
+
       }
+
     }
 
     res.setHeader(
       "Cache-Control",
-      "no-store"
+      "no-store, max-age=0"
     );
 
     return res.status(200).json({
