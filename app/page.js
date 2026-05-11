@@ -1,9 +1,12 @@
+// app/page.js
+
 "use client";
 
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
+  const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -11,31 +14,11 @@ export default function Home() {
     async function loadVideos() {
       try {
         const res = await fetch("/api/videos");
+
         const data = await res.json();
 
-        const videosWithUrl = await Promise.all(
-          data.map(async (video) => {
-            try {
-              const detail = await fetch(
-                `https://vizey.net/api/v1/videos?apikey=${process.env.NEXT_PUBLIC_VIZEY_API_KEY}&id=${video.id}`
-              );
-
-              const detailData = await detail.json();
-
-              return {
-                ...video,
-                url: detailData?.data?.url || "#",
-              };
-            } catch {
-              return {
-                ...video,
-                url: "#",
-              };
-            }
-          })
-        );
-
-        setVideos(videosWithUrl);
+        setVideos(data);
+        setFiltered(data);
       } catch (err) {
         console.log(err);
       }
@@ -46,21 +29,29 @@ export default function Home() {
     loadVideos();
   }, []);
 
-  const filtered = videos.filter((video) =>
-    video.title?.toLowerCase().includes(search.toLowerCase())
-  );
+  function handleSearch(value) {
+    setSearch(value);
+
+    const result = videos.filter((video) =>
+      video.title?.toLowerCase().includes(value.toLowerCase())
+    );
+
+    setFiltered(result);
+  }
 
   return (
-    <main className="container">
-      <h1 className="logo">Asupanmu</h1>
+    <main className="main">
+      <div className="navbar">
+        <h1 className="logo">Asupanmu</h1>
 
-      <input
-        type="text"
-        placeholder="Search video..."
-        className="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+        <input
+          type="text"
+          placeholder="Search video..."
+          className="search"
+          value={search}
+          onChange={(e) => handleSearch(e.target.value)}
+        />
+      </div>
 
       <p className="count">
         {loading
@@ -72,7 +63,7 @@ export default function Home() {
         {filtered.map((video) => (
           <a
             key={video.id}
-            href={video.url}
+            href={`https://videy.co/v/?id=${video.id}`}
             target="_blank"
             className="card"
           >
@@ -83,8 +74,17 @@ export default function Home() {
               loading="lazy"
             />
 
+            <div className="overlay">
+              <div className="play">▶</div>
+            </div>
+
             <div className="info">
-              <p>{video.title}</p>
+              <h2>{video.title}</h2>
+
+              <div className="meta">
+                <span>{video.views || 0} views</span>
+                <span>{video.duration || 0}s</span>
+              </div>
             </div>
           </a>
         ))}
