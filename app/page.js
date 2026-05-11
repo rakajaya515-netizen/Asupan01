@@ -3,21 +3,25 @@
 import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [allVideos, setAllVideos] = useState([]);
   const [videos, setVideos] = useState([]);
-  const [visibleVideos, setVisibleVideos] = useState([]);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  const LIMIT = 20;
 
   useEffect(() => {
-    async function loadVideos() {
+    async function fetchVideos() {
       try {
         const res = await fetch("/api/videos");
+
         const data = await res.json();
 
-        setVideos(data);
-        setVisibleVideos(data.slice(0, 20));
+        setAllVideos(data);
+        setVideos(data.slice(0, LIMIT));
 
         // restore scroll
-        const savedScroll = sessionStorage.getItem("scrollY");
+        const savedScroll = sessionStorage.getItem("scroll");
 
         if (savedScroll) {
           setTimeout(() => {
@@ -29,13 +33,13 @@ export default function Home() {
       }
     }
 
-    loadVideos();
+    fetchVideos();
   }, []);
 
-  // save scroll position
+  // save scroll
   useEffect(() => {
     const saveScroll = () => {
-      sessionStorage.setItem("scrollY", window.scrollY);
+      sessionStorage.setItem("scroll", window.scrollY);
     };
 
     window.addEventListener("scroll", saveScroll);
@@ -50,17 +54,9 @@ export default function Home() {
     const handleScroll = () => {
       if (
         window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 500
+        document.body.offsetHeight - 800
       ) {
-        setVisibleVideos((prev) => {
-          const next = videos.slice(0, prev.length + 20);
-
-          if (next.length === prev.length) {
-            return prev;
-          }
-
-          return next;
-        });
+        loadMore();
       }
     };
 
@@ -69,21 +65,37 @@ export default function Home() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [videos]);
+  });
+
+  function loadMore() {
+    const nextPage = page + 1;
+
+    const nextVideos = allVideos.slice(
+      0,
+      nextPage * LIMIT
+    );
+
+    if (nextVideos.length === videos.length) return;
+
+    setVideos(nextVideos);
+    setPage(nextPage);
+  }
 
   function handleSearch(value) {
     setSearch(value);
 
     if (!value) {
-      setVisibleVideos(videos.slice(0, 20));
+      setVideos(allVideos.slice(0, LIMIT));
       return;
     }
 
-    const filtered = videos.filter((video) =>
-      video.title?.toLowerCase().includes(value.toLowerCase())
+    const filtered = allVideos.filter((video) =>
+      video.title
+        ?.toLowerCase()
+        .includes(value.toLowerCase())
     );
 
-    setVisibleVideos(filtered);
+    setVideos(filtered);
   }
 
   return (
@@ -96,16 +108,18 @@ export default function Home() {
           placeholder="Search video..."
           className="search"
           value={search}
-          onChange={(e) => handleSearch(e.target.value)}
+          onChange={(e) =>
+            handleSearch(e.target.value)
+          }
         />
       </div>
 
       <p className="count">
-        {visibleVideos.length} videos loaded
+        {videos.length} videos loaded
       </p>
 
       <div className="grid">
-        {visibleVideos.map((video) => (
+        {videos.map((video) => (
           <a
             key={video.id}
             href={`https://videy.co/v/?id=${video.id}`}
@@ -121,15 +135,22 @@ export default function Home() {
             />
 
             <div className="overlay">
-              <div className="play">▶</div>
+              <div className="play">
+                ▶
+              </div>
             </div>
 
             <div className="info">
               <h2>{video.title}</h2>
 
               <div className="meta">
-                <span>{video.views || 0} views</span>
-                <span>{video.duration || 0}s</span>
+                <span>
+                  {video.views || 0} views
+                </span>
+
+                <span>
+                  {video.duration || 0}s
+                </span>
               </div>
             </div>
           </a>
@@ -137,4 +158,4 @@ export default function Home() {
       </div>
     </main>
   );
-}        
+}
