@@ -17,23 +17,23 @@ export default async function handler(req, res) {
     while (hasNext) {
 
       const response = await fetch(
-        `https://vizey.net/api/v1/folders/${FOLDER_ID}?apikey=${API_KEY}&page=${currentPage}&_=${Date.now()}`
+        `https://vizey.net/api/v1/folders/${FOLDER_ID}?apikey=${API_KEY}&page=${currentPage}&t=${Date.now()}`
       );
 
-      const json = await response.json();
+      const json =
+        await response.json();
 
       console.log(json);
 
-      const videos = json.data || [];
-
-      const pagination =
-        json.pagination || {};
+      // 🔥 videos
+      const videos =
+        json.data || [];
 
       allVideos.push(...videos);
 
-      // 🔥 cek next page
+      // 🔥 pagination FIX
       hasNext =
-        pagination.hasNext || false;
+        json.meta?.pagination?.hasNext || false;
 
       currentPage++;
 
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
       );
     }
 
-    // remove duplicate
+    // 🔥 remove duplicate
     const unique = [];
 
     const ids = new Set();
