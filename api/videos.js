@@ -2,34 +2,15 @@ export default async function handler(req, res) {
 
   try {
 
-    const page = Number(req.query.page || 1);
-
     const API_KEY = process.env.VIZEY_API_KEY;
-
-    // 🔥 ambil semua folder
-    const folderRes = await fetch(
-      `https://vizey.net/api/v1/folders?apikey=${API_KEY}&_=${Date.now()}`,
-      {
-        headers: {
-          "User-Agent": "Mozilla/5.0",
-          "Cache-Control": "no-cache"
-        }
-      }
-    );
-
-    const folderData = await folderRes.json();
-
-    const folders = folderData.data || [];
 
     let allVideos = [];
 
-    // 🔥 loop semua folder
-    for (const folder of folders) {
+    // 🔥 ambil banyak halaman sekaligus
+    for (let page = 1; page <= 20; page++) {
 
-      const folderId = folder.id;
-
-      const videoRes = await fetch(
-        `https://vizey.net/api/v1/folders/${folderId}?apikey=${API_KEY}&page=${page}&_=${Date.now()}`,
+      const response = await fetch(
+        `https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}&_=${Date.now()}`,
         {
           headers: {
             "User-Agent": "Mozilla/5.0",
@@ -38,11 +19,24 @@ export default async function handler(req, res) {
         }
       );
 
-      const videoData = await videoRes.json();
+      const data = await response.json();
 
-      const videos = videoData.data || [];
+      const videos = data.data || [];
+
+      // 🔥 stop kalau page kosong
+      if (videos.length === 0) {
+        break;
+      }
 
       allVideos.push(...videos);
+
+      // 🔥 stop kalau tidak ada next page
+      if (
+        data.pagination &&
+        data.pagination.hasNext === false
+      ) {
+        break;
+      }
     }
 
     // 🔥 hapus duplicate
@@ -50,13 +44,13 @@ export default async function handler(req, res) {
 
     const ids = new Set();
 
-    for (const v of allVideos) {
+    for (const video of allVideos) {
 
-      if (!ids.has(v.id)) {
+      if (!ids.has(video.id)) {
 
-        ids.add(v.id);
+        ids.add(video.id);
 
-        uniqueVideos.push(v);
+        uniqueVideos.push(video);
       }
     }
 
@@ -67,10 +61,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      page,
       total: uniqueVideos.length,
-      videos: uniqueVideos,
-      hasNext: uniqueVideos.length > 0
+      videos: uniqueVideos
     });
 
   } catch (err) {
