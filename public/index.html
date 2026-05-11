@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Asupanmu</title>
 
 <style>
+
 *{
   margin:0;
   padding:0;
@@ -24,25 +25,25 @@ body{
   top:0;
   z-index:999;
   background:#000;
-  padding:20px;
+  padding:20px 16px;
 }
 
 .logo{
   font-size:52px;
   font-weight:900;
   color:#ff2fcf;
-  margin-bottom:20px;
+  margin-bottom:18px;
 }
 
 .search{
   width:100%;
   padding:18px;
   border:none;
+  outline:none;
   border-radius:20px;
   background:#111;
   color:#fff;
   font-size:20px;
-  outline:none;
 }
 
 .container{
@@ -57,6 +58,8 @@ body{
   border-radius:20px;
   overflow:hidden;
   cursor:pointer;
+
+  contain:content;
 }
 
 .card img{
@@ -71,12 +74,13 @@ body{
   font-size:15px;
   font-weight:bold;
   line-height:1.4;
+  word-break:break-word;
 }
 
 .loading{
   text-align:center;
   padding:30px;
-  font-size:20px;
+  font-size:22px;
 }
 
 .ad-box{
@@ -87,24 +91,35 @@ body{
 }
 
 @media(max-width:600px){
+
+  .logo{
+    font-size:48px;
+  }
+
   .card img{
     height:220px;
   }
+
 }
+
 </style>
 </head>
 
 <body>
 
 <div class="navbar">
-  <div class="logo">Asupanmu</div>
+
+  <div class="logo">
+    Asupanmu
+  </div>
 
   <input
     type="text"
     id="search"
     class="search"
     placeholder="Search video..."
-  />
+  >
+
 </div>
 
 <div id="videos" class="container"></div>
@@ -119,17 +134,22 @@ let page = 1;
 let loading = false;
 let hasMore = true;
 
-let videosGlobal = [];
 let filteredMode = false;
 
-const container = document.getElementById("videos");
-const loadingText = document.getElementById("loading");
+let videosGlobal = [];
+
+const container =
+  document.getElementById("videos");
+
+const loadingText =
+  document.getElementById("loading");
 
 
 // 🔥 Popunder sekali
 function triggerPopunder(){
 
-  if(localStorage.getItem("popShown")) return;
+  if(localStorage.getItem("popShown"))
+    return;
 
   localStorage.setItem("popShown","true");
 
@@ -137,6 +157,7 @@ function triggerPopunder(){
     "https://www.profitableratecpm.com/s65zeryji1?key=67a910e3b4387aa420b25f4a4bfa41b1",
     "_blank"
   );
+
 }
 
 
@@ -144,14 +165,20 @@ function triggerPopunder(){
 function createNativeAd(){
 
   const ad = document.createElement("div");
+
   ad.className = "ad-box";
 
-  const script = document.createElement("script");
+  const script =
+    document.createElement("script");
+
   script.async = true;
+
   script.src =
     "//pl29343712.profitableratecpm.com/d6c7cfa2fbe3ee841c92a4f50371bf35/invoke.js";
 
-  const ins = document.createElement("div");
+  const ins =
+    document.createElement("div");
+
   ins.id =
     "container-d6c7cfa2fbe3ee841c92a4f50371bf35";
 
@@ -169,22 +196,31 @@ function renderVideos(videos, reset = false){
     container.innerHTML = "";
   }
 
-  const fragment = document.createDocumentFragment();
+  const fragment =
+    document.createDocumentFragment();
 
   videos.forEach((v, i) => {
 
     // ads tiap 8 video
-    if((container.children.length + i + 1) % 8 === 0){
-      fragment.appendChild(createNativeAd());
+    if(
+      (container.children.length + i + 1) % 8 === 0
+    ){
+      fragment.appendChild(
+        createNativeAd()
+      );
     }
 
-    const el = document.createElement("div");
+    const el =
+      document.createElement("div");
+
     el.className = "card";
 
     el.innerHTML = `
       <img
         src="${v.thumbnail}"
         loading="lazy"
+        decoding="async"
+        referrerpolicy="no-referrer"
       >
 
       <div class="card-title">
@@ -197,7 +233,7 @@ function renderVideos(videos, reset = false){
       triggerPopunder();
 
       window.location.href =
-        `https://vizey.net/v/${v.id}`;
+        \`https://vizey.net/v/\${v.id}\`;
     };
 
     fragment.appendChild(el);
@@ -205,32 +241,44 @@ function renderVideos(videos, reset = false){
   });
 
   container.appendChild(fragment);
+
 }
 
 
 // 🔥 Fetch API
 async function fetchVideos(pageNum){
 
-  const res = await fetch(`/api/videos?page=${pageNum}`);
+  const res =
+    await fetch(
+      \`/api/videos?page=\${pageNum}\`
+    );
 
   return await res.json();
+
 }
 
 
 // 🔥 Load videos
 async function loadVideos(){
 
-  if(loading || !hasMore || filteredMode) return;
+  if(
+    loading ||
+    !hasMore ||
+    filteredMode
+  ) return;
 
   loading = true;
 
-  loadingText.innerHTML = "Loading videos...";
+  loadingText.innerHTML =
+    "Loading videos...";
 
   try{
 
-    const data = await fetchVideos(page);
+    const data =
+      await fetchVideos(page);
 
-    const videos = data.videos || [];
+    const videos =
+      data.videos || [];
 
     videosGlobal.push(...videos);
 
@@ -241,18 +289,23 @@ async function loadVideos(){
     page++;
 
     if(!hasMore){
-      loadingText.innerHTML = "No more videos";
+
+      loadingText.innerHTML =
+        "No more videos";
+
     }
 
   }catch(err){
 
     console.log(err);
 
-    loadingText.innerHTML = "Failed load videos";
+    loadingText.innerHTML =
+      "Failed load videos";
 
   }
 
   loading = false;
+
 }
 
 
@@ -260,37 +313,52 @@ async function loadVideos(){
 window.addEventListener("scroll", () => {
 
   if(
-    window.innerHeight + window.scrollY >=
+    window.innerHeight +
+    window.scrollY >=
     document.body.offsetHeight - 1000
   ){
+
     loadVideos();
+
   }
 
 });
 
 
 // 🔥 Search
-document.getElementById("search")
+document
+.getElementById("search")
 .addEventListener("input", e => {
 
-  const q = e.target.value.toLowerCase();
+  const q =
+    e.target.value.toLowerCase();
 
-  if(q.length > 0){
-
-    filteredMode = true;
-
-    const filtered = videosGlobal.filter(v =>
-      v.title.toLowerCase().includes(q)
-    );
-
-    renderVideos(filtered, true);
-
-  }else{
+  // kosong
+  if(q.length === 0){
 
     filteredMode = false;
 
-    renderVideos(videosGlobal, true);
+    container.innerHTML = "";
+
+    renderVideos(videosGlobal);
+
+    return;
   }
+
+  filteredMode = true;
+
+  const filtered =
+    videosGlobal.filter(v =>
+
+      (v.title || "")
+      .toLowerCase()
+      .includes(q)
+
+    );
+
+  container.innerHTML = "";
+
+  renderVideos(filtered);
 
 });
 
@@ -301,9 +369,7 @@ loadVideos();
 </script>
 
 <!-- SOCIAL BAR -->
-<script
-src="//pl29343713.profitableratecpm.com/9a/69/24/9a6924d62fcb5f212667f72bfbb2378f.js">
-</script>
+<script src="//pl29343713.profitableratecpm.com/9a/69/24/9a6924d62fcb5f212667f72bfbb2378f.js"></script>
 
 </body>
 </html>
