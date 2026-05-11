@@ -4,47 +4,34 @@ try {
 
 const page = req.query.page || 1;
 
+const API_KEY = process.env.VIZEY_API_KEY;
+
 const response = await fetch(
-`https://vizey.net/api/videos?page=${page}`,
+`https://vizey.net/api/v1/list?apikey=${API_KEY}&page=${page}`,
 {
-headers: {
-"User-Agent": "Mozilla/5.0"
+headers:{
+"User-Agent":"Mozilla/5.0"
 }
 }
 );
 
-const text = await response.text();
+const data = await response.json();
 
-let data = {};
-
-try {
-data = JSON.parse(text);
-} catch {
-return res.status(500).json({
-error: "Response bukan JSON",
-raw: text
-});
-}
-
-const videos =
-data.videos ||
-data.result ||
-data.data ||
-[];
+const videos = data.data || [];
 
 res.setHeader(
 "Cache-Control",
-"s-maxage=60, stale-while-revalidate"
+"s-maxage=120, stale-while-revalidate"
 );
 
-return res.status(200).json({
+res.status(200).json({
 videos,
-hasMore: videos.length > 0
+hasMore: data.pagination?.hasNext || false
 });
 
-} catch (err) {
+} catch(err){
 
-return res.status(500).json({
+res.status(500).json({
 error: err.toString()
 });
 
